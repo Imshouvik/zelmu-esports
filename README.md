@@ -4,28 +4,48 @@ A modern, professional esports organization platform for mobile games like BGMI 
 
 ## Features
 
-- 🎮 Tournament Management
-  - Create and manage tournaments
+- 🎮 **Tournament Management**
+  - Create and manage tournaments with advanced options (rules, rewards, featured/upcoming, etc.)
   - Set prize pools and registration fees
   - Track team registrations
   - View tournament brackets and results
 
-- 👥 User Management
-  - User registration and authentication
-  - Team registration with player details
-  - Profile management
+- 👥 **User & Club Management**
+  - User registration and authentication (email/password, OAuth)
+  - Team and club registration with player details
+  - Profile management and completion
+  - Club invites and join via invite code
 
-- 🏆 Tournament Features
+- 🏆 **Tournament Features**
   - Tournament listings with filters
   - Detailed tournament pages
   - Registration system
   - Prize distribution tracking
 
-- 🎯 Admin Dashboard
-  - Tournament management
-  - Registration management
-  - User management
+- 🛡️ **Secure Admin Panel**
+  - Role-based access control (superadmin, admin, user)
+  - Manage users, clubs, tournaments, and permissions
+  - Real-time permission updates (UI reflects backend state instantly)
+  - Push notifications to all users (with automatic cleanup of invalid FCM tokens)
+  - View platform stats (users, clubs, tournaments, active members)
   - Analytics and reporting
+
+- 🔔 **Notifications**
+  - Push notifications to users via FCM
+  - Notification bell for both users and admins
+
+- 🌐 **Community Features**
+  - Community posts, likes, and comments
+  - Comment counts and real user ID tracking
+
+- 🔒 **Robust API Security**
+  - All sensitive actions routed through secure API endpoints using a server-side Supabase client
+  - Row Level Security (RLS) enforced on all tables
+  - Session persistence and Redux state hydration
+
+- 💎 **Modern Frontend**
+  - Next.js 14, TypeScript, Tailwind CSS, Redux Toolkit
+  - Clean, professional UI/UX
 
 ## Tech Stack
 
@@ -35,13 +55,14 @@ A modern, professional esports organization platform for mobile games like BGMI 
 - **Form Handling**: React Hook Form with Yup validation
 - **UI Components**: Custom components with Tailwind CSS
 - **Animations**: Framer Motion
-- **Notifications**: React Hot Toast
+- **Notifications**: React Hot Toast, FCM
+- **Backend**: Supabase (Database, Auth, Storage, RLS)
 
 ## Getting Started
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/zelmu-esports.git
+   git clone https://github.com/Imshouvik/zelmu-esports.git
    cd zelmu-esports
    ```
 
@@ -52,7 +73,10 @@ A modern, professional esports organization platform for mobile games like BGMI 
 
 3. Create a `.env.local` file in the root directory and add your environment variables:
    ```
-   NEXT_PUBLIC_API_URL=your_api_url
+   NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+   SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+   # Add any other required environment variables
    ```
 
 4. Run the development server:
@@ -67,16 +91,14 @@ A modern, professional esports organization platform for mobile games like BGMI 
 ```
 zelmu-esports/
 ├── src/
-│   ├── app/                 # Next.js app directory
-│   │   ├── (auth)/         # Authentication routes
-│   │   ├── dashboard/      # Admin dashboard
-│   │   ├── tournaments/    # Tournament pages
-│   │   └── layout.tsx      # Root layout
-│   ├── components/         # Reusable components
-│   ├── store/             # Redux store and slices
-│   └── types/             # TypeScript types
-├── public/                # Static assets
-└── package.json          # Project dependencies
+│   ├── app/                 # Next.js app directory (routes, pages, admin, community, etc.)
+│   ├── components/          # Reusable components
+│   ├── store/               # Redux store and slices
+│   ├── utils/               # Utility functions and Supabase clients
+│   └── types/               # TypeScript types
+├── public/                  # Static assets
+├── package.json             # Project dependencies
+└── README.md                # Project documentation
 ```
 
 ## Development
