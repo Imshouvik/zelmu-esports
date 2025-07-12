@@ -15,6 +15,7 @@ export default function CompleteProfilePage() {
   const [initialLoading, setInitialLoading] = useState(true)
   const [error, setError] = useState('')
   const [user, setUser] = useState<any>(null)
+  const DEFAULT_AVATAR = 'https://api.dicebear.com/7.x/adventurer/svg?seed=zelmu';
 
   useEffect(() => {
     // Fetch current user info
@@ -71,6 +72,7 @@ export default function CompleteProfilePage() {
     e.preventDefault()
     setError('')
     setLoading(true)
+    let avatarUrl = DEFAULT_AVATAR;
     
     if (!user) {
       setError('User not found.')
@@ -94,7 +96,7 @@ export default function CompleteProfilePage() {
       // Update users table
       const { error: updateError } = await supabase
         .from('users')
-        .update({ name: name.trim(), phone: phone.trim() })
+        .update({ name: name.trim(), phone: phone.trim(), avatar_url: avatarUrl })
         .eq('id', user.id)
 
       if (updateError) {
@@ -109,6 +111,8 @@ export default function CompleteProfilePage() {
     } catch (err) {
       console.error('Error updating profile:', err)
       setError('An unexpected error occurred. Please try again.')
+      setLoading(false)
+    } finally {
       setLoading(false)
     }
   }

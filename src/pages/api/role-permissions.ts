@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { supabase } from '../../utils/supabaseClient';
+import { supabaseAdmin as supabase } from '@/utils/supabaseAdmin';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
@@ -17,14 +17,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (req.method === 'POST') {
-    // TODO: Add superadmin auth check here
-    const { role, permission_key, type, allowed } = req.body;
-    if (!role || !permission_key || !type || typeof allowed !== 'boolean') {
+    // Superadmin auth check
+    const authHeader = req.headers.authorization;
+    const access_token = authHeader?.split(' ')[1];
+    if (!access_token) return res.status(401).json({ error: 'Unauthorized' });
+    const { data: { user }, error: userError } = await supabase.auth.getUser(access_token);
+    if (!user || userError) return res.status(401).json({ error: 'Unauthorized' });
+    const { data: userRow } = await supabase
+      .from('users')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+    if (!userRow || userRow.role !== 'superadmin') {
+      return res.status(401).json({ error: 'Only superadmin can update permissions' });
+    }
+    // Accept both camelCase and snake_case for permission_key
+    const { role, permission_key, permissionKey, type, allowed } = req.body;
+    const key = permission_key || permissionKey;
+    if (!role || !key || !type || typeof allowed !== 'boolean') {
       return res.status(400).json({ error: 'Missing fields' });
     }
     const { data, error } = await supabase
       .from('role_permissions')
-      .upsert([{ role, permission_key, type, allowed }], { onConflict: 'role,permission_key,type' })
+      .upsert([{ role, permission_key: key, type, allowed }], { onConflict: 'role,permission_key,type' })
       .select();
     if (error) return res.status(500).json({ error: error.message });
     return res.status(200).json({ permission: data[0] });

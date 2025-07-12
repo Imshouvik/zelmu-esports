@@ -2,10 +2,11 @@ import Link from 'next/link';
 import { useSelector } from 'react-redux';
 import { usePathname } from 'next/navigation';
 import { RootState } from '@/store';
-import { FaTrophy, FaHome, FaBook, FaStore, FaChartBar, FaHeadset, FaCog, FaCrown, FaDiscord, FaInstagram, FaYoutube, FaTwitter, FaSignOutAlt, FaWallet, FaTimes } from 'react-icons/fa';
+import { FaTrophy, FaHome, FaBook, FaStore, FaChartBar, FaHeadset, FaCog, FaCrown, FaDiscord, FaInstagram, FaYoutube, FaTwitter, FaSignOutAlt, FaWallet, FaTimes, FaCamera, FaSpinner } from 'react-icons/fa';
 import { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/utils/supabaseClient';
 import React, { MouseEvent } from 'react';
+import toast from 'react-hot-toast';
 
 const navLinks = [
   { name: 'Home', href: '/dashboard', icon: <FaHome /> },
@@ -106,23 +107,23 @@ export default function DashboardSidebar({ isOpen = false, onClose }: DashboardS
   const [role, setRole] = useState<string | null>(null);
   const [allowedSidebar, setAllowedSidebar] = useState<string[]>([]);
   const [sidebarLoading, setSidebarLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     async function fetchUserInfo() {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        // Get avatar from auth user_metadata
-        const avatarUrl = user.user_metadata?.avatar_url || user.user_metadata?.avatar || null;
-        setAvatar(avatarUrl);
-        // Get name, email, and role from users table
+        // Get name, email, role, and avatar_url from users table
         const { data } = await supabase
           .from('users')
-          .select('name, email, role')
+          .select('name, email, role, avatar_url')
           .eq('id', user.id)
           .single();
         if (data) {
           setUserInfo(data);
           setRole(data.role);
+          setAvatar(data.avatar_url || 'https://api.dicebear.com/7.x/identicon/svg?seed=zelmu');
         }
       }
       setUserLoading(false);
@@ -163,16 +164,62 @@ export default function DashboardSidebar({ isOpen = false, onClose }: DashboardS
     window.location.href = '/login';
   };
 
+  const handleAvatarClick = () => {
+    if (fileInputRef.current) fileInputRef.current.click();
+  };
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    setUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const filePath = `${user.id}-${Date.now()}.${fileExt}`;
+      const { data: uploadData, error: uploadError } = await supabase.storage.from('user-avatars').upload(filePath, file, { upsert: true });
+      if (uploadError) throw uploadError;
+      const { data: urlData } = supabase.storage.from('user-avatars').getPublicUrl(filePath);
+      const avatarUrl = urlData.publicUrl;
+      // Update users table
+      await supabase.from('users').update({ avatar_url: avatarUrl }).eq('id', user.id);
+      setAvatar(avatarUrl);
+      toast.success('Profile picture updated!');
+    } catch (err) {
+      toast.error('Failed to upload avatar.');
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
   // Sidebar content (shared by desktop and mobile)
   const sidebarContent = (
     <div className="flex flex-col h-full justify-between pb-2">
       {/* User Profile */}
       <div className="flex flex-col items-center py-5 border-b border-fuchsia-900/30">
-        <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-fuchsia-500 to-blue-500 p-1 mb-3">
+        <div className="relative w-20 h-20 rounded-full bg-gradient-to-tr from-fuchsia-500 to-blue-500 p-1 mb-3 group">
           <img
             src={avatar || 'https://api.dicebear.com/7.x/identicon/svg?seed=zelmu'}
             alt="User Avatar"
             className="w-full h-full rounded-full object-cover border-4 border-[#232046]"
+          />
+          {/* Camera Icon Overlay */}
+          <button
+            type="button"
+            className="absolute bottom-1 right-1 bg-fuchsia-700/80 hover:bg-fuchsia-500/90 text-white rounded-full p-2 shadow-lg transition-all group-hover:scale-110"
+            style={{ zIndex: 2 }}
+            onClick={handleAvatarClick}
+            disabled={uploading}
+            title="Change profile picture"
+          >
+            {uploading ? <FaSpinner className="animate-spin" /> : <FaCamera />}
+          </button>
+          <input
+            type="file"
+            accept="image/*"
+            ref={fileInputRef}
+            className="hidden"
+            onChange={handleAvatarChange}
+            disabled={uploading}
           />
         </div>
         {/* User Info */}

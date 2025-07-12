@@ -1,120 +1,212 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { supabase } from '@/utils/supabaseClient';
+import { FaGoogle, FaFacebook, FaDiscord, FaCheck } from 'react-icons/fa';
+import toast from 'react-hot-toast';
 import { useDispatch, useSelector } from 'react-redux'
 import { motion } from 'framer-motion'
 import { AppDispatch, RootState } from '@/store'
 import { setTournaments, setLoading, setError } from '@/store/slices/tournamentSlice'
 import Link from 'next/link'
-import { FaDiscord, FaInstagram, FaYoutube, FaTwitter, FaTrophy, FaUsers, FaStar, FaArrowRight } from 'react-icons/fa'
+import { FaTwitter, FaTrophy, FaUsers, FaStar, FaArrowRight } from 'react-icons/fa'
 import Navigation from '@/components/Navigation'
 
 const socialLinks = [
   { href: 'https://discord.gg/', icon: <FaDiscord />, label: 'Discord' },
-  { href: 'https://instagram.com/', icon: <FaInstagram />, label: 'Instagram' },
-  { href: 'https://youtube.com/', icon: <FaYoutube />, label: 'YouTube' },
   { href: 'https://twitter.com/', icon: <FaTwitter />, label: 'Twitter' },
-]
+];
 
 export default function Home() {
+  // All hooks at the top!
+  const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
+  const loading = useSelector((state: RootState) => state.auth.loading);
+  const router = require('next/navigation').useRouter();
+  const searchParams = require('next/navigation').useSearchParams();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
+  const redirectTo = searchParams?.get('redirect') || '/dashboard';
+  const confirmed = searchParams?.get('confirmed');
+  const message = searchParams?.get('message');
+  const userEmail = searchParams?.get('email');
+
+  useEffect(() => {
+    if (confirmed === '1') {
+      setShowSuccess(true);
+      toast.success('Email confirmed successfully! You can now log in.');
+    }
+    if (message === 'email_sent' && userEmail) {
+      setShowSuccess(true);
+      setEmail(userEmail);
+    }
+  }, [confirmed, message, userEmail]);
+
+  if (loading) return null;
+  if (isAuthenticated) return null;
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError('');
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
+      if (error.message.includes('Email not confirmed')) {
+        setError('Please confirm your email address before logging in. Use the "Resend Confirmation Email" button below if needed.');
+      } else if (error.message.includes('Invalid login credentials')) {
+        setError('Invalid email or password. Please check your credentials and try again.');
+      } else {
+        setError(error.message);
+      }
+    } else {
+      router.push(redirectTo);
+    }
+  };
+
+  const handleOAuthLogin = async (provider: 'google' | 'facebook' | 'discord') => {
+    await supabase.auth.signInWithOAuth({
+      provider,
+      options: { redirectTo: window.location.origin + '/oauth-callback' },
+    });
+  };
+
+  const handleResendConfirmation = async () => {
+    if (!email) {
+      setError('Please enter your email address first.');
+      return;
+    }
+    setResendLoading(true);
+    setError('');
+    try {
+      const { error } = await supabase.auth.resend({ type: 'signup', email });
+      if (error) {
+        setError(error.message);
+      } else {
+        setShowSuccess(true);
+        toast.success('Confirmation email sent! Please check your inbox.');
+      }
+    } catch (err) {
+      setError('Failed to send confirmation email. Please try again.');
+    } finally {
+      setResendLoading(false);
+    }
+  };
+
   return (
-    <div className="relative min-h-screen w-full flex flex-col items-center justify-start">
-      <Navigation />
-      {/* Background image with absolute positioning */}
-      <div className="absolute inset-0 w-full h-full -z-10 bg-black">
-        <img
-          src="/app/images/esports%20bg.webp"
-          alt="Esports Background"
-          className="w-full h-full object-cover object-center"
-          style={{ opacity: 0.7 }}
-        />
-        {/* Blue-black overlay for modern effect */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[#0a0a23]/80 via-blue-900/60 to-[#18122b]/90 mix-blend-multiply pointer-events-none" />
-      </div>
-      {/* Main content restored */}
-      <main className="w-full flex flex-col items-center justify-start">
-        {/* Hero Section */}
-        <section className="w-full flex flex-col items-center justify-center pt-40 pb-16 text-center select-none">
-          <h1 className="text-4xl md:text-6xl font-extrabold text-white mb-4 drop-shadow-lg" style={{ fontFamily: "'Orbitron', 'Inter', sans-serif" }}>
-            Monetize your passion for gaming
-          </h1>
-          <h2 className="text-2xl md:text-4xl font-bold bg-gradient-to-r from-cyan-400 via-fuchsia-400 to-blue-400 text-transparent bg-clip-text mb-4">
-            Instant payments USDC
+    <div className="min-h-screen w-full flex flex-col justify-between bg-[#f4f5fa] font-sans">
+      <main className="flex flex-1 flex-col md:flex-row items-center justify-center w-full max-w-7xl mx-auto px-4 py-12 gap-12">
+        {/* Left: Logo and tagline */}
+        <div className="flex-1 flex flex-col items-start justify-center max-w-lg">
+          <span className="text-black text-5xl md:text-6xl font-extrabold mb-6 select-none tracking-tight" style={{ fontFamily: 'Inter, sans-serif', letterSpacing: '-0.04em' }}>
+            Zelmu
+          </span>
+          <div className="w-16 h-2 bg-gradient-to-r from-purple-500 via-fuchsia-500 to-blue-500 rounded-full mb-6" />
+          <h2 className="text-2xl md:text-3xl font-semibold text-gray-900 mb-4 select-none">
+            India’s Esports Gateway for Everyone
           </h2>
-          <p className="text-lg md:text-xl text-fuchsia-100 mb-8 max-w-2xl mx-auto">
-            Join the eSports platform and earn money!
+          <p className="text-lg text-gray-700 select-none">
+            Play, compete, and grow your skills. Affordable tournaments, multilingual support, and real career opportunities for gamers in Tier 2-3 cities and beyond.
           </p>
-          <button className="bg-gradient-to-r from-cyan-400 to-fuchsia-500 hover:from-fuchsia-500 hover:to-cyan-400 text-white px-10 py-3 rounded-full font-bold text-lg shadow-lg transition-all duration-300 border-2 border-white/20 hover:scale-105 hover:shadow-2xl backdrop-blur-xl">
-            BEGIN
-          </button>
-        </section>
-        {/* Feature Cards */}
-        <section className="w-full flex flex-col items-center justify-center pb-12">
-          <div className="flex flex-col md:flex-row gap-6 w-full max-w-5xl justify-center">
-            <div className="flex-1 bg-white/10 border border-cyan-400/30 rounded-2xl p-6 min-w-[260px] max-w-xs mx-auto backdrop-blur-lg shadow-xl flex flex-col items-center text-center">
-              <FaTrophy className="text-3xl text-cyan-400 mb-3" />
-              <h3 className="text-lg font-bold text-white mb-2">ENTER AND EARN</h3>
-              <p className="text-fuchsia-100 text-sm mb-2">Compete in thousands of free eSports tournaments.</p>
-              <span className="text-cyan-300 text-xs font-semibold">30,000+ TOURNAMENTS</span>
-            </div>
-            <div className="flex-1 bg-white/10 border border-fuchsia-400/30 rounded-2xl p-6 min-w-[260px] max-w-xs mx-auto backdrop-blur-lg shadow-xl flex flex-col items-center text-center">
-              <FaUsers className="text-3xl text-fuchsia-400 mb-3" />
-              <h3 className="text-lg font-bold text-white mb-2">ORGANIZE IT YOUR WAY</h3>
-              <p className="text-fuchsia-100 text-sm mb-2">Organize tournaments in just one click, easily and quickly.</p>
-              <span className="text-fuchsia-300 text-xs font-semibold">500K+ GAMERS</span>
-            </div>
-            <div className="flex-1 bg-white/10 border border-yellow-400/30 rounded-2xl p-6 min-w-[260px] max-w-xs mx-auto backdrop-blur-lg shadow-xl flex flex-col items-center text-center">
-              <FaStar className="text-3xl text-yellow-400 mb-3" />
-              <h3 className="text-lg font-bold text-white mb-2">QUESTS AND REWARDS</h3>
-              <p className="text-fuchsia-100 text-sm mb-2">Tasks, predictions, and quizzes every day for rewards.</p>
-              <span className="text-yellow-300 text-xs font-semibold">₹2.5M+ IN PRIZES</span>
-            </div>
-          </div>
-        </section>
-        {/* Investors Row */}
-        <section className="w-full flex flex-col items-center justify-center pb-10">
-          <div className="max-w-5xl w-full flex flex-wrap justify-center items-center gap-8 py-4">
-            {["BINANCE", "BITKRAFT", "COINFUND", "MESH", "SOFTBANK"].map((name) => (
-              <span key={name} className="bg-white/10 px-6 py-2 rounded-xl text-white/70 text-lg font-bold tracking-wide shadow-md border border-white/10">
-                {name}
-              </span>
-            ))}
-          </div>
-        </section>
-        {/* Promo Banner */}
-        <section className="w-full flex flex-col items-center justify-center pb-10">
-          <div className="max-w-4xl w-full bg-gradient-to-r from-cyan-500/20 via-fuchsia-500/20 to-blue-500/20 border border-fuchsia-400/30 rounded-2xl px-8 py-6 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl backdrop-blur-lg">
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 bg-gradient-to-br from-cyan-400 to-fuchsia-400 rounded-full flex items-center justify-center">
-                <FaArrowRight className="text-white text-3xl" />
+        </div>
+        {/* Right: Login card with social login, register button redirects */}
+        <div className="flex-1 flex flex-col items-center justify-center">
+          <div className="w-full max-w-sm bg-white rounded-2xl shadow-2xl p-10 flex flex-col gap-6 border border-gray-100">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2 text-center">Log in to Zelmu</h2>
+            {showSuccess && (
+              <div className="w-full mb-4 p-3 bg-green-500/20 border border-green-400/30 rounded-lg flex items-center gap-2">
+                <FaCheck className="text-green-400 flex-shrink-0" />
+                <span className="text-green-700 text-sm">
+                  {message === 'email_sent'
+                    ? `Registration successful! Please check your email (${userEmail}) and click the confirmation link to activate your account.`
+                    : 'Account activation link sent to your email again. Please check your inbox and click the link to activate your account.'}
+                </span>
               </div>
-              <div>
-                <h4 className="text-white text-xl font-bold mb-1">Introducing the ₹ZELMU token!</h4>
-                <p className="text-fuchsia-100 text-sm">The ZELMU token is coming soon. Learn more about its features, utility, and more!</p>
-              </div>
+            )}
+            <form className="w-full flex flex-col gap-4" onSubmit={handleSubmit}>
+              <input
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 transition-all text-base shadow-inner"
+              />
+              <input
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 transition-all text-base shadow-inner"
+              />
+              {error && <div className="text-red-500 text-sm font-semibold -mt-2 mb-2">{error}</div>}
+              <button
+                type="submit"
+                className="w-full bg-gradient-to-r from-purple-600 to-fuchsia-500 hover:from-fuchsia-600 hover:to-purple-700 text-white font-bold py-3 rounded-lg shadow text-lg text-center transition-all duration-200 mt-2"
+              >
+                Log in
+              </button>
+              {(error.includes('Email not confirmed') || error.includes('confirm your email') || message === 'email_sent') && (
+                <button
+                  type="button"
+                  onClick={handleResendConfirmation}
+                  disabled={resendLoading || !email}
+                  className={`w-full mt-2 px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
+                    resendLoading || !email
+                      ? 'bg-gray-600 cursor-not-allowed text-gray-300'
+                      : 'bg-blue-600 hover:bg-blue-700 text-white hover:scale-105'
+                  } shadow-lg`}
+                >
+                  {resendLoading ? 'Sending...' : 'Resend Confirmation Email'}
+                </button>
+              )}
+            </form>
+            {/* Divider below login form */}
+            <div className="flex items-center w-full my-4">
+              <div className="flex-grow border-t border-fuchsia-400/30"></div>
+              <span className="mx-4 text-fuchsia-400 text-xs uppercase tracking-widest font-semibold">or</span>
+              <div className="flex-grow border-t border-fuchsia-400/30"></div>
             </div>
-            <button className="bg-gradient-to-r from-cyan-400 to-fuchsia-500 hover:from-fuchsia-500 hover:to-cyan-400 text-white px-6 py-2 rounded-full font-bold text-base shadow-lg transition-all duration-300 border-2 border-white/20 hover:scale-105 hover:shadow-2xl">
-              FIND OUT MORE
+            {/* Social Login Buttons below divider */}
+            <div className="w-full flex flex-row gap-4 justify-center mb-2">
+              <button
+                onClick={() => handleOAuthLogin('google')}
+                className="bg-white text-[#4285F4] p-4 rounded-full shadow-lg hover:scale-110 transition-all duration-200 border-2 border-white/30 hover:border-[#4285F4] focus:outline-none focus:ring-2 focus:ring-[#4285F4] focus:ring-offset-2"
+                type="button"
+                title="Login with Google"
+              >
+                <FaGoogle className="w-6 h-6" />
+              </button>
+              <button
+                onClick={() => handleOAuthLogin('facebook')}
+                className="bg-blue-600 text-white p-4 rounded-full shadow-lg hover:scale-110 transition-all duration-200 border-2 border-white/30 hover:border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-700 focus:ring-offset-2"
+                type="button"
+                title="Login with Facebook"
+              >
+                <FaFacebook className="w-6 h-6" />
+              </button>
+              <button
+                onClick={() => handleOAuthLogin('discord')}
+                className="bg-[#5865F2] text-white p-4 rounded-full shadow-lg hover:scale-110 transition-all duration-200 border-2 border-white/30 hover:border-[#5865F2] focus:outline-none focus:ring-2 focus:ring-[#5865F2] focus:ring-offset-2"
+                type="button"
+                title="Login with Discord"
+              >
+                <FaDiscord className="w-6 h-6" />
+              </button>
+            </div>
+            <button
+              onClick={() => router.push('/register')}
+              className="w-full bg-gray-200 hover:bg-gray-300 text-purple-700 font-bold py-3 rounded-lg shadow text-lg text-center transition-all duration-200 border border-gray-300 mt-2"
+            >
+              Create new account
             </button>
           </div>
-        </section>
-        {/* News Row */}
-        <section className="w-full flex flex-col items-center justify-center pb-20">
-          <div className="max-w-6xl w-full flex flex-col">
-            <h5 className="text-white text-2xl font-bold mb-6">NEWS</h5>
-            <div className="flex flex-col md:flex-row gap-6 w-full">
-              {[1,2,3,4].map((n) => (
-                <div key={n} className="flex-1 bg-white/10 border border-fuchsia-400/20 rounded-2xl p-4 min-w-[220px] max-w-xs mx-auto backdrop-blur-lg shadow-lg flex flex-col">
-                  <div className="h-32 w-full bg-gradient-to-br from-fuchsia-500/30 to-blue-500/30 rounded-xl mb-3" />
-                  <h6 className="text-white font-bold mb-2">Dummy News Headline {n}</h6>
-                  <p className="text-fuchsia-100 text-xs mb-2">Short description for news item {n} goes here.</p>
-                  <span className="text-fuchsia-300 text-xs font-semibold mt-auto">READ MORE</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
+        </div>
       </main>
+      {/* Optional: Footer for language and links */}
+      {/* <footer className="w-full py-6 text-center text-xs text-gray-400 bg-transparent">
+        Zelmu © {new Date().getFullYear()} | All rights reserved
+      </footer> */}
     </div>
   );
 } 

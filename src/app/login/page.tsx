@@ -40,6 +40,10 @@ function LoginPageInner() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    if (!supabase) {
+      setError('Supabase client not available.');
+      return;
+    }
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -60,6 +64,10 @@ function LoginPageInner() {
 
   // Social login handler
   const handleOAuthLogin = async (provider: 'google' | 'facebook' | 'discord') => {
+    if (!supabase) {
+      setError('Supabase client not available.');
+      return;
+    }
     await supabase.auth.signInWithOAuth({
       provider,
       options: {
@@ -76,7 +84,11 @@ function LoginPageInner() {
 
     setResendLoading(true)
     setError('')
-
+    if (!supabase) {
+      setError('Supabase client not available.');
+      setResendLoading(false);
+      return;
+    }
     try {
       const { error } = await supabase.auth.resend({
         type: 'signup',
@@ -98,7 +110,7 @@ function LoginPageInner() {
 
   return (
     <div className="relative min-h-screen w-full flex flex-col items-center justify-center">
-      <Navigation />
+      {/* Navigation removed for login page */}
       {/* Background image with blue-black overlay */}
       <div className="absolute inset-0 w-full h-full -z-10 bg-black">
         <img

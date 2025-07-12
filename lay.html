@@ -1,0 +1,1228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BGMI 16:9 Stream Overlay</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            color: #fff;
+            background: transparent;
+            overflow: hidden;
+            width: 1920px;
+            height: 1080px;
+            display: flex;
+        }
+
+        .overlay {
+            position: relative;
+            width: 960px;
+            height: 1080px;
+            pointer-events: none;
+        }
+
+        .kills-table {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.7), rgba(50, 50, 50, 0.7));
+            padding: 15px;
+            border-radius: 10px;
+            width: 450px;
+            backdrop-filter: blur(5px);
+            transition: opacity 0.5s ease-in-out;
+            display: none;
+            opacity: 0;
+        }
+
+        .kills-table.active {
+            display: block;
+            opacity: 1;
+        }
+
+        .kills-table h2 {
+            margin: 0 0 10px;
+            font-size: 20px;
+            text-align: center;
+            color: #00ffcc;
+        }
+
+        .kills-table table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        .kills-table th, .kills-table td {
+            padding: 8px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .kills-table th {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .kills-table img {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+        }
+
+        .status-box {
+            width: 15px;
+            height: 15px;
+            display: inline-block;
+            margin: 0 2px;
+        }
+
+        .status-live {
+            background: #00ff00;
+        }
+
+        .status-dead {
+            background: #ff0000;
+        }
+
+        .all-dead {
+            background: rgba(100, 100, 100, 0.7);
+        }
+
+        .user-card {
+            position: absolute;
+            bottom: -400px;
+            left: 20px;
+            background: linear-gradient(135deg, rgba(20, 20, 20, 0.7), rgba(70, 70, 70, 0.7));
+            padding: 15px;
+            border-radius: 10px;
+            width: 300px;
+            backdrop-filter: blur(5px);
+            transition: bottom 0.5s ease-in-out, opacity 0.5s ease-in-out;
+            display: none;
+            opacity: 0;
+        }
+
+        .user-card.active {
+            bottom: 20px;
+            display: block;
+            opacity: 1;
+        }
+
+        .user-card h3 {
+            margin: 0 0 10px;
+            font-size: 18px;
+            text-align: center;
+            color: #00ffcc;
+        }
+
+        .player {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .player img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .player-info p {
+            margin: 0;
+            font-size: 12px;
+        }
+
+        .player-info p.name {
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .player-info p.designation {
+            color: #ccc;
+        }
+
+        .screen-switch {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 1080px;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: #00ffcc;
+            z-index: 1000;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        .screen-switch.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .control-panel {
+            position: relative;
+            width: 960px;
+            height: 1080px;
+            background: #222;
+            padding: 20px;
+            z-index: 2000;
+            pointer-events: auto;
+            overflow-y: auto;
+        }
+
+        .control-panel h2 {
+            margin: 0 0 10px;
+            color: #00ffcc;
+        }
+
+        .control-panel h3 {
+            margin: 10px 0;
+            color: #00ffcc;
+        }
+
+        .control-panel button {
+            padding: 8px 16px;
+            background: #00ffcc;
+            color: #000;
+            border: none;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 12px;
+        }
+
+        .control-panel button:hover {
+            background: #00ccaa;
+        }
+
+        .control-panel button:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+
+        .team-buttons, .team-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .team-controls {
+            border: 1px solid #555;
+            padding: 10px;
+            border-radius: 5px;
+            width: 100%;
+        }
+
+        .color-picker {
+            margin: 5px 0;
+        }
+
+        .color-picker input {
+            width: 100px;
+            margin-right: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .kills-table, .user-card {
+                width: 280px;
+                font-size: 12px;
+            }
+
+            .kills-table table {
+                font-size: 10px;
+            }
+
+            .kills-table img {
+                width: 20px;
+                height: 20px;
+            }
+
+            .status-box {
+                width: 10px;
+                height: 10px;
+            }
+
+            .user-card {
+                width: 180px;
+            }
+
+            .player img {
+                width: 40px;
+                height: 40px;
+            }
+
+            .control-panel {
+                font-size: 14px;
+            }
+
+            .control-panel button {
+                padding: 6px 12px;
+                font-size: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="overlay">
+        <div class="kills-table" id="kills-table">
+            <h2>Kills Table</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Position</th>
+                        <th>Slot</th>
+                        <th>Logo</th>
+                        <th>Team</th>
+                        <th>Status</th>
+                        <th>Kills</th>
+                        <th>Points</th>
+                    </tr>
+                </thead>
+                <tbody id="kills-table-body">
+                    <tr data-team="Team Alpha">
+                        <td>1</td>
+                        <td>1</td>
+                        <td><img src="https://placehold.co/30x30?text=A" alt="Team Alpha"></td>
+                        <td>Team Alpha</td>
+                        <td>
+                            <span class="status-box status-live"></span>
+                            <span class="status-box status-live"></span>
+                            <span class="status-box status-live"></span>
+                            <span class="status-box status-live"></span>
+                        </td>
+                        <td>0</td>
+                        <td>10</td>
+                    </tr>
+                    <tr data-team="Team Bravo">
+                        <td>2</td>
+                        <td>2</td>
+                        <td><img src="https://placehold.co/30x30?text=B" alt="Team Bravo"></td>
+                        <td>Team Bravo</td>
+                        <td>
+                            <span class="status-box status-live"></span>
+                            <span class="status-box status-live"></span>
+                            <span class="status-box status-live"></span>
+                            <span class="status-box status-live"></span>
+                        </td>
+                        <td>0</td>
+                        <td>6</td>
+                    </tr>
+                    <tr data-team="Team Charlie">
+                        <td>3</td>
+                        <td>3</td>
+                        <td><img src="https://placehold.co/30x30?text=C" alt="Team Charlie"></td>
+                        <td>Team Charlie</td>
+                        <td>
+                            <span class="status-box status-live"></span>
+                            <span class="status-box status-live"></span>
+                            <span class="status-box status-live"></span>
+                            <span class="status-box status-live"></span>
+                        </td>
+                        <td>0</td>
+                        <td>5</td>
+                    </tr>
+                    <tr data-team="Team Delta">
+                        <td>4</td>
+                        <td>4</td>
+                        <td><img src="https://placehold.co/30x30?text=D" alt="Team Delta"></td>
+                        <td>Team Delta</td>
+                        <td>
+                            <span class="status-box status-live"></span>
+                            <span class="status-box status-live"></span>
+                            <span class="status-box status-live"></span>
+                            <span class="status-box status-live"></span>
+                        </td>
+                        <td>0</td>
+                        <td>4</td>
+                    </tr>
+                    <tr data-team="Team Echo">
+                        <td>5</td>
+                        <td>5</td>
+                        <td><img src="https://placehold.co/30x30?text=E" alt="Team Echo"></td>
+                        <td>Team Echo</td>
+                        <td>
+                            <span class="status-box status-live"></span>
+                            <span class="status-box status-live"></span>
+                            <span class="status-box status-live"></span>
+                            <span class="status-box status-live"></span>
+                        </td>
+                        <td>0</td>
+                        <td>3</td>
+                    </tr>
+                    <tr data-team="Team Foxtrot">
+                        <td>6</td>
+                        <td>6</td>
+                        <td><img src="https://placehold.co/30x30?text=F" alt="Team Foxtrot"></td>
+                        <td>Team Foxtrot</td>
+                        <td>
+                            <span class="status-box status-live"></span>
+                            <span class="status-box status-live"></span>
+                            <span class="status-box status-live"></span>
+                            <span class="status-box status-live"></span>
+                        </td>
+                        <td>0</td>
+                        <td>2</td>
+                    </tr>
+                    <tr data-team="Team Golf">
+                        <td>7</td>
+                        <td>7</td>
+                        <td><img src="https://placehold.co/30x30?text=G" alt="Team Golf"></td>
+                        <td>Team Golf</td>
+                        <td>
+                            <span class="status-box status-live"></span>
+                            <span class="status-box status-live"></span>
+                            <span class="status-box status-live"></span>
+                            <span class="status-box status-live"></span>
+                        </td>
+                        <td>0</td>
+                        <td>1</td>
+                    </tr>
+                    <tr data-team="Team Hotel">
+                        <td>8</td>
+                        <td>8</td>
+                        <td><img src="https://placehold.co/30x30?text=H" alt="Team Hotel"></td>
+                        <td>Team Hotel</td>
+                        <td>
+                            <span class="status-box status-live"></span>
+                            <span class="status-box status-live"></span>
+                            <span class="status-box status-live"></span>
+                            <span class="status-box status-live"></span>
+                        </td>
+                        <td>0</td>
+                        <td>1</td>
+                    </tr>
+                    <tr data-team="Team India">
+                        <td>9</td>
+                        <td>9</td>
+                        <td><img src="https://placehold.co/30x30?text=I" alt="Team India"></td>
+                        <td>Team India</td>
+                        <td>
+                            <span class="status-box status-live"></span>
+                            <span class="status-box status-live"></span>
+                            <span class="status-box status-live"></span>
+                            <span class="status-box status-live"></span>
+                        </td>
+                        <td>0</td>
+                        <td>0</td>
+                    </tr>
+                    <tr data-team="Team Juliet">
+                        <td>10</td>
+                        <td>10</td>
+                        <td><img src="https://placehold.co/30x30?text=J" alt="Team Juliet"></td>
+                        <td>Team Juliet</td>
+                        <td>
+                            <span class="status-box status-live"></span>
+                            <span class="status-box status-live"></span>
+                            <span class="status-box status-live"></span>
+                            <span class="status-box status-live"></span>
+                        </td>
+                        <td>0</td>
+                        <td>0</td>
+                    </tr>
+                    <tr data-team="Team Kilo">
+                        <td>11</td>
+                        <td>11</td>
+                        <td><img src="https://placehold.co/30x30?text=K" alt="Team Kilo"></td>
+                        <td>Team Kilo</td>
+                        <td>
+                            <span class="status-box status-live"></span>
+                            <span class="status-box status-live"></span>
+                            <span class="status-box status-live"></span>
+                            <span class="status-box status-live"></span>
+                        </td>
+                        <td>0</td>
+                        <td>0</td>
+                    </tr>
+                    <tr data-team="Team Lima">
+                        <td>12</td>
+                        <td>12</td>
+                        <td><img src="https://placehold.co/30x30?text=L" alt="Team Lima"></td>
+                        <td>Team Lima</td>
+                        <td>
+                            <span class="status-box status-live"></span>
+                            <span class="status-box status-live"></span>
+                            <span class="status-box status-live"></span>
+                            <span class="status-box status-live"></span>
+                        </td>
+                        <td>0</td>
+                        <td>0</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="user-card" id="team-alpha-card">
+            <h3>Team Alpha</h3>
+            <div class="player">
+                <img src="https://placehold.co/50x50?text=Alpha1" alt="Alpha Player 1">
+                <div class="player-info">
+                    <p class="name">Alpha Player 1</p>
+                    <p class="designation">Sniper</p>
+                </div>
+            </div>
+            <div class="player">
+                <img src="https://placehold.co/50x50?text=Alpha2" alt="Alpha Player 2">
+                <div class="player-info">
+                    <p class="name">Alpha Player 2</p>
+                    <p class="designation">Assaulter</p>
+                </div>
+            </div>
+            <div class="player">
+                <img src="https://placehold.co/50x50?text=Alpha3" alt="Alpha Player 3">
+                <div class="player-info">
+                    <p class="name">Alpha Player 3</p>
+                    <p class="designation">Support</p>
+                </div>
+            </div>
+            <div class="player">
+                <img src="https://placehold.co/50x50?text=Alpha4" alt="Alpha Player 4">
+                <div class="player-info">
+                    <p class="name">Alpha Player 4</p>
+                    <p class="designation">IGL</p>
+                </div>
+            </div>
+        </div>
+        <div class="user-card" id="team-bravo-card">
+            <h3>Team Bravo</h3>
+            <div class="player">
+                <img src="https://placehold.co/50x50?text=Bravo1" alt="Bravo Player 1">
+                <div class="player-info">
+                    <p class="name">Bravo Player 1</p>
+                    <p class="designation">Sniper</p>
+                </div>
+            </div>
+            <div class="player">
+                <img src="https://placehold.co/50x50?text=Bravo2" alt="Bravo Player 2">
+                <div class="player-info">
+                    <p class="name">Bravo Player 2</p>
+                    <p class="designation">Assaulter</p>
+                </div>
+            </div>
+            <div class="player">
+                <img src="https://placehold.co/50x50?text=Bravo3" alt="Bravo Player 3">
+                <div class="player-info">
+                    <p class="name">Bravo Player 3</p>
+                    <p class="designation">Support</p>
+                </div>
+            </div>
+            <div class="player">
+                <img src="https://placehold.co/50x50?text=Bravo4" alt="Bravo Player 4">
+                <div class="player-info">
+                    <p class="name">Bravo Player 4</p>
+                    <p class="designation">IGL</p>
+                </div>
+            </div>
+        </div>
+        <div class="user-card" id="team-charlie-card">
+            <h3>Team Charlie</h3>
+            <div class="player">
+                <img src="https://placehold.co/50x50?text=Charlie1" alt="Charlie Player 1">
+                <div class="player-info">
+                    <p class="name">Charlie Player 1</p>
+                    <p class="designation">Sniper</p>
+                </div>
+            </div>
+            <div class="player">
+                <img src="https://placehold.co/50x50?text=Charlie2" alt="Charlie Player 2">
+                <div class="player-info">
+                    <p class="name">Charlie Player 2</p>
+                    <p class="designation">Assaulter</p>
+                </div>
+            </div>
+            <div class="player">
+                <img src="https://placehold.co/50x50?text=Charlie3" alt="Charlie Player 3">
+                <div class="player-info">
+                    <p class="name">Charlie Player 3</p>
+                    <p class="designation">Support</p>
+                </div>
+            </div>
+            <div class="player">
+                <img src="https://placehold.co/50x50?text=Charlie4" alt="Charlie Player 4">
+                <div class="player-info">
+                    <p class="name">Charlie Player 4</p>
+                    <p class="designation">IGL</p>
+                </div>
+            </div>
+        </div>
+        <div class="user-card" id="team-delta-card">
+            <h3>Team Delta</h3>
+            <div class="player">
+                <img src="https://placehold.co/50x50?text=Delta1" alt="Delta Player 1">
+                <div class="player-info">
+                    <p class="name">Delta Player 1</p>
+                    <p class="designation">Sniper</p>
+                </div>
+            </div>
+            <div class="player">
+                <img src="https://placehold.co/50x50?text=Delta2" alt="Delta Player 2">
+                <div class="player-info">
+                    <p class="name">Delta Player 2</p>
+                    <p class="designation">Assaulter</p>
+                </div>
+            </div>
+            <div class="player">
+                <img src="https://placehold.co/50x50?text=Delta3" alt="Delta Player 3">
+                <div class="player-info">
+                    <p class="name">Delta Player 3</p>
+                    <p class="designation">Support</p>
+                </div>
+            </div>
+            <div class="player">
+                <img src="https://placehold.co/50x50?text=Delta4" alt="Delta Player 4">
+                <div class="player-info">
+                    <p class="name">Delta Player 4</p>
+                    <p class="designation">IGL</p>
+                </div>
+            </div>
+        </div>
+        <div class="user-card" id="team-echo-card">
+            <h3>Team Echo</h3>
+            <div class="player">
+                <img src="https://placehold.co/50x50?text=Echo1" alt="Echo Player 1">
+                <div class="player-info">
+                    <p class="name">Echo Player 1</p>
+                    <p class="designation">Sniper</p>
+                </div>
+            </div>
+            <div class="player">
+                <img src="https://placehold.co/50x50?text=Echo2" alt="Echo Player 2">
+                <div class="player-info">
+                    <p class="name">Echo Player 2</p>
+                    <p class="designation">Assaulter</p>
+                </div>
+            </div>
+            <div class="player">
+                <img src="https://placehold.co/50x50?text=Echo3" alt="Echo Player 3">
+                <div class="player-info">
+                    <p class="name">Echo Player 3</p>
+                    <p class="designation">Support</p>
+                </div>
+            </div>
+            <div class="player">
+                <img src="https://placehold.co/50x50?text=Echo4" alt="Echo Player 4">
+                <div class="player-info">
+                    <p class="name">Echo Player 4</p>
+                    <p class="designation">IGL</p>
+                </div>
+            </div>
+        </div>
+        <div class="user-card" id="team-foxtrot-card">
+            <h3>Team Foxtrot</h3>
+            <div class="player">
+                <img src="https://placehold.co/50x50?text=Foxtrot1" alt="Foxtrot Player 1">
+                <div class="player-info">
+                    <p class="name">Foxtrot Player 1</p>
+                    <p class="designation">Sniper</p>
+                </div>
+            </div>
+            <div class="player">
+                <img src="https://placehold.co/50x50?text=Foxtrot2" alt="Foxtrot Player 2">
+                <div class="player-info">
+                    <p class="name">Foxtrot Player 2</p>
+                    <p class="designation">Assaulter</p>
+                </div>
+            </div>
+            <div class="player">
+                <img src="https://placehold.co/50x50?text=Foxtrot3" alt="Foxtrot Player 3">
+                <div class="player-info">
+                    <p class="name">Foxtrot Player 3</p>
+                    <p class="designation">Support</p>
+                </div>
+            </div>
+            <div class="player">
+                <img src="https://placehold.co/50x50?text=Foxtrot4" alt="Foxtrot Player 4">
+                <div class="player-info">
+                    <p class="name">Foxtrot Player 4</p>
+                    <p class="designation">IGL</p>
+                </div>
+            </div>
+        </div>
+        <div class="user-card" id="team-golf-card">
+            <h3>Team Golf</h3>
+            <div class="player">
+                <img src="https://placehold.co/50x50?text=Golf1" alt="Golf Player 1">
+                <div class="player-info">
+                    <p class="name">Golf Player 1</p>
+                    <p class="designation">Sniper</p>
+                </div>
+            </div>
+            <div class="player">
+                <img src="https://placehold.co/50x50?text=Golf2" alt="Golf Player 2">
+                <div class="player-info">
+                    <p class="name">Golf Player 2</p>
+                    <p class="designation">Assaulter</p>
+                </div>
+            </div>
+            <div class="player">
+                <img src="https://placehold.co/50x50?text=Golf3" alt="Golf Player 3">
+                <div class="player-info">
+                    <p class="name">Golf Player 3</p>
+                    <p class="designation">Support</p>
+                </div>
+            </div>
+            <div class="player">
+                <img src="https://placehold.co/50x50?text=Golf4" alt="Golf Player 4">
+                <div class="player-info">
+                    <p class="name">Golf Player 4</p>
+                    <p class="designation">IGL</p>
+                </div>
+            </div>
+        </div>
+        <div class="user-card" id="team-hotel-card">
+            <h3>Team Hotel</h3>
+            <div class="player">
+                <img src="https://placehold.co/50x50?text=Hotel1" alt="Hotel Player 1">
+                <div class="player-info">
+                    <p class="name">Hotel Player 1</p>
+                    <p class="designation">Sniper</p>
+                </div>
+            </div>
+            <div class="player">
+                <img src="https://placehold.co/50x50?text=Hotel2" alt="Hotel Player 2">
+                <div class="player-info">
+                    <p class="name">Hotel Player 2</p>
+                    <p class="designation">Assaulter</p>
+                </div>
+            </div>
+            <div class="player">
+                <img src="https://placehold.co/50x50?text=Hotel3" alt="Hotel Player 3">
+                <div class="player-info">
+                    <p class="name">Hotel Player 3</p>
+                    <p class="designation">Support</p>
+                </div>
+            </div>
+            <div class="player">
+                <img src="https://placehold.co/50x50?text=Hotel4" alt="Hotel Player 4">
+                <div class="player-info">
+                    <p class="name">Hotel Player 4</p>
+                    <p class="designation">IGL</p>
+                </div>
+            </div>
+        </div>
+        <div class="user-card" id="team-india-card">
+            <h3>Team India</h3>
+            <div class="player">
+                <img src="https://placehold.co/50x50?text=India1" alt="India Player 1">
+                <div class="player-info">
+                    <p class="name">India Player 1</p>
+                    <p class="designation">Sniper</p>
+                </div>
+            </div>
+            <div class="player">
+                <img src="https://placehold.co/50x50?text=India2" alt="India Player 2">
+                <div class="player-info">
+                    <p class="name">India Player 2</p>
+                    <p class="designation">Assaulter</p>
+                </div>
+            </div>
+            <div class="player">
+                <img src="https://placehold.co/50x50?text=India3" alt="India Player 3">
+                <div class="player-info">
+                    <p class="name">India Player 3</p>
+                    <p class="designation">Support</p>
+                </div>
+            </div>
+            <div class="player">
+                <img src="https://placehold.co/50x50?text=India4" alt="India Player 4">
+                <div class="player-info">
+                    <p class="name">India Player 4</p>
+                    <p class="designation">IGL</p>
+                </div>
+            </div>
+        </div>
+        <div class="user-card" id="team-juliet-card">
+            <h3>Team Juliet</h3>
+            <div class="player">
+                <img src="https://placehold.co/50x50?text=Juliet1" alt="Juliet Player 1">
+                <div class="player-info">
+                    <p class="name">Juliet Player 1</p>
+                    <p class="designation">Sniper</p>
+                </div>
+            </div>
+            <div class="player">
+                <img src="https://placehold.co/50x50?text=Juliet2" alt="Juliet Player 2">
+                <div class="player-info">
+                    <p class="name">Juliet Player 2</p>
+                    <p class="designation">Assaulter</p>
+                </div>
+            </div>
+            <div class="player">
+                <img src="https://placehold.co/50x50?text=Juliet3" alt="Juliet Player 3">
+                <div class="player-info">
+                    <p class="name">Juliet Player 3</p>
+                    <p class="designation">Support</p>
+                </div>
+            </div>
+            <div class="player">
+                <img src="https://placehold.co/50x50?text=Juliet4" alt="Juliet Player 4">
+                <div class="player-info">
+                    <p class="name">Juliet Player 4</p>
+                    <p class="designation">IGL</p>
+                </div>
+            </div>
+        </div>
+        <div class="user-card" id="team-kilo-card">
+            <h3>Team Kilo</h3>
+            <div class="player">
+                <img src="https://placehold.co/50x50?text=Kilo1" alt="Kilo Player 1">
+                <div class="player-info">
+                    <p class="name">Kilo Player 1</p>
+                    <p class="designation">Sniper</p>
+                </div>
+            </div>
+            <div class="player">
+                <img src="https://placehold.co/50x50?text=Kilo2" alt="Kilo Player 2">
+                <div class="player-info">
+                    <p class="name">Kilo Player 2</p>
+                    <p class="designation">Assaulter</p>
+                </div>
+            </div>
+            <div class="player">
+                <img src="https://placehold.co/50x50?text=Kilo3" alt="Kilo Player 3">
+                <div class="player-info">
+                    <p class="name">Kilo Player 3</p>
+                    <p class="designation">Support</p>
+                </div>
+            </div>
+            <div class="player">
+                <img src="https://placehold.co/50x50?text=Kilo4" alt="Kilo Player 4">
+                <div class="player-info">
+                    <p class="name">Kilo Player 4</p>
+                    <p class="designation">IGL</p>
+                </div>
+            </div>
+        </div>
+        <div class="user-card" id="team-lima-card">
+            <h3>Team Lima</h3>
+            <div class="player">
+                <img src="https://placehold.co/50x50?text=Lima1" alt="Lima Player 1">
+                <div class="player-info">
+                    <p class="name">Lima Player 1</p>
+                    <p class="designation">Sniper</p>
+                </div>
+            </div>
+            <div class="player">
+                <img src="https://placehold.co/50x50?text=Lima2" alt="Lima Player 2">
+                <div class="player-info">
+                    <p class="name">Lima Player 2</p>
+                    <p class="designation">Assaulter</p>
+                </div>
+            </div>
+            <div class="player">
+                <img src="https://placehold.co/50x50?text=Lima3" alt="Lima Player 3">
+                <div class="player-info">
+                    <p class="name">Lima Player 3</p>
+                    <p class="designation">Support</p>
+                </div>
+            </div>
+            <div class="player">
+                <img src="https://placehold.co/50x50?text=Lima4" alt="Lima Player 4">
+                <div class="player-info">
+                    <p class="name">Lima Player 4</p>
+                    <p class="designation">IGL</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="screen-switch" id="screen-switch">Scene Overlay Active</div>
+    </div>
+
+    <div class="control-panel">
+        <h2>BGMI Overlay Control</h2>
+        <div class="section">
+            <h3>Update Kills</h3>
+            <div class="team-controls">
+                <h4>Team Alpha</h4>
+                <button onclick="updateKills('Team Alpha', 'kills', 1)">+ Kill</button>
+                <button onclick="updateKills('Team Alpha', 'kills', -1)">- Kill</button>
+                <button id="alpha-p1" onclick="toggleStatus('Team Alpha', 0)">P1 Live/Dead</button>
+                <button id="alpha-p2" onclick="toggleStatus('Team Alpha', 1)">P2 Live/Dead</button>
+                <button id="alpha-p3" onclick="toggleStatus('Team Alpha', 2)">P3 Live/Dead</button>
+                <button id="alpha-p4" onclick="toggleStatus('Team Alpha', 3)">P4 Live/Dead</button>
+            </div>
+            <div class="team-controls">
+                <h4>Team Bravo</h4>
+                <button onclick="updateKills('Team Bravo', 'kills', 1)">+ Kill</button>
+                <button onclick="updateKills('Team Bravo', 'kills', -1)">- Kill</button>
+                <button id="bravo-p1" onclick="toggleStatus('Team Bravo', 0)">P1 Live/Dead</button>
+                <button id="bravo-p2" onclick="toggleStatus('Team Bravo', 1)">P2 Live/Dead</button>
+                <button id="bravo-p3" onclick="toggleStatus('Team Bravo', 2)">P3 Live/Dead</button>
+                <button id="bravo-p4" onclick="toggleStatus('Team Bravo', 3)">P4 Live/Dead</button>
+            </div>
+            <div class="team-controls">
+                <h4>Team Charlie</h4>
+                <button onclick="updateKills('Team Charlie', 'kills', 1)">+ Kill</button>
+                <button onclick="updateKills('Team Charlie', 'kills', -1)">- Kill</button>
+                <button id="charlie-p1" onclick="toggleStatus('Team Charlie', 0)">P1 Live/Dead</button>
+                <button id="charlie-p2" onclick="toggleStatus('Team Charlie', 1)">P2 Live/Dead</button>
+                <button id="charlie-p3" onclick="toggleStatus('Team Charlie', 2)">P3 Live/Dead</button>
+                <button id="charlie-p4" onclick="toggleStatus('Team Charlie', 3)">P4 Live/Dead</button>
+            </div>
+            <div class="team-controls">
+                <h4>Team Delta</h4>
+                <button onclick="updateKills('Team Delta', 'kills', 1)">+ Kill</button>
+                <button onclick="updateKills('Team Delta', 'kills', -1)">- Kill</button>
+                <button id="delta-p1" onclick="toggleStatus('Team Delta', 0)">P1 Live/Dead</button>
+                <button id="delta-p2" onclick="toggleStatus('Team Delta', 1)">P2 Live/Dead</button>
+                <button id="delta-p3" onclick="toggleStatus('Team Delta', 2)">P3 Live/Dead</button>
+                <button id="delta-p4" onclick="toggleStatus('Team Delta', 3)">P4 Live/Dead</button>
+            </div>
+            <div class="team-controls">
+                <h4>Team Echo</h4>
+                <button onclick="updateKills('Team Echo', 'kills', 1)">+ Kill</button>
+                <button onclick="updateKills('Team Echo', 'kills', -1)">- Kill</button>
+                <button id="echo-p1" onclick="toggleStatus('Team Echo', 0)">P1 Live/Dead</button>
+                <button id="echo-p2" onclick="toggleStatus('Team Echo', 1)">P2 Live/Dead</button>
+                <button id="echo-p3" onclick="toggleStatus('Team Echo', 2)">P3 Live/Dead</button>
+                <button id="echo-p4" onclick="toggleStatus('Team Echo', 3)">P4 Live/Dead</button>
+            </div>
+            <div class="team-controls">
+                <h4>Team Foxtrot</h4>
+                <button onclick="updateKills('Team Foxtrot', 'kills', 1)">+ Kill</button>
+                <button onclick="updateKills('Team Foxtrot', 'kills', -1)">- Kill</button>
+                <button id="foxtrot-p1" onclick="toggleStatus('Team Foxtrot', 0)">P1 Live/Dead</button>
+                <button id="foxtrot-p2" onclick="toggleStatus('Team Foxtrot', 1)">P2 Live/Dead</button>
+                <button id="foxtrot-p3" onclick="toggleStatus('Team Foxtrot', 2)">P3 Live/Dead</button>
+                <button id="foxtrot-p4" onclick="toggleStatus('Team Foxtrot', 3)">P4 Live/Dead</button>
+            </div>
+            <div class="team-controls">
+                <h4>Team Golf</h4>
+                <button onclick="updateKills('Team Golf', 'kills', 1)">+ Kill</button>
+                <button onclick="updateKills('Team Golf', 'kills', -1)">- Kill</button>
+                <button id="golf-p1" onclick="toggleStatus('Team Golf', 0)">P1 Live/Dead</button>
+                <button id="golf-p2" onclick="toggleStatus('Team Golf', 1)">P2 Live/Dead</button>
+                <button id="golf-p3" onclick="toggleStatus('Team Golf', 2)">P3 Live/Dead</button>
+                <button id="golf-p4" onclick="toggleStatus('Team Golf', 3)">P4 Live/Dead</button>
+            </div>
+            <div class="team-controls">
+                <h4>Team Hotel</h4>
+                <button onclick="updateKills('Team Hotel', 'kills', 1)">+ Kill</button>
+                <button onclick="updateKills('Team Hotel', 'kills', -1)">- Kill</button>
+                <button id="hotel-p1" onclick="toggleStatus('Team Hotel', 0)">P1 Live/Dead</button>
+                <button id="hotel-p2" onclick="toggleStatus('Team Hotel', 1)">P2 Live/Dead</button>
+                <button id="hotel-p3" onclick="toggleStatus('Team Hotel', 2)">P3 Live/Dead</button>
+                <button id="hotel-p4" onclick="toggleStatus('Team Hotel', 3)">P4 Live/Dead</button>
+            </div>
+            <div class="team-controls">
+                <h4>Team India</h4>
+                <button onclick="updateKills('Team India', 'kills', 1)">+ Kill</button>
+                <button onclick="updateKills('Team India', 'kills', -1)">- Kill</button>
+                <button id="india-p1" onclick="toggleStatus('Team India', 0)">P1 Live/Dead</button>
+                <button id="india-p2" onclick="toggleStatus('Team India', 1)">P2 Live/Dead</button>
+                <button id="india-p3" onclick="toggleStatus('Team India', 2)">P3 Live/Dead</button>
+                <button id="india-p4" onclick="toggleStatus('Team India', 3)">P4 Live/Dead</button>
+            </div>
+            <div class="team-controls">
+                <h4>Team Juliet</h4>
+                <button onclick="updateKills('Team Juliet', 'kills', 1)">+ Kill</button>
+                <button onclick="updateKills('Team Juliet', 'kills', -1)">- Kill</button>
+                <button id="juliet-p1" onclick="toggleStatus('Team Juliet', 0)">P1 Live/Dead</button>
+                <button id="juliet-p2" onclick="toggleStatus('Team Juliet', 1)">P2 Live/Dead</button>
+                <button id="juliet-p3" onclick="toggleStatus('Team Juliet', 2)">P3 Live/Dead</button>
+                <button id="juliet-p4" onclick="toggleStatus('Team Juliet', 3)">P4 Live/Dead</button>
+            </div>
+            <div class="team-controls">
+                <h4>Team Kilo</h4>
+                <button onclick="updateKills('Team Kilo', 'kills', 1)">+ Kill</button>
+                <button onclick="updateKills('Team Kilo', 'kills', -1)">- Kill</button>
+                <button id="kilo-p1" onclick="toggleStatus('Team Kilo', 0)">P1 Live/Dead</button>
+                <button id="kilo-p2" onclick="toggleStatus('Team Kilo', 1)">P2 Live/Dead</button>
+                <button id="kilo-p3" onclick="toggleStatus('Team Kilo', 2)">P3 Live/Dead</button>
+                <button id="kilo-p4" onclick="toggleStatus('Team Kilo', 3)">P4 Live/Dead</button>
+            </div>
+            <div class="team-controls">
+                <h4>Team Lima</h4>
+                <button onclick="updateKills('Team Lima', 'kills', 1)">+ Kill</button>
+                <button onclick="updateKills('Team Lima', 'kills', -1)">- Kill</button>
+                <button id="lima-p1" onclick="toggleStatus('Team Lima', 0)">P1 Live/Dead</button>
+                <button id="lima-p2" onclick="toggleStatus('Team Lima', 1)">P2 Live/Dead</button>
+                <button id="lima-p3" onclick="toggleStatus('Team Lima', 2)">P3 Live/Dead</button>
+                <button id="lima-p4" onclick="toggleStatus('Team Lima', 3)">P4 Live/Dead</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>Toggle Kills Table</h3>
+            <button onclick="toggleKillsTable()">Show/Hide Kills Table</button>
+        </div>
+
+        <div class="section">
+            <h3>Toggle Team Cards</h3>
+            <div class="team-buttons">
+                <button onclick="toggleTeam('team-alpha-card')">Toggle Alpha</button>
+                <button onclick="toggleTeam('team-bravo-card')">Toggle Bravo</button>
+                <button onclick="toggleTeam('team-charlie-card')">Toggle Charlie</button>
+                <button onclick="toggleTeam('team-delta-card')">Toggle Delta</button>
+                <button onclick="toggleTeam('team-echo-card')">Toggle Echo</button>
+                <button onclick="toggleTeam('team-foxtrot-card')">Toggle Foxtrot</button>
+                <button onclick="toggleTeam('team-golf-card')">Toggle Golf</button>
+                <button onclick="toggleTeam('team-hotel-card')">Toggle Hotel</button>
+                <button onclick="toggleTeam('team-india-card')">Toggle India</button>
+                <button onclick="toggleTeam('team-juliet-card')">Toggle Juliet</button>
+                <button onclick="toggleTeam('team-kilo-card')">Toggle Kilo</button>
+                <button onclick="toggleTeam('team-lima-card')">Toggle Lima</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>Screen Switch</h3>
+            <button onclick="toggleSwitch()">Toggle Screen Switch</button>
+        </div>
+
+        <div class="section">
+            <h3>Gradient Background Colors</h3>
+            <div class="color-picker">
+                <label>Points Table Start: <input type="color" id="tableStartColor" value="#000000"></label>
+                <label>Points Table End: <input type="color" id="tableEndColor" value="#323232"></label>
+            </div>
+            <div class="color-picker">
+                <label>Player Card Start: <input type="color" id="cardStartColor" value="#141414"></label>
+                <label>Player Card End: <input type="color" id="cardEndColor" value="#464646"></label>
+            </div>
+            <div class="color-picker">
+                <label>Team Row Start: <input type="color" id="rowStartColor" value="#000000"></label>
+                <label>Team Row End: <input type="color" id="rowEndColor" value="#323232"></label>
+            </div>
+        </div>
+    </div>
+
+    <audio id="toggle-sound" src="https://cdn.freesound.org/previews/169/169963_2957630-lq.mp3"></audio>
+
+    <script>
+        const teamIds = [
+            'team-alpha-card', 'team-bravo-card', 'team-charlie-card', 'team-delta-card',
+            'team-echo-card', 'team-foxtrot-card', 'team-golf-card', 'team-hotel-card',
+            'team-india-card', 'team-juliet-card', 'team-kilo-card', 'team-lima-card'
+        ];
+
+        const teamLogos = {
+            'Team Alpha': 'https://placehold.co/30x30?text=A',
+            'Team Bravo': 'https://placehold.co/30x30?text=B',
+            'Team Charlie': 'https://placehold.co/30x30?text=C',
+            'Team Delta': 'https://placehold.co/30x30?text=D',
+            'Team Echo': 'https://placehold.co/30x30?text=E',
+            'Team Foxtrot': 'https://placehold.co/30x30?text=F',
+            'Team Golf': 'https://placehold.co/30x30?text=G',
+            'Team Hotel': 'https://placehold.co/30x30?text=H',
+            'Team India': 'https://placehold.co/30x30?text=I',
+            'Team Juliet': 'https://placehold.co/30x30?text=J',
+            'Team Kilo': 'https://placehold.co/30x30?text=K',
+            'Team Lima': 'https://placehold.co/30x30?text=L'
+        };
+
+        const teamData = {
+            'Team Alpha': { kills: 0, status: [1, 1, 1, 1] },
+            'Team Bravo': { kills: 0, status: [1, 1, 1, 1] },
+            'Team Charlie': { kills: 0, status: [1, 1, 1, 1] },
+            'Team Delta': { kills: 0, status: [1, 1, 1, 1] },
+            'Team Echo': { kills: 0, status: [1, 1, 1, 1] },
+            'Team Foxtrot': { kills: 0, status: [1, 1, 1, 1] },
+            'Team Golf': { kills: 0, status: [1, 1, 1, 1] },
+            'Team Hotel': { kills: 0, status: [1, 1, 1, 1] },
+            'Team India': { kills: 0, status: [1, 1, 1, 1] },
+            'Team Juliet': { kills: 0, status: [1, 1, 1, 1] },
+            'Team Kilo': { kills: 0, status: [1, 1, 1, 1] },
+            'Team Lima': { kills: 0, status: [1, 1, 1, 1] }
+        };
+
+        const buttonIds = {
+            'Team Alpha': ['alpha-p1', 'alpha-p2', 'alpha-p3', 'alpha-p4'],
+            'Team Bravo': ['bravo-p1', 'bravo-p2', 'bravo-p3', 'bravo-p4'],
+            'Team Charlie': ['charlie-p1', 'charlie-p2', 'charlie-p3', 'charlie-p4'],
+            'Team Delta': ['delta-p1', 'delta-p2', 'delta-p3', 'delta-p4'],
+            'Team Echo': ['echo-p1', 'echo-p2', 'echo-p3', 'echo-p4'],
+            'Team Foxtrot': ['foxtrot-p1', 'foxtrot-p2', 'foxtrot-p3', 'foxtrot-p4'],
+            'Team Golf': ['golf-p1', 'golf-p2', 'golf-p3', 'golf-p4'],
+            'Team Hotel': ['hotel-p1', 'hotel-p2', 'hotel-p3', 'hotel-p4'],
+            'Team India': ['india-p1', 'india-p2', 'india-p3', 'india-p4'],
+            'Team Juliet': ['juliet-p1', 'juliet-p2', 'juliet-p3', 'juliet-p4'],
+            'Team Kilo': ['kilo-p1', 'kilo-p2', 'kilo-p3', 'kilo-p4'],
+            'Team Lima': ['lima-p1', 'lima-p2', 'lima-p3', 'lima-p4']
+        };
+
+        const positionPoints = [10, 6, 5, 4, 3, 2, 1, 1, 0, 0, 0, 0];
+
+        function updateKillsTable() {
+            const teams = Object.keys(teamData).map(name => ({
+                name,
+                kills: teamData[name].kills,
+                status: teamData[name].status,
+                points: calculatePoints(name)
+            }));
+
+            teams.sort((a, b) => b.points - a.points);
+
+            const killsTableBody = document.getElementById('kills-table-body');
+            killsTableBody.innerHTML = teams.map((team, index) => `
+                <tr data-team="${team.name}" class="${team.status.every(s => !s) ? 'all-dead' : ''}" style="background: linear-gradient(135deg, ${getRowStartColor()}, ${getRowEndColor()});">
+                    <td>${index + 1}</td>
+                    <td>${index + 1}</td>
+                    <td><img src="${teamLogos[team.name]}" alt="${team.name}"></td>
+                    <td>${team.name}</td>
+                    <td>
+                        <span class="status-box ${team.status[0] ? 'status-live' : 'status-dead'}"></span>
+                        <span class="status-box ${team.status[1] ? 'status-live' : 'status-dead'}"></span>
+                        <span class="status-box ${team.status[2] ? 'status-live' : 'status-dead'}"></span>
+                        <span class="status-box ${team.status[3] ? 'status-live' : 'status-dead'}"></span>
+                    </td>
+                    <td>${team.kills}</td>
+                    <td>${team.points}</td>
+                </tr>
+            `).join('');
+        }
+
+        function calculatePoints(teamName) {
+            const teams = Object.keys(teamData).map(name => ({
+                name,
+                points: teamData[name].kills
+            }));
+            teams.sort((a, b) => b.points - a.points);
+            const position = teams.findIndex(t => t.name === teamName);
+            const basePoints = position < positionPoints.length ? positionPoints[position] : 0;
+            return basePoints + teamData[teamName].kills;
+        }
+
+        function updateKills(teamName, field, value) {
+            if (field === 'kills') {
+                teamData[teamName].kills = Math.max(0, teamData[teamName].kills + value);
+            }
+            updateKillsTable();
+            updateButtonStates();
+        }
+
+        function toggleStatus(teamName, playerIndex) {
+            teamData[teamName].status[playerIndex] = teamData[teamName].status[playerIndex] ? 0 : 1;
+            updateKillsTable();
+            updateButtonStates();
+        }
+
+        function updateButtonStates() {
+            Object.keys(teamData).forEach(teamName => {
+                const buttons = buttonIds[teamName];
+                teamData[teamName].status.forEach((status, index) => {
+                    const button = document.getElementById(buttons[index]);
+                    button.disabled = status === 0;
+                });
+            });
+        }
+
+        function toggleKillsTable() {
+            const killsTable = document.getElementById('kills-table');
+            killsTable.classList.toggle('active');
+        }
+
+        function toggleTeam(teamId) {
+            const teamCard = document.getElementById(teamId);
+            const isActive = teamCard.classList.contains('active');
+            const sound = document.getElementById('toggle-sound');
+
+            teamIds.forEach(id => {
+                if (id !== teamId) {
+                    document.getElementById(id).classList.remove('active');
+                }
+            });
+
+            teamCard.classList.toggle('active');
+
+            sound.currentTime = 0;
+            sound.play().catch(error => console.log('Sound play failed:', error));
+        }
+
+        function toggleSwitch() {
+            const screenSwitch = document.getElementById('screen-switch');
+            screenSwitch.classList.toggle('active');
+        }
+
+        function getRgbaFromHex(hex) {
+            const r = parseInt(hex.slice(1, 3), 16);
+            const g = parseInt(hex.slice(3, 5), 16);
+            const b = parseInt(hex.slice(5, 7), 16);
+            return `rgba(${r}, ${g}, ${b}, 0.7)`;
+        }
+
+        function getRowStartColor() {
+            return getRgbaFromHex(document.getElementById('rowStartColor').value);
+        }
+
+        function getRowEndColor() {
+            return getRgbaFromHex(document.getElementById('rowEndColor').value);
+        }
+
+        function updateGradients() {
+            const tableStart = getRgbaFromHex(document.getElementById('tableStartColor').value);
+            const tableEnd = getRgbaFromHex(document.getElementById('tableEndColor').value);
+            document.getElementById('kills-table').style.background = `linear-gradient(135deg, ${tableStart}, ${tableEnd})`;
+
+            const cardStart = getRgbaFromHex(document.getElementById('cardStartColor').value);
+            const cardEnd = getRgbaFromHex(document.getElementById('cardEndColor').value);
+            document.querySelectorAll('.user-card').forEach(card => {
+                card.style.background = `linear-gradient(135deg, ${cardStart}, ${cardEnd})`;
+            });
+
+            const rowStart = getRgbaFromHex(document.getElementById('rowStartColor').value);
+            const rowEnd = getRgbaFromHex(document.getElementById('rowEndColor').value);
+            document.querySelectorAll('#kills-table-body tr').forEach(row => {
+                row.style.background = `linear-gradient(135deg, ${rowStart}, ${rowEnd})`;
+            });
+        }
+
+        document.getElementById('tableStartColor').addEventListener('change', updateGradients);
+        document.getElementById('tableEndColor').addEventListener('change', updateGradients);
+        document.getElementById('cardStartColor').addEventListener('change', updateGradients);
+        document.getElementById('cardEndColor').addEventListener('change', updateGradients);
+        document.getElementById('rowStartColor').addEventListener('change', updateGradients);
+        document.getElementById('rowEndColor').addEventListener('change', updateGradients);
+
+        updateKillsTable();
+        updateButtonStates();
+        updateGradients();
+    </script>
+    <script>
+    // Set your tournament ID here
+    const tournamentId = 'YOUR_TOURNAMENT_ID'; // TODO: Replace with actual tournament ID
+
+    async function fetchLeaderboard() {
+      try {
+        const res = await fetch(`/api/leaderboard?tournamentId=${tournamentId}`);
+        const data = await res.json();
+        updateLeaderboardTable(data);
+      } catch (err) {
+        console.error('Failed to fetch leaderboard:', err);
+      }
+    }
+
+    function updateLeaderboardTable(teams) {
+      const tableBody = document.getElementById('kills-table-body');
+      if (!tableBody) return;
+      tableBody.innerHTML = '';
+      teams.forEach((team, idx) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${idx + 1}</td>
+          <td>${idx + 1}</td>
+          <td>${team.logo_url ? `<img src="${team.logo_url}" alt="${team.name}" style="width:30px;height:30px;border-radius:50%;">` : ''}</td>
+          <td>${team.name}</td>
+          <td>
+            <span class="status-box ${team.status === 'live' ? 'status-live' : 'status-dead'}"></span>
+            <span class="status-box ${team.status === 'live' ? 'status-live' : 'status-dead'}"></span>
+            <span class="status-box ${team.status === 'live' ? 'status-live' : 'status-dead'}"></span>
+            <span class="status-box ${team.status === 'live' ? 'status-live' : 'status-dead'}"></span>
+          </td>
+          <td>${team.kills}</td>
+          <td>0</td>
+        `;
+        tableBody.appendChild(row);
+      });
+    }
+
+    // Poll every 5 seconds
+    setInterval(fetchLeaderboard, 5000);
+    fetchLeaderboard();
+    </script>
+</body>
+</html>

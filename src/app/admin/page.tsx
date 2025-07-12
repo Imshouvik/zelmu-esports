@@ -1,5 +1,6 @@
 "use client";
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
+import { useSelector } from 'react-redux';
 import { supabase } from '@/utils/supabaseClient';
 import toast from 'react-hot-toast';
 import { FaUsers, FaCrown, FaTrophy, FaBell, FaUserShield, FaSearch, FaLock, FaUnlock } from 'react-icons/fa';
@@ -22,110 +23,130 @@ const PAGE_OPTIONS = [
 const ROLES = ['user', 'admin'];
 
 export default function SuperAdminPage() {
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [accessDenied, setAccessDenied] = useState(false);
+  // All hooks at the top!
+  const user = useSelector((state: any) => state.auth.user);
+  const loadingAuth = useSelector((state: any) => state.auth.loading);
 
-  // Stats
   const [stats, setStats] = useState({ users: 0, clubs: 0, tournaments: 0, activeMembers: 0 });
-
-  // Tournament form state
   const [tournament, setTournament] = useState({
-    title: '',
-    game: '',
-    start_date: '',
-    end_date: '',
-    prize_pool: '',
-    registration_fee: '',
-    max_teams: '',
-    current_teams: '0',
-    status: 'upcoming',
-    type: 'open',
-    is_featured: false,
-    is_upcoming: false,
-    rules: [''],
-    rewards: [{ position: 1, amount: 0 }],
+    title: '', game: '', start_date: '', end_date: '', prize_pool: '', registration_fee: '', max_teams: '', current_teams: '0', status: 'upcoming', type: 'open', is_featured: false, is_upcoming: false, rules: [''], rewards: [{ position: 1, amount: 0 }],
   });
   const [creatingTournament, setCreatingTournament] = useState(false);
   const [tournaments, setTournaments] = useState<any[]>([]);
-
-  // Notification form state
   const [notifTitle, setNotifTitle] = useState('');
   const [notifBody, setNotifBody] = useState('');
   const [sendingNotif, setSendingNotif] = useState(false);
-
-  // User management
   const [users, setUsers] = useState<any[]>([]);
   const [userSearch, setUserSearch] = useState('');
   const [userLoading, setUserLoading] = useState(false);
-
   const [selectedRole, setSelectedRole] = useState('user');
   const [sidebarPerms, setSidebarPerms] = useState<{ [key: string]: boolean }>({});
   const [pagePerms, setPagePerms] = useState<{ [key: string]: boolean }>({});
   const [permsLoading, setPermsLoading] = useState(false);
+  const [games, setGames] = useState<any[]>([]);
 
-  useEffect(() => {
-    supabase.auth.getUser().then(async ({ data }) => {
-      if (!data.user) {
-        setAccessDenied(true);
-        setLoading(false);
-      } else {
-        // Fetch user from users table to check role
-        const { data: userRow } = await supabase
-          .from('users')
-          .select('id, email, role')
-          .eq('id', data.user.id)
-          .single();
-        if (!userRow || userRow.role !== 'superadmin') {
-          setAccessDenied(true);
-          setLoading(false);
-        } else {
-          setUser(userRow);
-          setAccessDenied(false);
-          setLoading(false);
-          fetchTournaments();
-          fetchStats();
-          fetchUsers();
-        }
-      }
+  // Utility to get JWT token
+  const getToken = async () => {
+    if (!supabase) throw new Error('Supabase client not initialized');
+    const session = await supabase.auth.getSession();
+    return session.data.session?.access_token;
+  };
+
+  const fetchStats = useCallback(async () => {
+    const token = await getToken();
+    const res = await fetch('/api/admin-stats', {
+      headers: { Authorization: `Bearer ${token}` }
     });
+    if (res.ok) {
+      const data = await res.json();
+      setStats({
+        users: data.users || 0,
+        clubs: data.clubs || 0,
+        tournaments: data.tournaments || 0,
+        activeMembers: data.activeMembers || 0,
+      });
+    } else {
+      setStats({ users: 0, clubs: 0, tournaments: 0, activeMembers: 0 });
+    }
   }, []);
 
-  // Fetch dashboard stats
-  const fetchStats = async () => {
-    const [{ count: userCount }, { count: clubCount }, { count: tournamentCount }, { count: memberCount }] = await Promise.all([
-      supabase.from('users').select('*', { count: 'exact', head: true }),
-      supabase.from('clubs').select('*', { count: 'exact', head: true }),
-      supabase.from('tournaments').select('*', { count: 'exact', head: true }),
-      supabase.from('club_members').select('*', { count: 'exact', head: true }).eq('status', 'active'),
-    ]);
-    setStats({
-      users: userCount || 0,
-      clubs: clubCount || 0,
-      tournaments: tournamentCount || 0,
-      activeMembers: memberCount || 0,
+  const fetchTournaments = useCallback(async () => {
+    const token = await getToken();
+    const res = await fetch('/api/admin-tournaments', {
+      headers: { Authorization: `Bearer ${token}` }
     });
-  };
+    if (res.ok) {
+      const data = await res.json();
+      setTournaments(data.tournaments || []);
+    } else {
+      setTournaments([]);
+    }
+  }, []);
 
-  // Fetch tournaments
-  const fetchTournaments = async () => {
-    const { data, error } = await supabase
-      .from('tournaments')
-      .select('*')
-      .order('startDate', { ascending: true });
-    if (!error) setTournaments(data || []);
-  };
-
-  // Fetch users
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     setUserLoading(true);
-    const { data, error } = await supabase
-      .from('users')
-      .select('id, name, email, role, fcm_token')
-      .order('created_at', { ascending: false });
-    if (!error) setUsers(data || []);
+    const token = await getToken();
+    const res = await fetch('/api/admin-users', {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      setUsers(data.users || []);
+    } else {
+      setUsers([]);
+    }
     setUserLoading(false);
+  }, []);
+
+  useEffect(() => {
+    if (user && user.role === 'superadmin') {
+      fetchTournaments();
+      fetchStats();
+      fetchUsers();
+    }
+  }, [user, fetchTournaments, fetchStats, fetchUsers]);
+
+  useEffect(() => {
+    const fetchGames = async () => {
+      try {
+        const res = await fetch('/api/admin-games');
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          setGames(data);
+          if (!tournament.game && data.length > 0) {
+            setTournament(t => ({ ...t, game: data[0].name }));
+          }
+        } else {
+          setGames([]);
+        }
+      } catch {
+        setGames([]);
+      }
+    };
+    fetchGames();
+    // eslint-disable-next-line
+  }, []);
+
+  // Fetch permissions for selected role
+  const fetchPerms = async () => {
+    setPermsLoading(true);
+    const [sidebarRes, pageRes] = await Promise.all([
+      fetch(`/api/role-permissions?role=${selectedRole}&type=sidebar`).then(r => r.json()),
+      fetch(`/api/role-permissions?role=${selectedRole}&type=page`).then(r => r.json()),
+    ]);
+    const sidebar: Record<string, boolean> = {};
+    const page: Record<string, boolean> = {};
+    sidebarRes.permissions?.forEach((p: any) => { sidebar[p.permission_key] = p.allowed; });
+    pageRes.permissions?.forEach((p: any) => { page[p.permission_key] = p.allowed; });
+    setSidebarPerms(sidebar);
+    setPagePerms(page);
+    setPermsLoading(false);
   };
+
+  useEffect(() => {
+    fetchPerms();
+    // eslint-disable-next-line
+  }, [selectedRole]);
 
   // Create tournament
   const handleCreateTournament = async (e: any) => {
@@ -149,17 +170,20 @@ export default function SuperAdminPage() {
       created_by: user?.id
     };
     
-    const { error } = await supabase
-      .from('tournaments')
-      .insert([tournamentData]);
-    if (error) {
-      toast.error('Failed to create tournament');
-      console.error('Tournament creation error:', error);
-    } else {
+    const token = await getToken();
+    const res = await fetch('/api/create-tournament', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify(tournamentData),
+    });
+    if (res.ok) {
       toast.success('Tournament created!');
       setTournament({ title: '', game: '', start_date: '', end_date: '', prize_pool: '', registration_fee: '', max_teams: '', current_teams: '0', status: 'upcoming', type: 'open', is_featured: false, is_upcoming: false, rules: [''], rewards: [{ position: 1, amount: 0 }] });
       fetchTournaments();
       fetchStats();
+    } else {
+      toast.error('Failed to create tournament');
+      console.error('Tournament creation error:', res.status);
     }
     setCreatingTournament(false);
   };
@@ -169,29 +193,43 @@ export default function SuperAdminPage() {
     e.preventDefault();
     setSendingNotif(true);
     // Get all user FCM tokens
-    const { data: users } = await supabase
-      .from('users')
-      .select('fcm_token')
-      .not('fcm_token', 'is', null);
-    const tokens = users?.map((u: any) => u.fcm_token).filter(Boolean);
-    if (!tokens || tokens.length === 0) {
-      toast.error('No users with FCM tokens found');
-      setSendingNotif(false);
-      return;
+    const res = await fetch('/api/get-fcm-tokens');
+    if (res.ok) {
+      const data = await res.json();
+      const tokens = data?.map((u: any) => u.fcm_token).filter(Boolean);
+      if (!tokens || tokens.length === 0) {
+        toast.error('No users with FCM tokens found');
+        setSendingNotif(false);
+        return;
+      }
+      const token = await getToken();
+      // Send notification to each user
+      for (const fcmToken of tokens) {
+        const notificationRes = await fetch('/api/send-notification', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            token: fcmToken,
+            title: notifTitle,
+            body: notifBody,
+          }),
+        });
+        if (!notificationRes.ok) {
+          console.error('Failed to send notification to token:', fcmToken, notificationRes.status);
+          // If 500, remove the token from DB
+          if (notificationRes.status === 500) {
+            await fetch('/api/remove-fcm-token', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+              body: JSON.stringify({ fcm_token: fcmToken }),
+            });
+          }
+        }
+      }
+      toast.success('Notification sent to all users!');
+    } else {
+      toast.error('Failed to fetch users with FCM tokens');
     }
-    // Send notification to each user
-    for (const token of tokens) {
-      await fetch('/api/send-notification', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          token,
-          title: notifTitle,
-          body: notifBody,
-        }),
-      });
-    }
-    toast.success('Notification sent to all users!');
     setNotifTitle('');
     setNotifBody('');
     setSendingNotif(false);
@@ -199,15 +237,18 @@ export default function SuperAdminPage() {
 
   // Update user role
   const handleRoleChange = async (userId: string, newRole: string) => {
-    const { error } = await supabase
-      .from('users')
-      .update({ role: newRole })
-      .eq('id', userId);
-    if (error) {
-      toast.error('Failed to update role');
-    } else {
+    const token = await getToken();
+    const res = await fetch('/api/update-user-role', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ userId, newRole }),
+    });
+    if (res.ok) {
       toast.success('Role updated!');
       fetchUsers();
+    } else {
+      toast.error('Failed to update role');
+      console.error('Role update error:', res.status);
     }
   };
 
@@ -217,43 +258,43 @@ export default function SuperAdminPage() {
     u.email?.toLowerCase().includes(userSearch.toLowerCase())
   );
 
-  // Fetch permissions for selected role
-  useEffect(() => {
-    const fetchPerms = async () => {
-      setPermsLoading(true);
-      const [sidebarRes, pageRes] = await Promise.all([
-        fetch(`/api/role-permissions?role=${selectedRole}&type=sidebar`).then(r => r.json()),
-        fetch(`/api/role-permissions?role=${selectedRole}&type=page`).then(r => r.json()),
-      ]);
-      const sidebar: { [key: string]: boolean } = {};
-      const page: { [key: string]: boolean } = {};
-      sidebarRes.permissions?.forEach((p: any) => { sidebar[p.permission_key] = p.allowed; });
-      pageRes.permissions?.forEach((p: any) => { page[p.permission_key] = p.allowed; });
-      setSidebarPerms(sidebar);
-      setPagePerms(page);
-      setPermsLoading(false);
-    };
-    fetchPerms();
-  }, [selectedRole]);
-
   // Update permission
   const updatePerm = async (type: 'sidebar' | 'page', key: string, allowed: boolean) => {
     if (permsLoading) return;
     if (type === 'sidebar') setSidebarPerms(prev => ({ ...prev, [key]: allowed }));
     else setPagePerms(prev => ({ ...prev, [key]: allowed }));
-    await fetch('/api/role-permissions', {
+    const token = await getToken();
+    const res = await fetch('/api/role-permissions', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify({ role: selectedRole, permission_key: key, type, allowed }),
     });
-    toast.success('Permission updated');
+    if (res.ok) {
+      toast.success('Permission updated');
+      fetchPerms(); // Refresh permissions from backend
+    } else {
+      toast.error('Failed to update permission');
+      console.error('Permission update error:', res.status);
+    }
   };
 
-  if (loading) return <div className="p-8 text-center text-fuchsia-300">Loading...</div>;
-  if (accessDenied) return <div className="p-8 text-center text-red-400 font-bold">Access Denied</div>;
+  if (loadingAuth) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <span className="text-2xl font-bold text-gray-700">Loading...</span>
+      </div>
+    );
+  }
+  if (!user || user.role !== 'superadmin') {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <span className="text-2xl font-bold text-red-600">Access Denied</span>
+      </div>
+    );
+  }
 
   return (
-    <PageGuard pageKey="adminPanel">
+    <PageGuard pageKey="admin">
       <div className="min-h-screen bg-gradient-to-br from-[#0f051d] via-[#18122b] to-[#232046] py-10 px-4">
         <div className="max-w-6xl mx-auto">
           <h1 className="text-4xl font-extrabold mb-8 text-fuchsia-400 drop-shadow-[0_2px_24px_rgba(236,72,153,0.5)]">Zelmu Super Admin Panel</h1>
@@ -405,242 +446,6 @@ export default function SuperAdminPage() {
                 </tbody>
               </table>
             </div>
-          </section>
-
-          {/* Create Tournament */}
-          <section className="mb-12">
-            <h2 className="text-xl font-bold mb-4 text-white">Create Upcoming Tournament</h2>
-            <form onSubmit={handleCreateTournament} className="space-y-4 bg-white/10 p-6 rounded-xl">
-              <input
-                type="text"
-                placeholder="Title"
-                value={tournament.title}
-                onChange={e => setTournament({ ...tournament, title: e.target.value })}
-                className="w-full px-4 py-2 rounded bg-white/20 text-white"
-                required
-              />
-              <input
-                type="text"
-                placeholder="Game"
-                value={tournament.game}
-                onChange={e => setTournament({ ...tournament, game: e.target.value })}
-                className="w-full px-4 py-2 rounded bg-white/20 text-white"
-                required
-              />
-              <div className="flex flex-col sm:flex-row gap-4">
-                <div className="flex-1">
-                  <label className="block text-fuchsia-200 font-semibold mb-1">Start Date</label>
-                  <input
-                    type="date"
-                    placeholder="Start Date"
-                    value={tournament.start_date}
-                    onChange={e => setTournament({ ...tournament, start_date: e.target.value })}
-                    className="w-full px-4 py-2 rounded bg-white/20 text-white"
-                    required
-                  />
-                </div>
-                <div className="flex-1">
-                  <label className="block text-fuchsia-200 font-semibold mb-1">End Date</label>
-                  <input
-                    type="date"
-                    placeholder="End Date"
-                    value={tournament.end_date}
-                    onChange={e => setTournament({ ...tournament, end_date: e.target.value })}
-                    className="w-full px-4 py-2 rounded bg-white/20 text-white"
-                    required
-                  />
-                </div>
-              </div>
-              <input
-                type="number"
-                placeholder="Prize Pool"
-                value={tournament.prize_pool}
-                onChange={e => setTournament({ ...tournament, prize_pool: e.target.value })}
-                className="w-full px-4 py-2 rounded bg-white/20 text-white"
-                required
-              />
-              <div className="flex flex-col sm:flex-row gap-4">
-                <div className="flex-1">
-                  <input
-                    type="number"
-                    placeholder="Registration Fee"
-                    value={tournament.registration_fee}
-                    onChange={e => setTournament({ ...tournament, registration_fee: e.target.value })}
-                    className="w-full px-4 py-2 rounded bg-white/20 text-white"
-                  />
-                </div>
-                <div className="flex-1">
-                  <input
-                    type="number"
-                    placeholder="Max Teams"
-                    value={tournament.max_teams}
-                    onChange={e => setTournament({ ...tournament, max_teams: e.target.value })}
-                    className="w-full px-4 py-2 rounded bg-white/20 text-white"
-                    min="1"
-                  />
-                </div>
-              </div>
-              
-              {/* Tournament Rules */}
-              <div className="space-y-2">
-                <label className="block text-fuchsia-200 font-semibold">Tournament Rules</label>
-                {tournament.rules.map((rule, index) => (
-                  <div key={index} className="flex gap-2">
-                    <input
-                      type="text"
-                      placeholder={`Rule ${index + 1}`}
-                      value={rule}
-                      onChange={e => {
-                        const newRules = [...tournament.rules];
-                        newRules[index] = e.target.value;
-                        setTournament({ ...tournament, rules: newRules });
-                      }}
-                      className="flex-1 px-4 py-2 rounded bg-white/20 text-white"
-                    />
-                    {tournament.rules.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const newRules = tournament.rules.filter((_, i) => i !== index);
-                          setTournament({ ...tournament, rules: newRules });
-                        }}
-                        className="px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded"
-                      >
-                        Remove
-                      </button>
-                    )}
-                  </div>
-                ))}
-                <button
-                  type="button"
-                  onClick={() => setTournament({ ...tournament, rules: [...tournament.rules, ''] })}
-                  className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded"
-                >
-                  Add Rule
-                </button>
-              </div>
-
-              {/* Prize Distribution */}
-              <div className="space-y-2">
-                <label className="block text-fuchsia-200 font-semibold">Prize Distribution</label>
-                {tournament.rewards.map((reward, index) => (
-                  <div key={index} className="flex gap-2">
-                    <input
-                      type="number"
-                      placeholder="Position"
-                      value={reward.position}
-                      onChange={e => {
-                        const newRewards = [...tournament.rewards];
-                        newRewards[index] = { ...reward, position: Number(e.target.value) };
-                        setTournament({ ...tournament, rewards: newRewards });
-                      }}
-                      className="w-24 px-4 py-2 rounded bg-white/20 text-white"
-                      min="1"
-                    />
-                    <input
-                      type="number"
-                      placeholder="Amount (₹)"
-                      value={reward.amount}
-                      onChange={e => {
-                        const newRewards = [...tournament.rewards];
-                        newRewards[index] = { ...reward, amount: Number(e.target.value) };
-                        setTournament({ ...tournament, rewards: newRewards });
-                      }}
-                      className="flex-1 px-4 py-2 rounded bg-white/20 text-white"
-                      min="0"
-                    />
-                    {tournament.rewards.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const newRewards = tournament.rewards.filter((_, i) => i !== index);
-                          setTournament({ ...tournament, rewards: newRewards });
-                        }}
-                        className="px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded"
-                      >
-                        Remove
-                      </button>
-                    )}
-                  </div>
-                ))}
-                <button
-                  type="button"
-                  onClick={() => setTournament({ ...tournament, rewards: [...tournament.rewards, { position: tournament.rewards.length + 1, amount: 0 }] })}
-                  className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded"
-                >
-                  Add Prize
-                </button>
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-4">
-                <div className="flex-1">
-                  <label className="block text-fuchsia-200 font-semibold mb-1">Tournament Type</label>
-                  <select
-                    value={tournament.type}
-                    onChange={e => setTournament({ ...tournament, type: e.target.value })}
-                    className="w-full px-4 py-2 rounded bg-white/20 text-white"
-                  >
-                    <option value="open">Open (Team/Individual)</option>
-                    <option value="club">Club</option>
-                  </select>
-                </div>
-                <div className="flex-1">
-                  <label className="block text-fuchsia-200 font-semibold mb-1">Status</label>
-                  <select
-                    value={tournament.status}
-                    onChange={e => setTournament({ ...tournament, status: e.target.value })}
-                    className="w-full px-4 py-2 rounded bg-white/20 text-white"
-                  >
-                    <option value="upcoming">Upcoming</option>
-                    <option value="ongoing">Ongoing</option>
-                    <option value="completed">Completed</option>
-                  </select>
-                </div>
-                <div className="flex flex-col gap-2 justify-center">
-                  <label className="flex items-center gap-2 text-fuchsia-200 font-semibold">
-                    <input
-                      type="checkbox"
-                      checked={tournament.is_featured}
-                      onChange={e => setTournament({ ...tournament, is_featured: e.target.checked })}
-                      className="accent-fuchsia-500 w-5 h-5 rounded"
-                    />
-                    Featured
-                  </label>
-                  <label className="flex items-center gap-2 text-fuchsia-200 font-semibold">
-                    <input
-                      type="checkbox"
-                      checked={tournament.is_upcoming}
-                      onChange={e => setTournament({ ...tournament, is_upcoming: e.target.checked })}
-                      className="accent-fuchsia-500 w-5 h-5 rounded"
-                    />
-                    Upcoming
-                  </label>
-                </div>
-              </div>
-              <button
-                type="submit"
-                disabled={creatingTournament}
-                className="bg-fuchsia-600 hover:bg-fuchsia-700 text-white px-6 py-2 rounded font-bold disabled:opacity-50"
-              >
-                {creatingTournament ? 'Creating...' : 'Create Tournament'}
-              </button>
-            </form>
-          </section>
-
-          {/* List of Tournaments */}
-          <section className="mb-12">
-            <h2 className="text-xl font-bold mb-4 text-white">Upcoming Tournaments</h2>
-            <ul className="space-y-2">
-              {tournaments.map((t) => (
-                <li key={t.id} className="bg-white/10 p-4 rounded-xl text-white flex justify-between items-center">
-                  <div>
-                    <div className="font-bold">{t.title}</div>
-                    <div className="text-fuchsia-200 text-sm">{t.game} | {t.date} | Prize: {t.prize}</div>
-                  </div>
-                  {/* You can add edit/delete buttons here */}
-                </li>
-              ))}
-            </ul>
           </section>
 
           {/* Push Notification */}

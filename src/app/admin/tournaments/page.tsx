@@ -22,9 +22,11 @@ import {
   FaClock,
   FaUser,
   FaPhone,
-  FaEnvelope
+  FaEnvelope,
+  FaPlus
 } from 'react-icons/fa';
 import PageGuard from '@/components/PageGuard';
+import Link from 'next/link';
 
 interface Tournament {
   id: string;
@@ -44,6 +46,9 @@ interface Tournament {
   rewards: { position: number; amount: number }[];
   created_at: string;
   created_by: string;
+  tier?: string;
+  division?: string;
+  parent_tournament_id?: string;
 }
 
 interface Registration {
@@ -114,6 +119,10 @@ export default function TournamentManagementPage() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingTournament, setEditingTournament] = useState<Tournament | null>(null);
   const [savingTournament, setSavingTournament] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [creatingTournament, setCreatingTournament] = useState(false);
+  const [newTournament, setNewTournament] = useState<Tournament | null>(null);
+  const [games, setGames] = useState<{ id: string; name: string }[]>([]);
 
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data }) => {
@@ -221,6 +230,7 @@ export default function TournamentManagementPage() {
 
   const handleEditTournament = (tournament: Tournament) => {
     setEditingTournament(tournament);
+    fetchGames();
     setShowEditModal(true);
   };
 
@@ -364,6 +374,89 @@ export default function TournamentManagementPage() {
     return matchesSearch && matchesStatus && matchesType && matchesGame;
   });
 
+  const openCreateModal = () => {
+    setNewTournament({
+      id: '',
+      title: '',
+      game: '',
+      start_date: '',
+      end_date: '',
+      prize_pool: 0,
+      registration_fee: 0,
+      max_teams: 64,
+      current_teams: 0,
+      status: 'upcoming',
+      type: 'open',
+      is_featured: false,
+      is_upcoming: false,
+      rules: [],
+      rewards: [],
+      created_at: '',
+      created_by: user?.id || '',
+    });
+    fetchGames();
+    setShowCreateModal(true);
+  };
+
+  const createTournament = async (tournament: Tournament) => {
+    setCreatingTournament(true);
+    try {
+      // Sanitize and validate data, only send fields that exist in the schema
+      const cleanTournament: any = {
+        title: tournament.title?.trim() || null,
+        game: tournament.game?.trim() || null,
+        start_date: tournament.start_date || null,
+        end_date: tournament.end_date || null,
+        prize_pool: Number(tournament.prize_pool) || 0,
+        status: tournament.status || 'upcoming',
+        type: tournament.type || 'open',
+        is_featured: tournament.is_featured === true || String(tournament.is_featured) === 'yes',
+        is_upcoming: tournament.is_upcoming === true || String(tournament.is_upcoming) === 'yes',
+        registration_fee: Number(tournament.registration_fee) || 0,
+        max_teams: Number(tournament.max_teams) || 64,
+        current_teams: Number(tournament.current_teams) || 0,
+        rules: Array.isArray(tournament.rules) ? tournament.rules.filter(r => r && r.trim()) : [],
+        rewards: Array.isArray(tournament.rewards) ? tournament.rewards.filter(r => r.amount > 0) : [],
+        created_by: user?.id,
+      };
+      // Only include these if they are set and not empty string
+      if (tournament.tier && tournament.tier.trim() !== '') cleanTournament.tier = tournament.tier;
+      if (tournament.division && tournament.division.trim() !== '') cleanTournament.division = tournament.division;
+      if (tournament.parent_tournament_id && tournament.parent_tournament_id.trim() !== '') cleanTournament.parent_tournament_id = tournament.parent_tournament_id;
+      console.log('Tournament payload:', cleanTournament);
+      const { error } = await supabase
+        .from('tournaments')
+        .insert([cleanTournament]);
+      if (error) {
+        toast.error('Failed to create tournament');
+      } else {
+        toast.success('Tournament created!');
+        setShowCreateModal(false);
+        setNewTournament(null);
+        await fetchTournaments();
+      }
+    } catch (error) {
+      toast.error('Failed to create tournament');
+    } finally {
+      setCreatingTournament(false);
+    }
+  };
+
+  const fetchGames = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const accessToken = session?.access_token;
+      const res = await fetch('/api/games', {
+        headers: accessToken ? { 'Authorization': `Bearer ${accessToken}` } : {},
+      });
+      const data = await res.json();
+      if (Array.isArray(data)) setGames(data);
+      else setGames([]);
+    } catch {
+      setGames([]);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#0f051d] via-[#18122b] to-[#232046] flex items-center justify-center">
@@ -388,6 +481,29 @@ export default function TournamentManagementPage() {
   return (
     <PageGuard pageKey="adminPanel">
       <div className="min-h-screen bg-gradient-to-br from-[#0f051d] via-[#18122b] to-[#232046]">
+        {/* Navigation Cards */}
+        <div className="container mx-auto px-4 pt-8 pb-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-6">
+          <Link href="/admin/games" className="bg-gradient-to-br from-fuchsia-600 to-purple-700 rounded-2xl p-6 flex flex-col items-center shadow-xl hover:scale-105 transition-all group">
+            <FaGamepad className="text-3xl text-white mb-2 group-hover:scale-110 transition-transform" />
+            <span className="text-lg font-bold text-white">Manage Games</span>
+          </Link>
+          <Link href="/admin/tournament-stages" className="bg-gradient-to-br from-blue-600 to-fuchsia-700 rounded-2xl p-6 flex flex-col items-center shadow-xl hover:scale-105 transition-all group">
+            <FaCalendar className="text-3xl text-white mb-2 group-hover:scale-110 transition-transform" />
+            <span className="text-lg font-bold text-white">Manage Stages</span>
+          </Link>
+          <Link href="/admin/groups" className="bg-gradient-to-br from-yellow-500 to-fuchsia-600 rounded-2xl p-6 flex flex-col items-center shadow-xl hover:scale-105 transition-all group">
+            <FaUsers className="text-3xl text-white mb-2 group-hover:scale-110 transition-transform" />
+            <span className="text-lg font-bold text-white">Manage Groups</span>
+          </Link>
+          <Link href="/admin/points-rules" className="bg-gradient-to-br from-green-500 to-fuchsia-600 rounded-2xl p-6 flex flex-col items-center shadow-xl hover:scale-105 transition-transform group">
+            <FaCrown className="text-3xl text-white mb-2 group-hover:scale-110 transition-transform" />
+            <span className="text-lg font-bold text-white">Points Rules</span>
+          </Link>
+          <Link href="/admin/tournaments/leaderboard" className="bg-gradient-to-br from-fuchsia-500 to-blue-700 rounded-2xl p-6 flex flex-col items-center shadow-xl hover:scale-105 transition-all group">
+            <FaTrophy className="text-3xl text-white mb-2 group-hover:scale-110 transition-transform" />
+            <span className="text-lg font-bold text-white">Leaderboard</span>
+          </Link>
+        </div>
         {/* Header */}
         <div className="bg-white/10 backdrop-blur-xl border-b border-fuchsia-700/30">
           <div className="container mx-auto px-4 py-6">
@@ -404,6 +520,12 @@ export default function TournamentManagementPage() {
                   <p className="text-fuchsia-200">Manage all tournaments and view registrations</p>
                 </div>
               </div>
+              <button
+                onClick={openCreateModal}
+                className="bg-fuchsia-600 hover:bg-fuchsia-700 text-white px-6 py-2 rounded-lg font-bold shadow transition-all duration-300"
+              >
+                + Create Tournament
+              </button>
             </div>
           </div>
         </div>
@@ -803,12 +925,16 @@ export default function TournamentManagementPage() {
                   </div>
                   <div>
                     <label className="block text-fuchsia-200 text-sm mb-1">Game</label>
-                    <input
-                      type="text"
+                    <select
                       value={editingTournament.game}
                       onChange={(e) => setEditingTournament({ ...editingTournament, game: e.target.value })}
                       className="w-full px-3 py-2 bg-white/10 border border-fuchsia-500/30 rounded text-white text-sm"
-                    />
+                    >
+                      <option value="">Select a game</option>
+                      {games.map(g => (
+                        <option key={g.id} value={g.name}>{g.name}</option>
+                      ))}
+                    </select>
                   </div>
                   <div>
                     <label className="block text-fuchsia-200 text-sm mb-1">Start Date</label>
@@ -943,7 +1069,7 @@ export default function TournamentManagementPage() {
                           });
                         setEditingTournament({ ...editingTournament, rewards });
                       }}
-                      placeholder="1 - 10000&#10;2 - 5000&#10;3 - 2500"
+                      placeholder="1 - 10000\n2 - 5000\n3 - 2500"
                       rows={4}
                       className="w-full px-3 py-2 bg-white/10 border border-fuchsia-500/30 rounded text-white text-sm"
                     />
@@ -968,6 +1094,281 @@ export default function TournamentManagementPage() {
                       </>
                     ) : (
                       'Save Changes'
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Create Tournament Modal */}
+        {showCreateModal && newTournament && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-white/10 backdrop-blur-xl rounded-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden border border-fuchsia-700/30">
+              {/* Modal Header */}
+              <div className="bg-white/5 p-6 border-b border-fuchsia-700/30">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-2xl font-bold text-white">Create Tournament</h2>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setShowCreateModal(false)}
+                      className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors"
+                    >
+                      Close
+                    </button>
+                  </div>
+                </div>
+              </div>
+              {/* Modal Content */}
+              <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-fuchsia-200 text-sm mb-1">Title</label>
+                    <input
+                      type="text"
+                      value={newTournament.title}
+                      onChange={(e) => setNewTournament({ ...newTournament, title: e.target.value })}
+                      className="w-full px-3 py-2 bg-white/10 border border-fuchsia-500/30 rounded text-white text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-fuchsia-200 text-sm mb-1">Game</label>
+                    <select
+                      value={newTournament.game}
+                      onChange={e => setNewTournament({ ...newTournament, game: e.target.value })}
+                      className="w-full px-3 py-2 bg-white/10 border border-fuchsia-500/30 rounded text-white text-sm"
+                    >
+                      <option value="">Select a game</option>
+                      {games.map(g => (
+                        <option key={g.id} value={g.name}>{g.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-fuchsia-200 text-sm mb-1">Start Date</label>
+                    <input
+                      type="date"
+                      value={newTournament.start_date}
+                      onChange={(e) => setNewTournament({ ...newTournament, start_date: e.target.value })}
+                      className="w-full px-3 py-2 bg-white/10 border border-fuchsia-500/30 rounded text-white text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-fuchsia-200 text-sm mb-1">End Date</label>
+                    <input
+                      type="date"
+                      value={newTournament.end_date}
+                      onChange={(e) => setNewTournament({ ...newTournament, end_date: e.target.value })}
+                      className="w-full px-3 py-2 bg-white/10 border border-fuchsia-500/30 rounded text-white text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-fuchsia-200 text-sm mb-1">Prize Pool (₹)</label>
+                    <input
+                      type="number"
+                      value={newTournament.prize_pool}
+                      onChange={(e) => setNewTournament({ ...newTournament, prize_pool: Number(e.target.value) })}
+                      className="w-full px-3 py-2 bg-white/10 border border-fuchsia-500/30 rounded text-white text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-fuchsia-200 text-sm mb-1">Registration Fee (₹)</label>
+                    <input
+                      type="number"
+                      value={newTournament.registration_fee}
+                      onChange={(e) => setNewTournament({ ...newTournament, registration_fee: Number(e.target.value) })}
+                      className="w-full px-3 py-2 bg-white/10 border border-fuchsia-500/30 rounded text-white text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-fuchsia-200 text-sm mb-1">Max Teams</label>
+                    <input
+                      type="number"
+                      value={newTournament.max_teams}
+                      onChange={(e) => setNewTournament({ ...newTournament, max_teams: Number(e.target.value) })}
+                      className="w-full px-3 py-2 bg-white/10 border border-fuchsia-500/30 rounded text-white text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-fuchsia-200 text-sm mb-1">Current Teams</label>
+                    <input
+                      type="number"
+                      value={newTournament.current_teams}
+                      onChange={(e) => setNewTournament({ ...newTournament, current_teams: Number(e.target.value) })}
+                      className="w-full px-3 py-2 bg-white/10 border border-fuchsia-500/30 rounded text-white text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-fuchsia-200 text-sm mb-1">Status</label>
+                    <select
+                      value={newTournament.status}
+                      onChange={(e) => setNewTournament({ ...newTournament, status: e.target.value })}
+                      className="w-full px-3 py-2 bg-white/10 border border-fuchsia-500/30 rounded text-white text-sm"
+                    >
+                      <option value="upcoming">Upcoming</option>
+                      <option value="ongoing">Ongoing</option>
+                      <option value="completed">Completed</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-fuchsia-200 text-sm mb-1">Type</label>
+                    <select
+                      value={newTournament.type}
+                      onChange={(e) => setNewTournament({ ...newTournament, type: e.target.value })}
+                      className="w-full px-3 py-2 bg-white/10 border border-fuchsia-500/30 rounded text-white text-sm"
+                    >
+                      <option value="open">Open</option>
+                      <option value="club">Club</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-fuchsia-200 text-sm mb-1">Featured Tournament</label>
+                    <select
+                      value={newTournament.is_featured ? 'yes' : 'no'}
+                      onChange={(e) => setNewTournament({ ...newTournament, is_featured: e.target.value === 'yes' })}
+                      className="w-full px-3 py-2 bg-white/10 border border-fuchsia-500/30 rounded text-white text-sm"
+                    >
+                      <option value="no">No</option>
+                      <option value="yes">Yes</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-fuchsia-200 text-sm mb-1">Upcoming Tournament</label>
+                    <select
+                      value={newTournament.is_upcoming ? 'yes' : 'no'}
+                      onChange={(e) => setNewTournament({ ...newTournament, is_upcoming: e.target.value === 'yes' })}
+                      className="w-full px-3 py-2 bg-white/10 border border-fuchsia-500/30 rounded text-white text-sm"
+                    >
+                      <option value="no">No</option>
+                      <option value="yes">Yes</option>
+                    </select>
+                  </div>
+                </div>
+                {/* Rules Section */}
+                <div className="mt-8 mb-6">
+                  <h3 className="text-lg font-bold text-fuchsia-300 mb-2 flex items-center gap-2">
+                    <FaTrophy className="text-fuchsia-400" /> Rules
+                  </h3>
+                  <p className="text-fuchsia-200 text-sm mb-2">Add tournament rules. Each rule should be clear and concise.</p>
+                  <div className="space-y-2">
+                    {newTournament.rules.length === 0 && (
+                      <div className="text-fuchsia-400 text-sm mb-2">No rules added yet.</div>
+                    )}
+                    {newTournament.rules.map((rule, idx) => (
+                      <div key={idx} className="flex gap-2 items-center">
+                        <input
+                          type="text"
+                          value={rule}
+                          placeholder={`Rule #${idx + 1}`}
+                          onChange={e => {
+                            const rules = [...newTournament.rules];
+                            rules[idx] = e.target.value;
+                            setNewTournament({ ...newTournament, rules });
+                          }}
+                          className="flex-1 px-3 py-2 bg-white/10 border border-fuchsia-500/30 rounded text-white text-sm focus:ring-2 focus:ring-fuchsia-500"
+                        />
+                        <button
+                          type="button"
+                          aria-label="Remove rule"
+                          onClick={() => {
+                            const rules = newTournament.rules.filter((_, i) => i !== idx);
+                            setNewTournament({ ...newTournament, rules });
+                          }}
+                          className="text-red-400 hover:text-red-600 px-2 py-2 rounded-full bg-white/10 hover:bg-red-900/30 transition"
+                        >
+                          <FaTrash />
+                        </button>
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => setNewTournament({ ...newTournament, rules: [...newTournament.rules, ''] })}
+                      className="mt-2 flex items-center gap-2 bg-gradient-to-r from-fuchsia-600 to-purple-700 text-white px-4 py-2 rounded shadow hover:scale-105 transition-all duration-300 font-bold"
+                    >
+                      <FaPlus /> Add Rule
+                    </button>
+                  </div>
+                </div>
+                {/* Rewards Section */}
+                <div className="mb-6">
+                  <h3 className="text-lg font-bold text-yellow-300 mb-2 flex items-center gap-2">
+                    <FaMoneyBillWave className="text-yellow-400" /> Prize Pool / Rewards
+                  </h3>
+                  <p className="text-fuchsia-200 text-sm mb-2">Add rewards for top positions. Example: 1st - ₹10000, 2nd - ₹5000</p>
+                  <div className="space-y-2">
+                    {newTournament.rewards.length === 0 && (
+                      <div className="text-yellow-400 text-sm mb-2">No rewards added yet.</div>
+                    )}
+                    {newTournament.rewards.map((reward, idx) => (
+                      <div key={idx} className="flex gap-2 items-center">
+                        <input
+                          type="number"
+                          min={1}
+                          placeholder="Position"
+                          value={reward.position}
+                          onChange={e => {
+                            const rewards = [...newTournament.rewards];
+                            rewards[idx].position = Number(e.target.value);
+                            setNewTournament({ ...newTournament, rewards });
+                          }}
+                          className="w-24 px-3 py-2 bg-white/10 border border-yellow-500/30 rounded text-white text-sm focus:ring-2 focus:ring-yellow-400"
+                        />
+                        <input
+                          type="number"
+                          min={0}
+                          placeholder="Amount (₹)"
+                          value={reward.amount}
+                          onChange={e => {
+                            const rewards = [...newTournament.rewards];
+                            rewards[idx].amount = Number(e.target.value);
+                            setNewTournament({ ...newTournament, rewards });
+                          }}
+                          className="flex-1 px-3 py-2 bg-white/10 border border-yellow-500/30 rounded text-white text-sm focus:ring-2 focus:ring-yellow-400"
+                        />
+                        <button
+                          type="button"
+                          aria-label="Remove reward"
+                          onClick={() => {
+                            const rewards = newTournament.rewards.filter((_, i) => i !== idx);
+                            setNewTournament({ ...newTournament, rewards });
+                          }}
+                          className="text-red-400 hover:text-red-600 px-2 py-2 rounded-full bg-white/10 hover:bg-red-900/30 transition"
+                        >
+                          <FaTrash />
+                        </button>
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => setNewTournament({ ...newTournament, rewards: [...newTournament.rewards, { position: newTournament.rewards.length + 1, amount: 0 }] })}
+                      className="mt-2 flex items-center gap-2 bg-gradient-to-r from-yellow-500 to-fuchsia-600 text-white px-4 py-2 rounded shadow hover:scale-105 transition-all duration-300 font-bold"
+                    >
+                      <FaPlus /> Add Reward
+                    </button>
+                  </div>
+                </div>
+                <div className="mt-6 flex gap-3">
+                  <button
+                    onClick={() => setShowCreateModal(false)}
+                    className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => newTournament && createTournament(newTournament)}
+                    disabled={creatingTournament}
+                    className="bg-fuchsia-600 hover:bg-fuchsia-700 text-white px-6 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  >
+                    {creatingTournament ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        Creating...
+                      </>
+                    ) : (
+                      'Create Tournament'
                     )}
                   </button>
                 </div>

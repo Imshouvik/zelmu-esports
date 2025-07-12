@@ -32,6 +32,7 @@ const schema = yup.object({
   player2UserId: yup.string().required('Please select Player 2 from registered users'),
   player3UserId: yup.string().required('Please select Player 3 from registered users'),
   player4UserId: yup.string().required('Please select Player 4 from registered users'),
+  leaderUserId: yup.string().optional(),
 }).required()
 
 type TeamRegistrationForm = yup.InferType<typeof schema>
@@ -57,14 +58,19 @@ export default function TournamentDetails() {
   const [registrationLoading, setRegistrationLoading] = useState(false);
   const [checkingClubRegistration, setCheckingClubRegistration] = useState(false);
   const [selectedPlayers, setSelectedPlayers] = useState<{
+    leader: { id: string; name: string; email: string } | null;
     player2: { id: string; name: string; email: string } | null;
     player3: { id: string; name: string; email: string } | null;
     player4: { id: string; name: string; email: string } | null;
   }>({
+    leader: null,
     player2: null,
     player3: null,
     player4: null,
   });
+  const [groups, setGroups] = useState<any[]>([]);
+  const [selectedGroupId, setSelectedGroupId] = useState<string>("");
+  const [groupsLoading, setGroupsLoading] = useState(false);
 
   const {
     register,
@@ -110,9 +116,26 @@ export default function TournamentDetails() {
     setValue('player4UserId', user.id);
   };
 
+  const handleLeaderSelect = (user: { id: string; name: string; email: string }) => {
+    // Check for duplicate selection
+    if (
+      selectedPlayers.player2?.id === user.id ||
+      selectedPlayers.player3?.id === user.id ||
+      selectedPlayers.player4?.id === user.id
+    ) {
+      toast.error('This player is already selected for another position');
+      return;
+    }
+    setSelectedPlayers(prev => ({ ...prev, leader: user }));
+    setValue('leaderName', user.name);
+    setValue('leaderEmail', user.email);
+    setValue('leaderUserId', user.id);
+  };
+
   // Function to reset form and selected players
   const resetForm = () => {
     setSelectedPlayers({
+      leader: null,
       player2: null,
       player3: null,
       player4: null,
@@ -220,12 +243,48 @@ export default function TournamentDetails() {
     if (id) fetchTournamentDetails();
   }, [id]);
 
+  // Fetch groups for the current tournament (and optionally stage)
+  useEffect(() => {
+    const fetchGroups = async () => {
+      setGroupsLoading(true);
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const accessToken = session?.access_token;
+        // For now, fetch all groups for this tournament (could filter by stage if needed)
+        const res = await fetch(`/api/groups?tournament_id=${id}`, {
+          headers: accessToken ? { 'Authorization': `Bearer ${accessToken}` } : {},
+        });
+        const data = await res.json();
+        if (Array.isArray(data)) setGroups(data);
+        else setGroups([]);
+      } catch {
+        setGroups([]);
+      } finally {
+        setGroupsLoading(false);
+      }
+    };
+    if (id && showRegistrationForm) fetchGroups();
+  }, [id, showRegistrationForm]);
+
   const onSubmit = async (data: TeamRegistrationForm) => {
     if (!user) {
       toast.error('User not authenticated');
       return;
     }
-
+    if (!selectedGroupId) {
+      toast.error('Please select a group/time slot.');
+      return;
+    }
+    // Check if group is full
+    const group = groups.find(g => g.id === selectedGroupId);
+    if (!group) {
+      toast.error('Selected group not found.');
+      return;
+    }
+    if (group.current_teams >= group.max_teams) {
+      toast.error('Selected group is full. Please choose another group.');
+      return;
+    }
     try {
       setRegistering(true);
       
@@ -251,7 +310,7 @@ export default function TournamentDetails() {
 
       // Create team players
       const players = [
-        { name: data.leaderName, email: data.leaderEmail, phone: data.leaderPhone, game_id: data.leaderGameId, position: 'captain' },
+        { name: data.leaderName, email: data.leaderEmail, phone: data.leaderPhone, game_id: data.leaderGameId, position: 'captain', user_id: selectedPlayers.leader?.id || data.leaderUserId || null },
         { 
           name: selectedPlayers.player2?.name || data.player2Name || '', 
           email: selectedPlayers.player2?.email || '', 
@@ -277,18 +336,22 @@ export default function TournamentDetails() {
           user_id: selectedPlayers.player4?.id || null
         }
       ];
-
-      const { error: playersError } = await supabase
-        .from('team_players')
-        .insert(players.map(player => ({
+      // Only insert players with required fields
+      const validPlayers = players
+        .filter(p => p.name && p.game_id)
+        .map((player, idx) => ({
           team_id: teamData.id,
           player_name: player.name,
           player_email: player.email,
           player_phone: player.phone,
           game_id: player.game_id,
           player_position: player.position,
-          user_id: player.user_id
-        })));
+          user_id: player.user_id,
+          player_index: idx
+        }));
+      const { error: playersError } = await supabase
+        .from('team_players')
+        .insert(validPlayers);
 
       if (playersError) {
         console.error('Team players creation error:', playersError);
@@ -296,7 +359,7 @@ export default function TournamentDetails() {
         return;
       }
 
-      // Create tournament registration
+      // Create tournament registration with group_id
       const { error: registrationError } = await supabase
         .from('tournament_registrations')
         .insert([{
@@ -305,7 +368,8 @@ export default function TournamentDetails() {
           team_id: teamData.id,
           registered_by: user.id,
           registration_status: 'pending',
-          payment_status: 'pending'
+          payment_status: 'pending',
+          group_id: selectedGroupId,
         }]);
 
       if (registrationError) {
@@ -313,6 +377,12 @@ export default function TournamentDetails() {
         toast.error('Failed to register team for tournament');
         return;
       }
+
+      // Increment current_teams for the group
+      await supabase
+        .from('groups')
+        .update({ current_teams: group.current_teams + 1 })
+        .eq('id', selectedGroupId);
 
       // Update tournament current teams count
       await supabase
@@ -328,6 +398,7 @@ export default function TournamentDetails() {
       setShowRegistrationForm(false);
       setRegistering(false);
       resetForm();
+      setSelectedGroupId("");
       toast.success('Registration successful!');
     } catch (error) {
       console.error('Registration error:', error);
@@ -722,7 +793,7 @@ export default function TournamentDetails() {
                         damping: 15,
                         mass: 1
                       }}
-                      className="relative w-full max-w-4xl max-h-[calc(100vh-2rem)] overflow-y-auto rounded-2xl sm:rounded-3xl bg-gradient-to-br from-[#18122b]/95 to-[#232046]/95 shadow-2xl border border-fuchsia-700/30 backdrop-blur-xl"
+                      className="relative w-full max-w-4xl max-h-[calc(100vh-2rem)] min-h-[400px] overflow-y-scroll rounded-2xl sm:rounded-3xl bg-gradient-to-br from-[#18122b]/95 to-[#232046]/95 shadow-2xl border border-fuchsia-700/30 backdrop-blur-xl"
                       onClick={(e) => e.stopPropagation()}
                     >
                       {/* Close button */}
@@ -872,6 +943,7 @@ export default function TournamentDetails() {
                               <input type="hidden" {...register('player2UserId')} />
                               <input type="hidden" {...register('player3UserId')} />
                               <input type="hidden" {...register('player4UserId')} />
+                              <input type="hidden" {...register('leaderUserId')} />
                               
                               {/* Help text for player selection */}
                               <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 mb-4">
@@ -888,6 +960,43 @@ export default function TournamentDetails() {
                                   </div>
                                 </div>
                               </div>
+                              
+                              {groupsLoading ? (
+                                <div className="text-fuchsia-200">Loading groups...</div>
+                              ) : groups.length > 0 ? (
+                                <div className="mb-4">
+                                  <label className="block text-fuchsia-200 text-sm mb-1">Select Group / Time Slot</label>
+                                  <div className="space-y-2">
+                                    {groups.map(group => (
+                                      <label key={group.id} className={`flex items-center gap-2 p-2 rounded-lg border ${group.current_teams >= group.max_teams ? 'border-gray-500 bg-gray-800/40 text-gray-400' : 'border-fuchsia-500/30 bg-white/10 text-white'}`}>
+                                        <input
+                                          type="radio"
+                                          name="group"
+                                          value={group.id}
+                                          checked={selectedGroupId === group.id}
+                                          onChange={() => setSelectedGroupId(group.id)}
+                                          disabled={group.current_teams >= group.max_teams}
+                                          className="accent-fuchsia-500"
+                                        />
+                                        <span className="font-semibold">{group.name}</span>
+                                        <span className="ml-2 text-xs">{group.time_slot ? `${group.time_slot.slice(0,5)}` : ''}</span>
+                                        <span className="ml-2 text-xs">({group.current_teams}/{group.max_teams} spots filled)</span>
+                                        {group.current_teams >= group.max_teams && <span className="ml-2 text-xs text-red-400">Full</span>}
+                                      </label>
+                                    ))}
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="text-fuchsia-200">No groups available for registration.</div>
+                              )}
+                              
+                              <UserSearchInvite
+                                onUserSelect={handleLeaderSelect}
+                                placeholder="Search for Leader..."
+                                label="Leader Name"
+                                className="w-full"
+                              />
+                              {errors.leaderUserId && <p className="mt-1 text-xs sm:text-sm text-red-400">{errors.leaderUserId.message}</p>}
                               
                               <UserSearchInvite
                                 onUserSelect={handlePlayer2Select}
@@ -961,7 +1070,7 @@ export default function TournamentDetails() {
                                 Save for future registration
                               </label>
                             </div>
-                            <div className="md:col-span-2 flex flex-col sm:flex-row justify-end gap-3 sm:gap-4 mt-6 sm:mt-8">
+                            <div className="w-full flex flex-col sm:flex-row justify-end gap-3 sm:gap-4 mt-8">
                               <motion.button
                                 type="button"
                                 onClick={() => {

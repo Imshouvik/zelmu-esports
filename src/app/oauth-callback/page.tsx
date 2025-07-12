@@ -41,6 +41,8 @@ export default function OAuthCallbackPage() {
             
             // Extract user data from OAuth metadata
             const name = user.user_metadata?.full_name || user.user_metadata?.name || '';
+            const DEFAULT_AVATAR = 'https://api.dicebear.com/7.x/adventurer/svg?seed=zelmu';
+            const oauthAvatar = user.user_metadata?.avatar_url || user.user_metadata?.picture || DEFAULT_AVATAR;
             
             // Insert into users table - match the actual schema
             const { error: insertError } = await supabase.from('users').insert([{
@@ -50,7 +52,7 @@ export default function OAuthCallbackPage() {
               phone: '', // Social providers don't provide phone
               created_at: new Date().toISOString(),
               role: 'user',
-              // Note: avatar field removed as it's not in the schema
+              avatar_url: oauthAvatar
               // Note: fcm_token will be null initially
             }]);
 

@@ -80,6 +80,7 @@ export default function DashboardPage() {
 
   // Check if user is already a club member
   const checkUserClub = async (userId: string) => {
+    if (!supabase) return;
     try {
       setClubLoading(true)
       console.log('Starting club check for user:', userId)
@@ -143,6 +144,7 @@ export default function DashboardPage() {
   }
 
   useEffect(() => {
+    if (!supabase) return;
     supabase.auth.getUser().then(async ({ data }) => {
       if (!data.user) {
         router.push('/login')
@@ -166,6 +168,7 @@ export default function DashboardPage() {
   }, [router])
 
   useEffect(() => {
+    if (!supabase) return;
     const fetchDashboardTournaments = async () => {
       // Fetch featured tournaments
       const { data: featured, error: featuredError } = await supabase
@@ -186,6 +189,7 @@ export default function DashboardPage() {
   }, []);
 
   const onSubmit = async (data: TournamentForm) => {
+    if (!supabase) return;
     try {
       // TODO: Replace with actual API call
       console.log('Tournament data:', data)
@@ -198,6 +202,7 @@ export default function DashboardPage() {
   }
 
   const handleLogout = async () => {
+    if (!supabase) return;
     await supabase.auth.signOut()
     if (userInfo) {
       dispatch(setUser(userInfo))
@@ -217,6 +222,10 @@ export default function DashboardPage() {
     }
 
     setJoining(true)
+    if (!supabase) {
+      setJoining(false);
+      return;
+    }
     
     try {
       // Check if user is logged in

@@ -15,11 +15,13 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false)
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
+  const DEFAULT_AVATAR = 'https://api.dicebear.com/7.x/adventurer/svg?seed=zelmu';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
     setLoading(true)
+    let avatarUrl = DEFAULT_AVATAR;
     
     if (!phone) {
       setError('Phone number is required.')
@@ -77,7 +79,8 @@ export default function RegisterPage() {
             name, 
             phone, 
             created_at: new Date().toISOString(),
-            role: 'user'
+            role: 'user',
+            avatar_url: avatarUrl
           }])
 
         if (insertError) {
@@ -112,7 +115,7 @@ export default function RegisterPage() {
 
   return (
     <div className="relative min-h-screen w-full flex flex-col items-center justify-center">
-      <Navigation />
+      {/* Navigation removed for register page */}
       {/* Background image with blue-black overlay */}
       <div className="absolute inset-0 w-full h-full -z-10 bg-black">
         <img

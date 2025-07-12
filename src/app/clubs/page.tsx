@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { FaPlus, FaCrown, FaEdit, FaUsers, FaTrophy, FaLink, FaUserPlus, FaUserMinus, FaSignOutAlt } from 'react-icons/fa'
-import Navigation from '@/components/Navigation'
 import DashboardSidebar from '@/components/DashboardSidebar'
 import ClubCreateModal from './ClubCreateModal'
 import ClubEditModal from './ClubEditModal'
@@ -250,7 +249,6 @@ export default function ClubsPage() {
           </button>
           <div className="max-w-sm sm:max-w-md md:max-w-3xl lg:max-w-4xl mx-auto w-full px-2 sm:px-4 md:px-8">
             {/* Navigation bar without profile icon */}
-            <Navigation />
             <div className="w-full space-y-6">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}

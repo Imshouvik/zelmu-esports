@@ -6,6 +6,7 @@ interface User {
   name?: string
   phone?: string
   avatar?: string
+  role?: string // Add role for admin/user
 }
 
 interface AuthState {
@@ -18,7 +19,7 @@ interface AuthState {
 const initialState: AuthState = {
   user: null,
   isAuthenticated: false,
-  loading: false,
+  loading: true, // start with true for correct initial UX
   error: null,
 }
 
