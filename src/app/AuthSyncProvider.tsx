@@ -26,6 +26,7 @@ export default function AuthSyncProvider({ children }: { children: React.ReactNo
     dispatch(setLoading(true))
 
     const hydrateUser = async () => {
+      if (!supabase) return; // Extra check for linter
       const { data: { session } } = await supabase.auth.getSession()
       const user = session?.user
       if (user) {
@@ -44,7 +45,8 @@ export default function AuthSyncProvider({ children }: { children: React.ReactNo
         dispatch(setUser(mappedUser))
       } else {
         dispatch(logout())
-        if (pathname !== '/login') router.push('/login')
+        // Only redirect to /login if not on a public page
+        if (pathname !== '/login' && pathname !== '/') router.push('/login')
       }
       dispatch(setLoading(false))
     }
