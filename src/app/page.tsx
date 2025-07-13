@@ -48,10 +48,14 @@ export default function Home() {
   if (loading) return null;
   if (isAuthenticated) return null;
 
+  if (typeof window === 'undefined' || !supabase) {
+    throw new Error('Supabase client is not available on the server.');
+  }
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await supabase!.auth.signInWithPassword({ email, password });
     if (error) {
       if (error.message.includes('Email not confirmed')) {
         setError('Please confirm your email address before logging in. Use the "Resend Confirmation Email" button below if needed.');
@@ -66,7 +70,7 @@ export default function Home() {
   };
 
   const handleOAuthLogin = async (provider: 'google' | 'facebook' | 'discord') => {
-    await supabase.auth.signInWithOAuth({
+    await supabase!.auth.signInWithOAuth({
       provider,
       options: { redirectTo: window.location.origin + '/oauth-callback' },
     });
@@ -80,7 +84,7 @@ export default function Home() {
     setResendLoading(true);
     setError('');
     try {
-      const { error } = await supabase.auth.resend({ type: 'signup', email });
+      const { error } = await supabase!.auth.resend({ type: 'signup', email });
       if (error) {
         setError(error.message);
       } else {
@@ -95,24 +99,26 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen w-full flex flex-col justify-between bg-[#f4f5fa] font-sans">
-      <main className="flex flex-1 flex-col md:flex-row items-center justify-center w-full max-w-7xl mx-auto px-4 py-12 gap-12">
-        {/* Left: Logo and tagline */}
-        <div className="flex-1 flex flex-col items-start justify-center max-w-lg">
-          <span className="text-black text-5xl md:text-6xl font-extrabold mb-6 select-none tracking-tight" style={{ fontFamily: 'Inter, sans-serif', letterSpacing: '-0.04em' }}>
-            Zelmu
-          </span>
-          <div className="w-16 h-2 bg-gradient-to-r from-purple-500 via-fuchsia-500 to-blue-500 rounded-full mb-6" />
-          <h2 className="text-2xl md:text-3xl font-semibold text-gray-900 mb-4 select-none">
-            India’s Esports Gateway for Everyone
-          </h2>
-          <p className="text-lg text-gray-700 select-none">
-            Play, compete, and grow your skills. Affordable tournaments, multilingual support, and real career opportunities for gamers in Tier 2-3 cities and beyond.
-          </p>
+    <div className="min-h-screen w-full flex flex-col justify-between bg-gradient-to-br from-purple-100 via-fuchsia-50 to-blue-100 font-sans">
+      <main className="flex flex-1 flex-col md:flex-row items-center justify-center w-full max-w-7xl mx-auto px-2 sm:px-4 py-6 sm:py-12 gap-6 md:gap-12">
+        {/* Hero Section: Logo and tagline */}
+        <div className="flex-1 flex flex-col items-center md:items-start justify-center max-w-lg w-full mb-8 md:mb-0">
+          <div className="w-full flex flex-col items-center md:items-start">
+            <span className="text-black text-4xl xs:text-5xl md:text-6xl font-extrabold mb-4 sm:mb-6 select-none tracking-tight text-center md:text-left" style={{ fontFamily: 'Inter, sans-serif', letterSpacing: '-0.04em' }}>
+              Zelmu
+            </span>
+            <div className="w-20 h-2 bg-gradient-to-r from-purple-500 via-fuchsia-500 to-blue-500 rounded-full mb-4 sm:mb-6 mx-auto md:mx-0" />
+            <h2 className="text-xl xs:text-2xl md:text-3xl font-semibold text-gray-900 mb-3 sm:mb-4 select-none text-center md:text-left">
+              India’s Sports Gateway for Everyone
+            </h2>
+            <p className="text-base xs:text-lg text-gray-700 select-none text-center md:text-left mb-2 sm:mb-0">
+              Play, compete, and grow your skills. Affordable tournaments, multilingual support, and real career opportunities for gamers in Tier 2-3 cities and beyond.
+            </p>
+          </div>
         </div>
-        {/* Right: Login card with social login, register button redirects */}
-        <div className="flex-1 flex flex-col items-center justify-center">
-          <div className="w-full max-w-sm bg-white rounded-2xl shadow-2xl p-10 flex flex-col gap-6 border border-gray-100">
+        {/* Login card with social login, register button redirects */}
+        <div className="flex-1 flex flex-col items-center justify-center w-full">
+          <div className="w-full max-w-sm bg-white rounded-2xl shadow-2xl p-6 xs:p-8 sm:p-10 flex flex-col gap-6 border border-gray-100">
             <h2 className="text-2xl font-bold text-gray-900 mb-2 text-center">Log in to Zelmu</h2>
             {showSuccess && (
               <div className="w-full mb-4 p-3 bg-green-500/20 border border-green-400/30 rounded-lg flex items-center gap-2">
@@ -168,45 +174,48 @@ export default function Home() {
               <div className="flex-grow border-t border-fuchsia-400/30"></div>
             </div>
             {/* Social Login Buttons below divider */}
-            <div className="w-full flex flex-row gap-4 justify-center mb-2">
-              <button
-                onClick={() => handleOAuthLogin('google')}
-                className="bg-white text-[#4285F4] p-4 rounded-full shadow-lg hover:scale-110 transition-all duration-200 border-2 border-white/30 hover:border-[#4285F4] focus:outline-none focus:ring-2 focus:ring-[#4285F4] focus:ring-offset-2"
-                type="button"
-                title="Login with Google"
-              >
-                <FaGoogle className="w-6 h-6" />
-              </button>
-              <button
-                onClick={() => handleOAuthLogin('facebook')}
-                className="bg-blue-600 text-white p-4 rounded-full shadow-lg hover:scale-110 transition-all duration-200 border-2 border-white/30 hover:border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-700 focus:ring-offset-2"
-                type="button"
-                title="Login with Facebook"
-              >
-                <FaFacebook className="w-6 h-6" />
-              </button>
-              <button
-                onClick={() => handleOAuthLogin('discord')}
-                className="bg-[#5865F2] text-white p-4 rounded-full shadow-lg hover:scale-110 transition-all duration-200 border-2 border-white/30 hover:border-[#5865F2] focus:outline-none focus:ring-2 focus:ring-[#5865F2] focus:ring-offset-2"
-                type="button"
-                title="Login with Discord"
-              >
-                <FaDiscord className="w-6 h-6" />
-              </button>
+            <div className="w-full flex flex-col gap-2 mb-2">
+              <span className="text-xs text-gray-500 text-center mb-1">Continue with</span>
+              <div className="flex flex-row gap-4 justify-center">
+                <button
+                  onClick={() => handleOAuthLogin('google')}
+                  className="bg-white text-[#4285F4] p-4 rounded-full shadow-lg hover:scale-110 transition-all duration-200 border-2 border-white/30 hover:border-[#4285F4] focus:outline-none focus:ring-2 focus:ring-[#4285F4] focus:ring-offset-2"
+                  type="button"
+                  title="Login with Google"
+                >
+                  <FaGoogle className="w-6 h-6" />
+                </button>
+                <button
+                  onClick={() => handleOAuthLogin('facebook')}
+                  className="bg-blue-600 text-white p-4 rounded-full shadow-lg hover:scale-110 transition-all duration-200 border-2 border-white/30 hover:border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-700 focus:ring-offset-2"
+                  type="button"
+                  title="Login with Facebook"
+                >
+                  <FaFacebook className="w-6 h-6" />
+                </button>
+                <button
+                  onClick={() => handleOAuthLogin('discord')}
+                  className="bg-[#5865F2] text-white p-4 rounded-full shadow-lg hover:scale-110 transition-all duration-200 border-2 border-white/30 hover:border-[#5865F2] focus:outline-none focus:ring-2 focus:ring-[#5865F2] focus:ring-offset-2"
+                  type="button"
+                  title="Login with Discord"
+                >
+                  <FaDiscord className="w-6 h-6" />
+                </button>
+              </div>
             </div>
             <button
               onClick={() => router.push('/register')}
-              className="w-full bg-gray-200 hover:bg-gray-300 text-purple-700 font-bold py-3 rounded-lg shadow text-lg text-center transition-all duration-200 border border-gray-300 mt-2"
+              className="w-full bg-gradient-to-r from-fuchsia-500 to-purple-600 hover:from-fuchsia-600 hover:to-purple-700 text-white font-bold py-3 rounded-lg shadow text-lg text-center transition-all duration-200 border border-gray-300 mt-2"
             >
               Create new account
             </button>
           </div>
         </div>
       </main>
-      {/* Optional: Footer for language and links */}
-      {/* <footer className="w-full py-6 text-center text-xs text-gray-400 bg-transparent">
+      {/* Mobile Footer */}
+      <footer className="w-full py-4 text-center text-xs text-gray-400 bg-transparent block md:hidden">
         Zelmu © {new Date().getFullYear()} | All rights reserved
-      </footer> */}
+      </footer>
     </div>
   );
 } 
