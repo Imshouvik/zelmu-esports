@@ -20,6 +20,20 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              "name": "Zelmu Esports",
+              "url": "https://zelmu.com",
+              "logo": "https://zelmu.com/app/images/esports%20bg.webp"
+            })
+          }}
+        />
+      </head>
       <body className={inter.className}>
         <NotificationSetup />
         <Providers>

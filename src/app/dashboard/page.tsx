@@ -40,15 +40,6 @@ const schema = yup.object({
 
 type TournamentForm = yup.InferType<typeof schema>
 
-const playerAvatars = [
-  'https://api.dicebear.com/7.x/adventurer/svg?seed=player1',
-  'https://api.dicebear.com/7.x/adventurer/svg?seed=player2',
-  'https://api.dicebear.com/7.x/adventurer/svg?seed=player3',
-  'https://api.dicebear.com/7.x/adventurer/svg?seed=player4',
-  'https://api.dicebear.com/7.x/adventurer/svg?seed=player5',
-  'https://api.dicebear.com/7.x/adventurer/svg?seed=player6',
-];
-
 export default function DashboardPage() {
   const router = useRouter()
   const dispatch = useDispatch<AppDispatch>()
@@ -68,6 +59,7 @@ export default function DashboardPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [featuredTournaments, setFeaturedTournaments] = useState<any[]>([])
   const [upcomingTournaments, setUpcomingTournaments] = useState<any[]>([])
+  const [users, setUsers] = useState<{ id: string; name: string; avatar_url?: string }[]>([]);
 
   const {
     register,
@@ -186,6 +178,18 @@ export default function DashboardPage() {
       if (!upcomingError) setUpcomingTournaments(upcoming || []);
     };
     fetchDashboardTournaments();
+  }, []);
+
+  useEffect(() => {
+    // Fetch users from Supabase
+    const fetchUsers = async () => {
+      const { data, error } = await supabase!
+        .from('users')
+        .select('id, name, avatar_url')
+        .limit(6);
+      if (!error && data) setUsers(data);
+    };
+    fetchUsers();
   }, []);
 
   const onSubmit = async (data: TournamentForm) => {
@@ -417,11 +421,11 @@ export default function DashboardPage() {
                     <span className="text-white/80 text-sm mb-2">PLAYERS</span>
                     <span className="text-white text-2xl font-bold mb-2">565</span>
                     <div className="flex -space-x-3 mb-2">
-                      {playerAvatars.map((avatar, idx) => (
+                      {users.map((user, idx) => (
                         <Image
-                          key={idx}
-                          src={avatar}
-                          alt={`Player ${idx+1}`}
+                          key={user.id}
+                          src={user.avatar_url || '/app/images/esports%20bg.webp'}
+                          alt={user.name || `Player ${idx+1}`}
                           width={40}
                           height={40}
                           className="rounded-full border-2 border-white/40 shadow-lg bg-white/10"

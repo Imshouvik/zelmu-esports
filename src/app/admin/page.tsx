@@ -10,6 +10,7 @@ const SIDEBAR_OPTIONS = [
   { key: 'dashboard', label: 'Dashboard' },
   { key: 'clubs', label: 'Clubs' },
   { key: 'tournaments', label: 'Tournaments' },
+  { key: 'community', label: 'Community' },
   { key: 'adminPanel', label: 'Admin Panel' },
   { key: 'settings', label: 'Settings' },
 ];
@@ -17,6 +18,7 @@ const PAGE_OPTIONS = [
   { key: 'dashboard', label: 'Dashboard Page' },
   { key: 'clubs', label: 'Clubs Page' },
   { key: 'tournaments', label: 'Tournaments Page' },
+  { key: 'community', label: 'Community Page' },
   { key: 'adminPanel', label: 'Admin Panel Page' },
   { key: 'settings', label: 'Settings Page' },
 ];

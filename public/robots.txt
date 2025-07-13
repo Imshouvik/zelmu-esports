@@ -1,0 +1,14 @@
+# *
+User-agent: *
+Allow: /
+
+# *
+User-agent: *
+Disallow: /api/
+Disallow: /admin/
+
+# Host
+Host: https://zelmu.com
+
+# Sitemaps
+Sitemap: https://zelmu.com/sitemap.xml

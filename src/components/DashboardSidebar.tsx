@@ -15,6 +15,7 @@ const navLinks = [
   { name: 'Leaderboard', href: '/dashboard/leaderboard', icon: <FaChartBar /> },
   { name: 'Teams', href: '/dashboard/teams', icon: <FaCrown /> },
   { name: 'Wallet', href: '/dashboard/wallet', icon: <FaWallet /> },
+  { name: 'Community', href: '/community', icon: <FaBook /> },
   { name: 'Settings', href: '/dashboard/settings', icon: <FaCog /> },
   { name: 'Support', href: '/dashboard/support', icon: <FaHeadset /> },
 ];
@@ -33,6 +34,7 @@ const SIDEBAR_KEYS = [
   { name: 'Leaderboard', key: 'leaderboard' },
   { name: 'Teams', key: 'teams' },
   { name: 'Wallet', key: 'wallet' },
+  { name: 'Community', key: 'community' },
   { name: 'Settings', key: 'settings' },
   { name: 'Support', key: 'support' },
 ];

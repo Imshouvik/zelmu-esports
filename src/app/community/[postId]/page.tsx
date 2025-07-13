@@ -7,6 +7,7 @@ import { useSelector } from 'react-redux';
 import toast from 'react-hot-toast';
 import Picker from '@emoji-mart/react';
 import { supabase } from '@/utils/supabaseClient';
+import { useRouter } from "next/navigation";
 
 interface User {
   id: string;
@@ -57,6 +58,9 @@ export default function PostDetailPage() {
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editingCommentText, setEditingCommentText] = useState<string>("");
   const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [lightboxMedia, setLightboxMedia] = useState<{ url: string; type: 'image' | 'video' } | null>(null);
+  const router = useRouter();
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   const fetchPost = async () => {
     setLoading(true);
@@ -132,7 +136,7 @@ export default function PostDetailPage() {
 
   const handleLike = async () => {
     if (!userId) {
-      toast.error('You must be logged in to like posts.');
+      setShowLoginModal(true);
       return;
     }
     setLikeLoading(true);
@@ -154,7 +158,7 @@ export default function PostDetailPage() {
   // Add/toggle emoji reaction (fixed token logic)
   const handleEmojiReaction = async (emoji: string) => {
     if (!userId) {
-      toast.error('You must be logged in to react.');
+      setShowLoginModal(true);
       return;
     }
     if (!supabase) return;
@@ -309,8 +313,35 @@ export default function PostDetailPage() {
               )}
             </div>
             <div className="text-gray-800 text-base sm:text-lg mb-2 whitespace-pre-line">{post.content}</div>
-            {post.image_url && (
-              <img src={post.image_url} alt="Post image" className="rounded-xl max-h-60 w-full object-cover border border-gray-100 my-2" style={{maxWidth:'100%'}} />
+            {/* Media display with lightbox/modal */}
+            {post.image_url && post.image_url.match(/\.(mp4|webm|ogg)$/i) ? (
+              <div className="relative group cursor-pointer" onClick={() => setLightboxMedia({ url: String(post.image_url || ''), type: 'video' })}>
+                <video src={String(post.image_url || '')} controls className="rounded-xl max-h-96 w-full object-contain border border-gray-100 my-2" style={{ width: '100%', height: 'auto' }} />
+              </div>
+            ) : post.image_url ? (
+              <div className="relative group cursor-pointer" onClick={() => setLightboxMedia({ url: String(post.image_url || ''), type: 'image' })}>
+                <img src={String(post.image_url || '')} alt="Post media" className="rounded-xl max-h-96 w-full object-contain border border-gray-100 my-2 transition-transform duration-200 group-hover:scale-105" style={{ width: '100%', height: 'auto' }} />
+              </div>
+            ) : null}
+            {/* Lightbox/modal for media */}
+            {lightboxMedia && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80" onClick={() => setLightboxMedia(null)}>
+                <div className="relative max-w-3xl w-full flex items-center justify-center" onClick={e => e.stopPropagation()}>
+                  {/* Close button */}
+                  <button
+                    className="absolute top-4 right-4 z-10 bg-white/80 hover:bg-white text-gray-900 rounded-full p-2 shadow-lg text-2xl font-bold focus:outline-none"
+                    onClick={e => { e.stopPropagation(); setLightboxMedia(null); }}
+                    aria-label="Close"
+                  >
+                    ×
+                  </button>
+                  {lightboxMedia.type === 'image' ? (
+                    <img src={String(lightboxMedia.url || '')} alt="Full view" className="rounded-xl max-h-[80vh] w-auto object-contain shadow-2xl" onClick={e => e.stopPropagation()} />
+                  ) : (
+                    <video src={String(lightboxMedia.url || '')} controls autoPlay className="rounded-xl max-h-[80vh] w-auto object-contain shadow-2xl" onClick={e => e.stopPropagation()} />
+                  )}
+                </div>
+              </div>
             )}
             {/* Facebook-style Reaction Summary Bar */}
             <div className="flex items-center justify-between mt-2 mb-2 px-1 sm:px-0">
@@ -336,10 +367,12 @@ export default function PostDetailPage() {
                     </span>
                   ));
                 })()}
-                {/* Total reactions count */}
-                <span className="ml-2 text-gray-700 font-medium text-xs sm:text-sm">
-                  {Object.values(reactions || {}).reduce((acc, users) => acc + users.length, 0)}
-                </span>
+                {/* Total reactions count (hide if zero) */}
+                {Object.values(reactions || {}).reduce((acc, users) => acc + users.length, 0) > 0 && (
+                  <span className="ml-2 text-gray-700 font-medium text-xs sm:text-sm">
+                    {Object.values(reactions || {}).reduce((acc, users) => acc + users.length, 0)}
+                  </span>
+                )}
               </div>
               {/* Comments and Shares - removed comments count/label for post page */}
               <div className="text-gray-600 text-xs sm:text-sm">
@@ -356,29 +389,35 @@ export default function PostDetailPage() {
                     className={`flex items-center gap-1 px-3 py-2 rounded-full font-semibold border shadow-sm transition-colors text-base sm:text-lg ${userReaction ? 'bg-fuchsia-100 border-fuchsia-400 text-fuchsia-600' : 'bg-white border-gray-300 text-gray-700 hover:bg-fuchsia-50 hover:border-fuchsia-300 active:scale-95'}`}
                     style={{ minWidth: 64, minHeight: 40 }}
                     onClick={e => {
+                      if (!userId) return;
                       if (!showReactionBar) handleEmojiReaction(userReaction ? userReaction : '👍');
                     }}
                     onMouseDown={e => {
+                      if (!userId) return;
                       if (e.button === 0) {
                         const timeout = setTimeout(() => setShowReactionBar(true), 400);
                         (e.target as HTMLElement).setAttribute('data-reaction-timeout', String((timeout as unknown as number)));
                       }
                     }}
                     onMouseUp={e => {
+                      if (!userId) return;
                       const timeout = (e.target as HTMLElement).getAttribute('data-reaction-timeout');
                       if (timeout) clearTimeout(Number(timeout));
                       (e.target as HTMLElement).removeAttribute('data-reaction-timeout');
                     }}
                     onMouseLeave={e => {
+                      if (!userId) return;
                       const timeout = (e.target as HTMLElement).getAttribute('data-reaction-timeout');
                       if (timeout) clearTimeout(Number(timeout));
                       (e.target as HTMLElement).removeAttribute('data-reaction-timeout');
                     }}
                     onTouchStart={e => {
+                      if (!userId) return;
                       const timeout = setTimeout(() => setShowReactionBar(true), 400);
                       (e.target as HTMLElement).setAttribute('data-reaction-timeout', String((timeout as unknown as number)));
                     }}
                     onTouchEnd={e => {
+                      if (!userId) return;
                       const timeout = (e.target as HTMLElement).getAttribute('data-reaction-timeout');
                       if (timeout) clearTimeout(Number(timeout));
                       (e.target as HTMLElement).removeAttribute('data-reaction-timeout');
@@ -413,7 +452,6 @@ export default function PostDetailPage() {
                     </div>
                   )}
                 </div>
-                {/* Comment button - icon only, no label - REMOVE THIS BUTTON */}
                 {/* Share button (paper plane icon) */}
                 <button className="flex items-center gap-1 px-3 py-2 rounded-full font-semibold border shadow-sm transition-colors text-base sm:text-lg bg-white border-gray-300 text-gray-700 hover:bg-fuchsia-50 hover:border-fuchsia-300 active:scale-95" type="button" onClick={handleShare}>
                   <FaRegPaperPlane className="text-lg sm:text-xl" />
@@ -421,15 +459,17 @@ export default function PostDetailPage() {
                 </button>
               </div>
             </div>
+            {/* Unified login prompt for like, react, and comment */}
+            {!userId && (
+              <div className="flex flex-col items-center gap-2 my-4">
+                <div className="text-gray-500">You must be logged in to like, react, or comment.</div>
+                <Link href="/login" className="text-purple-600 underline font-semibold">Login or Register</Link>
+              </div>
+            )}
             {/* Comments */}
             <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6 border border-gray-100">
               <h3 className="text-lg font-bold text-gray-900 mb-4">Comments</h3>
-              {!userId ? (
-                <div className="flex flex-col items-center gap-2 mb-6">
-                  <div className="text-gray-500">You must be logged in to comment.</div>
-                  <Link href="/login" className="text-purple-600 underline font-semibold">Login or Register</Link>
-                </div>
-              ) : (
+              {userId ? (
                 <form className="flex gap-2 mb-6" onSubmit={handleComment}>
                   <input
                     type="text"
@@ -447,7 +487,7 @@ export default function PostDetailPage() {
                     {commentLoading ? "Posting..." : "Post"}
                   </button>
                 </form>
-              )}
+              ) : null}
               {comments.length === 0 ? (
                 <div className="text-gray-400 text-center">No comments yet.</div>
               ) : (
@@ -534,6 +574,26 @@ export default function PostDetailPage() {
               <button onClick={handleWebShare} className="w-full py-2 rounded bg-purple-100 hover:bg-purple-200 font-semibold text-purple-700">Share via App...</button>
             )}
             <button onClick={() => setShareModalOpen(false)} className="w-full py-2 rounded bg-gray-200 hover:bg-gray-300 font-semibold mt-2">Cancel</button>
+          </div>
+        </div>
+      )}
+      {/* Login required modal */}
+      {showLoginModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white rounded-xl shadow-lg p-6 w-80 flex flex-col gap-4 items-center">
+            <div className="font-bold text-lg mb-2 text-center">You must be logged in to like or react to posts.</div>
+            <button
+              className="w-full py-2 rounded bg-gradient-to-r from-purple-600 to-fuchsia-500 hover:from-fuchsia-600 hover:to-purple-700 text-white font-semibold text-lg"
+              onClick={() => router.push('/login')}
+            >
+              Go to Login
+            </button>
+            <button
+              className="w-full py-2 rounded bg-gray-200 hover:bg-gray-300 font-semibold mt-2 text-gray-700"
+              onClick={() => setShowLoginModal(false)}
+            >
+              Cancel
+            </button>
           </div>
         </div>
       )}
