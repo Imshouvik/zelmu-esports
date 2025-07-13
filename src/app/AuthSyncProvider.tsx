@@ -46,7 +46,12 @@ export default function AuthSyncProvider({ children }: { children: React.ReactNo
       } else {
         dispatch(logout())
         // Only redirect to /login if not on a public page
-        if (pathname !== '/login' && pathname !== '/') router.push('/login')
+        const safePath = pathname || '';
+        if (
+          safePath !== '/login' &&
+          safePath !== '/' &&
+          !safePath.startsWith('/community')
+        ) router.push('/login')
       }
       dispatch(setLoading(false))
     }

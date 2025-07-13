@@ -2,6 +2,9 @@
 import { useState } from "react";
 import toast from 'react-hot-toast';
 import { useEffect, useRef } from 'react';
+// @ts-ignore
+import imageCompression from 'browser-image-compression';
+import { supabase } from '@/utils/supabaseClient';
 
 interface PostCreateModalProps {
   open: boolean;
@@ -23,6 +26,9 @@ export default function PostCreateModal({ open, onClose, onSuccess, userId }: Po
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const modalRef = useRef<HTMLDivElement>(null);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [selectedVideo, setSelectedVideo] = useState<File | null>(null);
+  const [mediaPreview, setMediaPreview] = useState<string | null>(null);
 
   // Trap focus and close on Esc
   useEffect(() => {
@@ -50,10 +56,67 @@ export default function PostCreateModal({ open, onClose, onSuccess, userId }: Po
 
   if (!open) return null;
 
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    // Compress and resize image
+    const options = {
+      maxSizeMB: 1,
+      maxWidthOrHeight: 1920,
+      useWebWorker: true,
+      initialQuality: 0.8,
+    };
+    const compressedFile = await imageCompression(file, options);
+    setSelectedImage(compressedFile);
+    setSelectedVideo(null);
+    setMediaPreview(URL.createObjectURL(compressedFile));
+  };
+  const handleVideoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    // Check video duration
+    const url = URL.createObjectURL(file);
+    const video = document.createElement('video');
+    video.preload = 'metadata';
+    video.onloadedmetadata = () => {
+      window.URL.revokeObjectURL(url);
+      if (video.duration > 30) {
+        setSelectedVideo(null);
+        setMediaPreview(null);
+        toast.error('Video must be 30 seconds or less.');
+      } else {
+        setSelectedVideo(file);
+        setSelectedImage(null);
+        setMediaPreview(url);
+      }
+    };
+    video.src = url;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
+    let uploadedUrl = imageUrl;
+    if (selectedImage && supabase) {
+      const { data, error } = await supabase.storage.from('community-media').upload(`images/${Date.now()}_${selectedImage.name}`, selectedImage, { cacheControl: '3600', upsert: false });
+      if (error) {
+        setError('Failed to upload image');
+        toast.error('Failed to upload image');
+        setLoading(false);
+        return;
+      }
+      uploadedUrl = supabase.storage.from('community-media').getPublicUrl(data.path).data.publicUrl;
+    } else if (selectedVideo && supabase) {
+      const { data, error } = await supabase.storage.from('community-media').upload(`videos/${Date.now()}_${selectedVideo.name}`, selectedVideo, { cacheControl: '3600', upsert: false });
+      if (error) {
+        setError('Failed to upload video');
+        toast.error('Failed to upload video');
+        setLoading(false);
+        return;
+      }
+      uploadedUrl = supabase.storage.from('community-media').getPublicUrl(data.path).data.publicUrl;
+    }
     const res = await fetch("/api/community/posts", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -61,7 +124,7 @@ export default function PostCreateModal({ open, onClose, onSuccess, userId }: Po
         user_id: userId,
         content,
         type,
-        image_url: imageUrl || undefined,
+        image_url: uploadedUrl || undefined,
       }),
     });
     if (!res.ok) {
@@ -75,6 +138,9 @@ export default function PostCreateModal({ open, onClose, onSuccess, userId }: Po
     setContent("");
     setImageUrl("");
     setType("discussion");
+    setSelectedImage(null);
+    setSelectedVideo(null);
+    setMediaPreview(null);
     toast.success("Post created!");
     onSuccess();
     onClose();
@@ -116,13 +182,18 @@ export default function PostCreateModal({ open, onClose, onSuccess, userId }: Po
             className="w-full px-4 py-2 rounded-lg border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 resize-none"
             required
           />
-          <input
-            type="url"
-            value={imageUrl}
-            onChange={e => setImageUrl(e.target.value)}
-            placeholder="Image URL (optional)"
-            className="w-full px-4 py-2 rounded-lg border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400"
-          />
+          <div className="flex flex-col gap-2 mb-4">
+            <label className="font-semibold">Attach Image</label>
+            <input type="file" accept="image/*" onChange={handleImageChange} disabled={loading || !!selectedVideo} />
+            <label className="font-semibold mt-2">Attach Video (max 30s)</label>
+            <input type="file" accept="video/*" onChange={handleVideoChange} disabled={loading || !!selectedImage} />
+            {mediaPreview && selectedImage && (
+              <img src={mediaPreview} alt="Preview" className="rounded-lg max-h-48 mt-2 object-contain" style={{ width: '100%', height: 'auto' }} />
+            )}
+            {mediaPreview && selectedVideo && (
+              <video src={mediaPreview} controls className="rounded-lg max-h-48 mt-2 object-contain" style={{ width: '100%', height: 'auto' }} />
+            )}
+          </div>
           {error && <div className="text-red-500 text-sm font-semibold">{error}</div>}
           <button
             type="submit"

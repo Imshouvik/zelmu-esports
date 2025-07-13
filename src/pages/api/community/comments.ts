@@ -24,6 +24,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (error) return res.status(500).json({ error: error.message });
     return res.status(201).json(data);
   }
+  if (req.method === 'PUT') {
+    // Edit a comment (author or admin only)
+    const { id, content, user_id, is_admin } = req.body;
+    if (!id || !content || !user_id) return res.status(400).json({ error: 'Missing required fields' });
+    // Fetch comment to check ownership
+    const { data: comment, error: fetchError } = await supabase.from('comments').select('user_id').eq('id', id).single();
+    if (fetchError || !comment) return res.status(404).json({ error: 'Comment not found' });
+    if (comment.user_id !== user_id && !is_admin) return res.status(403).json({ error: 'Not authorized' });
+    // Update comment
+    const { data, error } = await supabase.from('comments').update({ content }).eq('id', id).select().single();
+    if (error) return res.status(500).json({ error: error.message });
+    return res.status(200).json(data);
+  }
   if (req.method === 'DELETE') {
     // Delete a comment (author or admin only)
     const { id, user_id, is_admin } = req.body;
