@@ -15,6 +15,7 @@ A modern, professional esports organization platform for mobile games like BGMI 
   - Team and club registration with player details
   - Profile management and completion
   - Club invites and join via invite code
+  - **Real user avatars**: Dashboard now displays real user avatars from the database
 
 - 🏆 **Tournament Features**
   - Tournament listings with filters
@@ -46,6 +47,12 @@ A modern, professional esports organization platform for mobile games like BGMI 
 - 💎 **Modern Frontend**
   - Next.js 14, TypeScript, Tailwind CSS, Redux Toolkit
   - Clean, professional UI/UX
+
+- 🚀 **SEO & Social**
+  - **Dynamic sitemap**: All public and dynamic pages (including every post and tournament) are included in sitemap.xml for Google
+  - **Structured data (JSON-LD)**: Organization schema added for rich results
+  - **Open Graph & Twitter Cards**: Social sharing previews for all main pages
+  - **next/image domain config**: Supports external avatars (Google, DiceBear, etc.)
 
 ## Tech Stack
 
@@ -125,3 +132,11 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Support
 
 For support, email support@zelmu-esports.com or join our Discord server. 
+
+## SEO & Social
+
+- **Sitemap**: Automatically generated and includes all dynamic content (posts, tournaments)
+- **robots.txt**: Configured for optimal crawling
+- **Structured Data**: Organization JSON-LD for rich Google results
+- **Open Graph & Twitter Cards**: Social previews for all major pages
+- **Image Domains**: next/image configured for Google and DiceBear avatars 
