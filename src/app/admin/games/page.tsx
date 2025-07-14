@@ -22,7 +22,7 @@ export default function AdminGamesPage() {
   const fetchGames = async () => {
     setLoading(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await supabase!.auth.getSession();
       const accessToken = session?.access_token;
       const res = await fetch("/api/games", {
         headers: accessToken ? { 'Authorization': `Bearer ${accessToken}` } : {},
@@ -66,7 +66,7 @@ export default function AdminGamesPage() {
     e.preventDefault();
     setSaving(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await supabase!.auth.getSession();
       const accessToken = session?.access_token;
       const method = editingGame ? "PUT" : "POST";
       const body = {
@@ -101,7 +101,7 @@ export default function AdminGamesPage() {
     if (!confirm("Are you sure you want to delete this game?")) return;
     setSaving(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await supabase!.auth.getSession();
       const accessToken = session?.access_token;
       const res = await fetch("/api/games", {
         method: "DELETE",

@@ -30,7 +30,7 @@ export default function TournamentsPage() {
     const fetchTournaments = async () => {
       dispatch(setLoading(true))
       try {
-        const { data, error } = await supabase
+        const { data, error } = await supabase!
           .from('tournaments')
           .select('*')
           .order('start_date', { ascending: true });

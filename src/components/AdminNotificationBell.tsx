@@ -29,7 +29,7 @@ export default function AdminNotificationBell({ clubId, clubName }: AdminNotific
   // Get current user on component mount
   useEffect(() => {
     const getCurrentUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await supabase!.auth.getUser();
       if (user) {
         setCurrentUser(user);
       }
@@ -49,7 +49,7 @@ export default function AdminNotificationBell({ clubId, clubName }: AdminNotific
       if (!currentUser) return;
 
       // Fetch recent membership changes for the club (active and rejected)
-      const { data: recentMemberships, error } = await supabase
+      const { data: recentMemberships, error } = await supabase!
         .from('club_members')
         .select(`
           id,
@@ -121,7 +121,7 @@ export default function AdminNotificationBell({ clubId, clubName }: AdminNotific
     if (!currentUser) return;
 
     // Create a new channel instance for each subscription
-    const channel = supabase.channel(`admin_club_members_changes_${clubId}_${Date.now()}`);
+    const channel = supabase!.channel(`admin_club_members_changes_${clubId}_${Date.now()}`);
 
     channel.on(
       'postgres_changes',
@@ -140,7 +140,7 @@ export default function AdminNotificationBell({ clubId, clubName }: AdminNotific
 
     return () => {
       channel.unsubscribe();
-      supabase.removeChannel(channel);
+      supabase!.removeChannel(channel);
     };
   }, [currentUser, clubId]);
 

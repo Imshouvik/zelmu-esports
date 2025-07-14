@@ -143,7 +143,7 @@ export default function DashboardPage() {
       } else {
         setIsLoggedIn(true)
         // Fetch user info from custom users table
-        const { data: userData } = await supabase
+        const { data: userData } = await supabase!
           .from('users')
           .select('id, name, email')
           .eq('id', data.user.id)
@@ -163,14 +163,14 @@ export default function DashboardPage() {
     if (!supabase) return;
     const fetchDashboardTournaments = async () => {
       // Fetch featured tournaments
-      const { data: featured, error: featuredError } = await supabase
+      const { data: featured, error: featuredError } = await supabase!
         .from('tournaments')
         .select('*')
         .eq('is_featured', true)
         .order('start_date', { ascending: true });
       if (!featuredError) setFeaturedTournaments(featured || []);
       // Fetch upcoming tournaments
-      const { data: upcoming, error: upcomingError } = await supabase
+      const { data: upcoming, error: upcomingError } = await supabase!
         .from('tournaments')
         .select('*')
         .eq('is_upcoming', true)
@@ -207,7 +207,7 @@ export default function DashboardPage() {
 
   const handleLogout = async () => {
     if (!supabase) return;
-    await supabase.auth.signOut()
+    await supabase!.auth.signOut()
     if (userInfo) {
       dispatch(setUser(userInfo))
     }
@@ -233,7 +233,7 @@ export default function DashboardPage() {
     
     try {
       // Check if user is logged in
-      const { data: { user }, error: userError } = await supabase.auth.getUser()
+      const { data: { user }, error: userError } = await supabase!.auth.getUser()
       
       if (userError || !user) {
         setInviteError('You must be logged in to join a club.')
@@ -242,7 +242,7 @@ export default function DashboardPage() {
       }
 
       // Validate invite code exists
-      const { data: invite, error: inviteError } = await supabase
+      const { data: invite, error: inviteError } = await supabase!
         .from('club_invites')
         .select('*')
         .eq('invite_code', inviteCode.trim())
@@ -266,7 +266,7 @@ export default function DashboardPage() {
       }
 
       // Get club details
-      const { data: club, error: clubError } = await supabase
+      const { data: club, error: clubError } = await supabase!
         .from('clubs')
         .select('*')
         .eq('id', invite.club_id)
@@ -279,7 +279,7 @@ export default function DashboardPage() {
       }
 
       // Check if user is already a member
-      const { data: existingMember, error: memberCheckError } = await supabase
+      const { data: existingMember, error: memberCheckError } = await supabase!
         .from('club_members')
         .select('id')
         .eq('club_id', club.id)
@@ -306,7 +306,7 @@ export default function DashboardPage() {
       }
 
       // Add user as member
-      const { error: joinError } = await supabase
+      const { error: joinError } = await supabase!
         .from('club_members')
         .insert([{
           club_id: club.id,

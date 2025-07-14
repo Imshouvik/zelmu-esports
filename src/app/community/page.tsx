@@ -340,12 +340,12 @@ export default function CommunityPage() {
                   <div className="text-gray-800 text-base sm:text-lg mb-2 whitespace-pre-line">{post.content}</div>
                   {/* Media display with lightbox/modal */}
                   {post.image_url && post.image_url.match(/\.(mp4|webm|ogg)$/i) ? (
-                    <div className="relative group cursor-pointer" onClick={() => setLightboxMedia({ url: post.image_url, type: 'video' })}>
+                    <div className="relative group cursor-pointer" onClick={() => setLightboxMedia({ url: post.image_url || '', type: 'video' })}>
                       <video src={post.image_url} controls className="rounded-xl max-h-96 w-full object-contain border border-gray-100 my-2" style={{ width: '100%', height: 'auto' }} />
                       <FaPlayCircle className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-white text-5xl drop-shadow-lg opacity-80 group-hover:scale-110 transition-transform duration-200 pointer-events-none" />
                     </div>
                   ) : post.image_url ? (
-                    <div className="relative group cursor-pointer" onClick={() => setLightboxMedia({ url: post.image_url, type: 'image' })}>
+                    <div className="relative group cursor-pointer" onClick={() => setLightboxMedia({ url: post.image_url || '', type: 'image' })}>
                       <img src={post.image_url} alt="Post media" className="rounded-xl max-h-96 w-full object-contain border border-gray-100 my-2 transition-transform duration-200 group-hover:scale-105" style={{ width: '100%', height: 'auto' }} />
                     </div>
                   ) : null}

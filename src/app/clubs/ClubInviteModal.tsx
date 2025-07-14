@@ -46,7 +46,7 @@ export default function ClubInviteModal({ open, onClose, clubId, clubName }: Clu
       setLoading(true)
       
       // Fetch link invites (only general ones, not individual user invites)
-      const { data: linkInvites, error: linkError } = await supabase
+      const { data: linkInvites, error: linkError } = await supabase!
         .from('club_invites')
         .select('*')
         .eq('club_id', clubId)
@@ -60,7 +60,7 @@ export default function ClubInviteModal({ open, onClose, clubId, clubName }: Clu
       }
 
       // Fetch user invites (pending memberships)
-      const { data: pendingMemberships, error: userError } = await supabase
+      const { data: pendingMemberships, error: userError } = await supabase!
         .from('club_members')
         .select(`
           id,
@@ -103,7 +103,7 @@ export default function ClubInviteModal({ open, onClose, clubId, clubName }: Clu
   useEffect(() => {
     if (!open) return
 
-    const subscription = supabase
+    const subscription = supabase!
       .channel('club_members_changes')
       .on(
         'postgres_changes',
@@ -131,7 +131,7 @@ export default function ClubInviteModal({ open, onClose, clubId, clubName }: Clu
       setCreating(true)
       setError('')
       
-      const { data: { user }, error: userError } = await supabase.auth.getUser()
+      const { data: { user }, error: userError } = await supabase!.auth.getUser()
       
       if (userError || !user) {
         throw new Error('You must be logged in to create invites.')
@@ -144,7 +144,7 @@ export default function ClubInviteModal({ open, onClose, clubId, clubName }: Clu
       const expiresAt = new Date()
       expiresAt.setDate(expiresAt.getDate() + 7)
 
-      const { error: insertError } = await supabase
+      const { error: insertError } = await supabase!
         .from('club_invites')
         .insert([{
           club_id: clubId,
@@ -176,7 +176,7 @@ export default function ClubInviteModal({ open, onClose, clubId, clubName }: Clu
     }
 
     try {
-      const { error } = await supabase
+      const { error } = await supabase!
         .from('club_invites')
         .delete()
         .eq('id', inviteId)
@@ -202,7 +202,7 @@ export default function ClubInviteModal({ open, onClose, clubId, clubName }: Clu
 
     setCancelingInvite(membershipId)
     try {
-      const { error } = await supabase
+      const { error } = await supabase!
         .from('club_members')
         .delete()
         .eq('id', membershipId)

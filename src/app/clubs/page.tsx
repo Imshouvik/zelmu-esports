@@ -39,7 +39,7 @@ export default function ClubsPage() {
   const fetchUserClub = async () => {
     try {
       setLoading(true)
-      const { data: { user }, error: userError } = await supabase.auth.getUser()
+      const { data: { user }, error: userError } = await supabase!.auth.getUser()
       
       if (userError || !user) {
         setError('You must be logged in to view clubs.')
@@ -50,7 +50,7 @@ export default function ClubsPage() {
       setUser(user)
 
       // First, check if user owns a club
-      const { data: ownedClub, error: ownedClubError } = await supabase
+      const { data: ownedClub, error: ownedClubError } = await supabase!
         .from('clubs')
         .select('*')
         .eq('owner_id', user.id)
@@ -58,7 +58,7 @@ export default function ClubsPage() {
 
       if (ownedClub) {
         // User owns a club, get member count
-        const { count: memberCount, error: countError } = await supabase
+        const { count: memberCount, error: countError } = await supabase!
           .from('club_members')
           .select('*', { count: 'exact', head: true })
           .eq('club_id', ownedClub.id)
@@ -77,7 +77,7 @@ export default function ClubsPage() {
       }
 
       // If user doesn't own a club, check if they're a member of any club
-      const { data: membership, error: membershipError } = await supabase
+      const { data: membership, error: membershipError } = await supabase!
         .from('club_members')
         .select(`
           club_id,
@@ -98,7 +98,7 @@ export default function ClubsPage() {
         console.error('Error fetching membership:', membershipError)
       } else if (membership && membership.clubs) {
         // User is a member of a club, get member count
-        const { count: memberCount, error: countError } = await supabase
+        const { count: memberCount, error: countError } = await supabase!
           .from('club_members')
           .select('*', { count: 'exact', head: true })
           .eq('club_id', membership.club_id)
@@ -141,7 +141,7 @@ export default function ClubsPage() {
   const fetchMembers = async (clubId: string) => {
     setMembersLoading(true)
     try {
-      const { data, error } = await supabase
+      const { data, error } = await supabase!
         .from('club_members')
         .select('id, user_id, role, status, joined_at, users (id, name, email)')
         .eq('club_id', clubId)
@@ -165,7 +165,7 @@ export default function ClubsPage() {
   const handleRemoveMember = async (memberId: string) => {
     setRemovingMemberId(memberId)
     try {
-      const { error } = await supabase
+      const { error } = await supabase!
         .from('club_members')
         .update({ status: 'rejected' })
         .eq('id', memberId)
@@ -186,7 +186,7 @@ export default function ClubsPage() {
   const handleLeaveClub = async (memberId: string) => {
     setRemovingMemberId(memberId)
     try {
-      const { error } = await supabase
+      const { error } = await supabase!
         .from('club_members')
         .update({ status: 'rejected' })
         .eq('id', memberId)

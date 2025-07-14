@@ -30,7 +30,7 @@ export default function AdminTournamentStagesPage() {
   // Fetch tournaments for selection
   const fetchTournaments = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await supabase!.auth.getSession();
       const accessToken = session?.access_token;
       const res = await fetch("/api/tournaments", {
         headers: accessToken ? { 'Authorization': `Bearer ${accessToken}` } : {},
@@ -55,7 +55,7 @@ export default function AdminTournamentStagesPage() {
   const fetchStages = async (tournament_id: string) => {
     setLoading(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await supabase!.auth.getSession();
       const accessToken = session?.access_token;
       const res = await fetch(`/api/tournament-stages?tournament_id=${tournament_id}`, {
         headers: accessToken ? { 'Authorization': `Bearer ${accessToken}` } : {},
@@ -104,7 +104,7 @@ export default function AdminTournamentStagesPage() {
     e.preventDefault();
     setSaving(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await supabase!.auth.getSession();
       const accessToken = session?.access_token;
       const method = editingStage ? "PUT" : "POST";
       const body = {
@@ -140,7 +140,7 @@ export default function AdminTournamentStagesPage() {
     if (!confirm("Are you sure you want to delete this stage?")) return;
     setSaving(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await supabase!.auth.getSession();
       const accessToken = session?.access_token;
       const res = await fetch("/api/tournament-stages", {
         method: "DELETE",

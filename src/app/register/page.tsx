@@ -31,7 +31,7 @@ export default function RegisterPage() {
 
     try {
       // Step 0: Check if email already exists in users table
-      const { data: existingUser, error: checkError } = await supabase
+      const { data: existingUser, error: checkError } = await supabase!
         .from('users')
         .select('id, email, created_at')
         .eq('email', email)
@@ -45,7 +45,7 @@ export default function RegisterPage() {
       }
 
       // Step 1: Create the user in Supabase Auth with redirectTo option
-      const { data, error: signUpError } = await supabase.auth.signUp({
+      const { data, error: signUpError } = await supabase!.auth.signUp({
         email,
         password,
         options: {
@@ -71,7 +71,7 @@ export default function RegisterPage() {
 
       if (data.user) {
         // Step 2: Immediately create user in users table with all details
-        const { error: insertError } = await supabase
+        const { error: insertError } = await supabase!
           .from('users')
           .insert([{ 
             id: data.user.id, 

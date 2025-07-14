@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { supabase } from '@/utils/supabaseClient';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const { data, error } = await supabase
+  const { data, error } = await supabase!
     .from('tournaments')
     .select('id, title, status, start_date, end_date')
     .order('start_date', { ascending: false });

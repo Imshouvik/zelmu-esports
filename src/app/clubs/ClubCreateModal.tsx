@@ -40,14 +40,14 @@ export default function ClubCreateModal({ open, onClose, onSuccess }: ClubCreate
     
     try {
       // Get current user from Supabase
-      const { data: { user: currentUser }, error: userError } = await supabase.auth.getUser()
+      const { data: { user: currentUser }, error: userError } = await supabase!.auth.getUser()
       
       if (userError || !currentUser) {
         throw new Error('You must be logged in to create a club.')
       }
 
       // Check if user already has a club
-      const { data: existingClub, error: checkError } = await supabase
+      const { data: existingClub, error: checkError } = await supabase!
         .from('clubs')
         .select('id, name')
         .eq('owner_id', currentUser.id)
@@ -68,17 +68,17 @@ export default function ClubCreateModal({ open, onClose, onSuccess }: ClubCreate
       if (logoFile) {
         const fileExt = logoFile.name.split('.').pop()
         const filePath = `club-logos/${currentUser.id}-${Date.now()}.${fileExt}`
-        const { data, error: uploadError } = await supabase.storage.from('club-logos').upload(filePath, logoFile)
+        const { data, error: uploadError } = await supabase!.storage.from('club-logos').upload(filePath, logoFile)
         if (uploadError) {
           console.error('Upload error:', uploadError)
           throw new Error(`Failed to upload logo: ${uploadError.message}`)
         }
-        const { data: urlData } = supabase.storage.from('club-logos').getPublicUrl(filePath)
+        const { data: urlData } = supabase!.storage.from('club-logos').getPublicUrl(filePath)
         logoUrl = urlData.publicUrl
       }
       
       // 2. Create club
-      const { data: club, error: clubError } = await supabase
+      const { data: club, error: clubError } = await supabase!
         .from('clubs')
         .insert([{ 
           name: name.trim(), 
@@ -95,7 +95,7 @@ export default function ClubCreateModal({ open, onClose, onSuccess }: ClubCreate
       }
       
       // 3. Add user as owner in club_members
-      const { error: memberError } = await supabase
+      const { error: memberError } = await supabase!
         .from('club_members')
         .insert([{ 
           club_id: club.id, 

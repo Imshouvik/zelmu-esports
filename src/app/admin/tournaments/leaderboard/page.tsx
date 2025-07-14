@@ -112,7 +112,7 @@ export default function LeaderboardAdminPage() {
     setOverlayUpdating(true);
     setOverlayError('');
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await supabase!.auth.getSession();
       const accessToken = session?.access_token;
       const res = await fetch('/api/overlay-state', {
         method: 'POST',

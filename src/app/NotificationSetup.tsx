@@ -36,9 +36,9 @@ export default function NotificationSetup() {
             localStorage.setItem('fcm_token', currentToken);
             
             // If user is logged in, save to database
-            const { data } = await supabase.auth.getUser();
+            const { data } = await supabase!.auth.getUser();
             if (data.user) {
-              const { error } = await supabase
+              const { error } = await supabase!
                 .from('users')
                 .update({ fcm_token: currentToken })
                 .eq('id', data.user.id);

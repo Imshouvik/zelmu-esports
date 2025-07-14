@@ -30,7 +30,7 @@ export default function PageGuard({ pageKey, children }: PageGuardProps) {
     async function checkPermission() {
       setLoading(true);
       // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await supabase!.auth.getUser();
       if (!user) {
         if (isMounted) {
           setAllowed(false);
@@ -39,7 +39,7 @@ export default function PageGuard({ pageKey, children }: PageGuardProps) {
         return;
       }
       // Get role from users table
-      const { data } = await supabase
+      const { data } = await supabase!
         .from('users')
         .select('role')
         .eq('id', user.id)

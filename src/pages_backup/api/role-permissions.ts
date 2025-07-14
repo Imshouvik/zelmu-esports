@@ -7,7 +7,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!role || !type) {
       return res.status(400).json({ error: 'Missing role or type' });
     }
-    const { data, error } = await supabase
+    const { data, error } = await supabase!
       .from('role_permissions')
       .select('permission_key, allowed')
       .eq('role', role)
@@ -22,7 +22,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!role || !permission_key || !type || typeof allowed !== 'boolean') {
       return res.status(400).json({ error: 'Missing fields' });
     }
-    const { data, error } = await supabase
+    const { data, error } = await supabase!
       .from('role_permissions')
       .upsert([{ role, permission_key, type, allowed }], { onConflict: 'role,permission_key,type' })
       .select();

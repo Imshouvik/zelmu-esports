@@ -40,7 +40,7 @@ export default function NotificationBell({ userId }: NotificationBellProps) {
       if (!userId) return;
 
       // Fetch pending club memberships for the current user
-      const { data: pendingMemberships, error } = await supabase
+      const { data: pendingMemberships, error } = await supabase!
         .from('club_members')
         .select(`
           *,
@@ -56,7 +56,7 @@ export default function NotificationBell({ userId }: NotificationBellProps) {
       }
 
       // Also fetch recent active memberships for context
-      const { data: recentMemberships } = await supabase
+      const { data: recentMemberships } = await supabase!
         .from('club_members')
         .select(`
           *,
@@ -88,7 +88,7 @@ export default function NotificationBell({ userId }: NotificationBellProps) {
       if (!userId) return;
 
       // Update membership status
-      const { error: updateError } = await supabase
+      const { error: updateError } = await supabase!
         .from('club_members')
         .update({ 
           status,
@@ -121,14 +121,14 @@ export default function NotificationBell({ userId }: NotificationBellProps) {
         const membership = notifications.find(n => n.id === membershipId);
         if (membership) {
           // Get the club owner's fcm_token
-          const { data: ownerData } = await supabase
+          const { data: ownerData } = await supabase!
             .from('users')
             .select('fcm_token, name')
             .eq('id', membership.clubs.owner_id)
             .single();
           const adminFcmToken = ownerData?.fcm_token;
           // Get the current user's name
-          const { data: userData } = await supabase
+          const { data: userData } = await supabase!
             .from('users')
             .select('name')
             .eq('id', userId)
@@ -186,11 +186,11 @@ export default function NotificationBell({ userId }: NotificationBellProps) {
   // Real-time subscription for club memberships
   useEffect(() => {
     const setupRealtime = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await supabase!.auth.getUser();
       if (!user) return;
 
       // Subscribe to changes in club_members table
-      const subscription = supabase
+      const subscription = supabase!
         .channel('club_members_changes')
         .on(
           'postgres_changes',

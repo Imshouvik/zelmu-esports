@@ -114,10 +114,10 @@ export default function DashboardSidebar({ isOpen = false, onClose }: DashboardS
 
   useEffect(() => {
     async function fetchUserInfo() {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await supabase!.auth.getUser();
       if (user) {
         // Get name, email, role, and avatar_url from users table
-        const { data } = await supabase
+        const { data } = await supabase!
           .from('users')
           .select('name, email, role, avatar_url')
           .eq('id', user.id)
@@ -162,7 +162,7 @@ export default function DashboardSidebar({ isOpen = false, onClose }: DashboardS
   }, [isOpen]);
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    await supabase!.auth.signOut();
     window.location.href = '/login';
   };
 
@@ -177,12 +177,12 @@ export default function DashboardSidebar({ isOpen = false, onClose }: DashboardS
     try {
       const fileExt = file.name.split('.').pop();
       const filePath = `${user.id}-${Date.now()}.${fileExt}`;
-      const { data: uploadData, error: uploadError } = await supabase.storage.from('user-avatars').upload(filePath, file, { upsert: true });
+      const { data: uploadData, error: uploadError } = await supabase!.storage.from('user-avatars').upload(filePath, file, { upsert: true });
       if (uploadError) throw uploadError;
-      const { data: urlData } = supabase.storage.from('user-avatars').getPublicUrl(filePath);
+      const { data: urlData } = supabase!.storage.from('user-avatars').getPublicUrl(filePath);
       const avatarUrl = urlData.publicUrl;
       // Update users table
-      await supabase.from('users').update({ avatar_url: avatarUrl }).eq('id', user.id);
+      await supabase!.from('users').update({ avatar_url: avatarUrl }).eq('id', user.id);
       setAvatar(avatarUrl);
       toast.success('Profile picture updated!');
     } catch (err) {

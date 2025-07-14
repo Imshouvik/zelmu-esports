@@ -56,7 +56,7 @@ export default function UserSearchInvite({
 
       setLoading(true)
       try {
-        const { data, error } = await supabase
+        const { data, error } = await supabase!
           .from('users')
           .select('id, name, email')
           .or(`name.ilike.%${searchTerm}%`)

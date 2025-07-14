@@ -22,7 +22,7 @@ export default function CompleteProfilePage() {
     const fetchUser = async () => {
       try {
         setInitialLoading(true)
-        const { data: { user } } = await supabase.auth.getUser()
+        const { data: { user } } = await supabase!.auth.getUser()
         if (!user) {
           router.push('/login')
           return
@@ -30,7 +30,7 @@ export default function CompleteProfilePage() {
         setUser(user)
 
         // Get user data from users table
-        const { data: userRow, error: userError } = await supabase
+        const { data: userRow, error: userError } = await supabase!
           .from('users')
           .select('name, phone')
           .eq('id', user.id)
@@ -94,7 +94,7 @@ export default function CompleteProfilePage() {
 
     try {
       // Update users table
-      const { error: updateError } = await supabase
+      const { error: updateError } = await supabase!
         .from('users')
         .update({ name: name.trim(), phone: phone.trim(), avatar_url: avatarUrl })
         .eq('id', user.id)

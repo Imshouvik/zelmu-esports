@@ -41,7 +41,7 @@ export default function AdminGroupsPage() {
   // Fetch tournaments for selection
   const fetchTournaments = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await supabase!.auth.getSession();
       const accessToken = session?.access_token;
       const res = await fetch("/api/tournaments", {
         headers: accessToken ? { 'Authorization': `Bearer ${accessToken}` } : {},
@@ -65,7 +65,7 @@ export default function AdminGroupsPage() {
   // Fetch stages for selected tournament
   const fetchStages = async (tournament_id: string) => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await supabase!.auth.getSession();
       const accessToken = session?.access_token;
       const res = await fetch(`/api/tournament-stages?tournament_id=${tournament_id}`, {
         headers: accessToken ? { 'Authorization': `Bearer ${accessToken}` } : {},
@@ -90,7 +90,7 @@ export default function AdminGroupsPage() {
   const fetchGroups = async (stage_id: string) => {
     setLoading(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await supabase!.auth.getSession();
       const accessToken = session?.access_token;
       const res = await fetch(`/api/groups?stage_id=${stage_id}`, {
         headers: accessToken ? { 'Authorization': `Bearer ${accessToken}` } : {},
@@ -151,7 +151,7 @@ export default function AdminGroupsPage() {
     e.preventDefault();
     setSaving(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await supabase!.auth.getSession();
       const accessToken = session?.access_token;
       const method = editingGroup ? "PUT" : "POST";
       const body = {
@@ -186,7 +186,7 @@ export default function AdminGroupsPage() {
     if (!confirm("Are you sure you want to delete this group?")) return;
     setSaving(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await supabase!.auth.getSession();
       const accessToken = session?.access_token;
       const res = await fetch("/api/groups", {
         method: "DELETE",

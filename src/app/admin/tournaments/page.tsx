@@ -125,13 +125,13 @@ export default function TournamentManagementPage() {
   const [games, setGames] = useState<{ id: string; name: string }[]>([]);
 
   useEffect(() => {
-    supabase.auth.getUser().then(async ({ data }) => {
+    supabase!.auth.getUser().then(async ({ data }) => {
       if (!data.user) {
         setAccessDenied(true);
         setLoading(false);
       } else {
         // Fetch user from users table to check role
-        const { data: userRow } = await supabase
+        const { data: userRow } = await supabase!
           .from('users')
           .select('id, email, role')
           .eq('id', data.user.id)
@@ -151,7 +151,7 @@ export default function TournamentManagementPage() {
 
   const fetchTournaments = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await supabase!
         .from('tournaments')
         .select('*')
         .order('created_at', { ascending: false });
@@ -171,7 +171,7 @@ export default function TournamentManagementPage() {
   const fetchTournamentRegistrations = async (tournamentId: string) => {
     setRegistrationsLoading(true);
     try {
-      const { data, error } = await supabase
+      const { data, error } = await supabase!
         .from('tournament_registrations')
         .select(`
           *,
@@ -237,7 +237,7 @@ export default function TournamentManagementPage() {
   const saveTournament = async (updatedTournament: Tournament) => {
     setSavingTournament(true);
     try {
-      const { error } = await supabase
+      const { error } = await supabase!
         .from('tournaments')
         .update({
           title: updatedTournament.title,
@@ -287,7 +287,7 @@ export default function TournamentManagementPage() {
 
   const updateRegistrationStatus = async (registrationId: string, newStatus: string) => {
     try {
-      const { error } = await supabase
+      const { error } = await supabase!
         .from('tournament_registrations')
         .update({ registration_status: newStatus })
         .eq('id', registrationId);
@@ -310,7 +310,7 @@ export default function TournamentManagementPage() {
 
   const updatePaymentStatus = async (registrationId: string, newStatus: string) => {
     try {
-      const { error } = await supabase
+      const { error } = await supabase!
         .from('tournament_registrations')
         .update({ payment_status: newStatus })
         .eq('id', registrationId);
@@ -424,7 +424,7 @@ export default function TournamentManagementPage() {
       if (tournament.division && tournament.division.trim() !== '') cleanTournament.division = tournament.division;
       if (tournament.parent_tournament_id && tournament.parent_tournament_id.trim() !== '') cleanTournament.parent_tournament_id = tournament.parent_tournament_id;
       console.log('Tournament payload:', cleanTournament);
-      const { error } = await supabase
+      const { error } = await supabase!
         .from('tournaments')
         .insert([cleanTournament]);
       if (error) {
@@ -444,7 +444,7 @@ export default function TournamentManagementPage() {
 
   const fetchGames = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await supabase!.auth.getSession();
       const accessToken = session?.access_token;
       const res = await fetch('/api/games', {
         headers: accessToken ? { 'Authorization': `Bearer ${accessToken}` } : {},

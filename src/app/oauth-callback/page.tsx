@@ -16,7 +16,7 @@ export default function OAuthCallbackPage() {
         setLoading(true);
         
         // Get the current user after OAuth redirect
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        const { data: { user }, error: userError } = await supabase!.auth.getUser();
         
         if (userError || !user) {
           console.error('OAuth callback error:', userError);
@@ -28,7 +28,7 @@ export default function OAuthCallbackPage() {
         console.log('OAuth callback - User authenticated:', user.email);
 
         // Check if user exists in users table
-        const { data: existingUser, error: dbError } = await supabase
+        const { data: existingUser, error: dbError } = await supabase!
           .from('users')
           .select('id, name, phone')
           .eq('id', user.id)
@@ -45,7 +45,7 @@ export default function OAuthCallbackPage() {
             const oauthAvatar = user.user_metadata?.avatar_url || user.user_metadata?.picture || DEFAULT_AVATAR;
             
             // Insert into users table - match the actual schema
-            const { error: insertError } = await supabase.from('users').insert([{
+            const { error: insertError } = await supabase!.from('users').insert([{
               id: user.id,
               email: user.email,
               name,

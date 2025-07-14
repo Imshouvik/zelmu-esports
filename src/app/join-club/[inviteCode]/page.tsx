@@ -51,7 +51,7 @@ export default function JoinClubPage() {
       setLoading(true)
       
       // Get invite details
-      const { data: inviteData, error: inviteError } = await supabase
+      const { data: inviteData, error: inviteError } = await supabase!
         .from('club_invites')
         .select('*')
         .eq('invite_code', inviteCode)
@@ -78,7 +78,7 @@ export default function JoinClubPage() {
       }
 
       // Get club details
-      const { data: clubData, error: clubError } = await supabase
+      const { data: clubData, error: clubError } = await supabase!
         .from('clubs')
         .select('*')
         .eq('id', inviteData.club_id)
@@ -113,7 +113,7 @@ export default function JoinClubPage() {
       setJoining(true)
       setError('')
       
-      const { data: { user }, error: userError } = await supabase.auth.getUser()
+      const { data: { user }, error: userError } = await supabase!.auth.getUser()
       
       if (userError || !user) {
         // User is not logged in, redirect to register with invite code
@@ -137,7 +137,7 @@ export default function JoinClubPage() {
       }
 
       // Check if user is already a member
-      const { data: existingMember, error: memberCheckError } = await supabase
+      const { data: existingMember, error: memberCheckError } = await supabase!
         .from('club_members')
         .select('id')
         .eq('club_id', club.id)
@@ -165,7 +165,7 @@ export default function JoinClubPage() {
       }
 
       // Add user as member
-      const { error: joinError } = await supabase
+      const { error: joinError } = await supabase!
         .from('club_members')
         .insert([{
           club_id: club.id,

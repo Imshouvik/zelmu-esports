@@ -58,7 +58,7 @@ export default function ClubEditModal({ open, onClose, onSuccess, club }: ClubEd
     
     try {
       // Get current user from Supabase
-      const { data: { user: currentUser }, error: userError } = await supabase.auth.getUser()
+      const { data: { user: currentUser }, error: userError } = await supabase!.auth.getUser()
       
       if (userError || !currentUser) {
         throw new Error('You must be logged in to edit a club.')
@@ -75,17 +75,17 @@ export default function ClubEditModal({ open, onClose, onSuccess, club }: ClubEd
       if (logoFile) {
         const fileExt = logoFile.name.split('.').pop()
         const filePath = `club-logos/${currentUser.id}-${Date.now()}.${fileExt}`
-        const { data, error: uploadError } = await supabase.storage.from('club-logos').upload(filePath, logoFile)
+        const { data, error: uploadError } = await supabase!.storage.from('club-logos').upload(filePath, logoFile)
         if (uploadError) {
           console.error('Upload error:', uploadError)
           throw new Error(`Failed to upload logo: ${uploadError.message}`)
         }
-        const { data: urlData } = supabase.storage.from('club-logos').getPublicUrl(filePath)
+        const { data: urlData } = supabase!.storage.from('club-logos').getPublicUrl(filePath)
         logoUrl = urlData.publicUrl
       }
       
       // 2. Update club
-      const { error: updateError } = await supabase
+      const { error: updateError } = await supabase!
         .from('clubs')
         .update({ 
           name: name.trim(), 
@@ -119,14 +119,14 @@ export default function ClubEditModal({ open, onClose, onSuccess, club }: ClubEd
     setLoading(true)
     
     try {
-      const { data: { user: currentUser }, error: userError } = await supabase.auth.getUser()
+      const { data: { user: currentUser }, error: userError } = await supabase!.auth.getUser()
       
       if (userError || !currentUser || currentUser.id !== club.owner_id) {
         throw new Error('You can only delete clubs you own.')
       }
 
       // Delete club (this will cascade to related records due to foreign keys)
-      const { error: deleteError } = await supabase
+      const { error: deleteError } = await supabase!
         .from('clubs')
         .delete()
         .eq('id', club.id)

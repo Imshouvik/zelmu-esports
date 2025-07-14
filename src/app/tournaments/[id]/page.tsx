@@ -146,10 +146,10 @@ export default function TournamentDetails() {
   // Check auth state on component mount
   useEffect(() => {
     const checkAuth = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await supabase!.auth.getUser();
       if (user) {
         // Fetch user info from custom users table
-        const { data: userData, error: userError } = await supabase
+        const { data: userData, error: userError } = await supabase!
           .from('users')
           .select('id, email, name, phone, avatar')
           .eq('id', user.id)
@@ -219,7 +219,7 @@ export default function TournamentDetails() {
 
   // Helper function to check if user is actually authenticated
   const isUserAuthenticated = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user } } = await supabase!.auth.getUser();
     return !!user;
   };
 
@@ -227,7 +227,7 @@ export default function TournamentDetails() {
     const fetchTournamentDetails = async () => {
       setTournamentLoading(true);
       setTournamentError('');
-      const { data, error } = await supabase
+      const { data, error } = await supabase!
         .from('tournaments')
         .select('*')
         .eq('id', id)
@@ -248,7 +248,7 @@ export default function TournamentDetails() {
     const fetchGroups = async () => {
       setGroupsLoading(true);
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session } } = await supabase!.auth.getSession();
         const accessToken = session?.access_token;
         // For now, fetch all groups for this tournament (could filter by stage if needed)
         const res = await fetch(`/api/groups?tournament_id=${id}`, {
@@ -289,7 +289,7 @@ export default function TournamentDetails() {
       setRegistering(true);
       
       // Create team
-      const { data: teamData, error: teamError } = await supabase
+      const { data: teamData, error: teamError } = await supabase!
         .from('teams')
         .insert([{
           name: data.teamName,
@@ -349,7 +349,7 @@ export default function TournamentDetails() {
           user_id: player.user_id,
           player_index: idx
         }));
-      const { error: playersError } = await supabase
+      const { error: playersError } = await supabase!
         .from('team_players')
         .insert(validPlayers);
 
@@ -360,7 +360,7 @@ export default function TournamentDetails() {
       }
 
       // Create tournament registration with group_id
-      const { error: registrationError } = await supabase
+      const { error: registrationError } = await supabase!
         .from('tournament_registrations')
         .insert([{
           tournament_id: tournament.id,
@@ -379,13 +379,13 @@ export default function TournamentDetails() {
       }
 
       // Increment current_teams for the group
-      await supabase
+      await supabase!
         .from('groups')
         .update({ current_teams: group.current_teams + 1 })
         .eq('id', selectedGroupId);
 
       // Update tournament current teams count
-      await supabase
+      await supabase!
         .from('tournaments')
         .update({ current_teams: (tournament.current_teams || 0) + 1 })
         .eq('id', tournament.id);
@@ -417,7 +417,7 @@ export default function TournamentDetails() {
       setRegistering(true);
       
       // Create tournament registration for club
-      const { error: registrationError } = await supabase
+      const { error: registrationError } = await supabase!
         .from('tournament_registrations')
         .insert([{
           tournament_id: tournament.id,
@@ -439,7 +439,7 @@ export default function TournamentDetails() {
       setIsRegistered(true);
       
       // Refresh tournament data to update team count
-      const { data: updatedTournament } = await supabase
+      const { data: updatedTournament } = await supabase!
         .from('tournaments')
         .select('*')
         .eq('id', tournament.id)
@@ -463,7 +463,7 @@ export default function TournamentDetails() {
       console.log('Checking club admin status for user:', userId);
       
       // Check if user owns a club
-      const { data: ownedClub, error: ownedClubError } = await supabase
+      const { data: ownedClub, error: ownedClubError } = await supabase!
         .from('clubs')
         .select('*')
         .eq('owner_id', userId)
@@ -480,7 +480,7 @@ export default function TournamentDetails() {
       }
 
       // Check if user is a co-leader of any club
-      const { data: coLeaderClub, error: coLeaderError } = await supabase
+      const { data: coLeaderClub, error: coLeaderError } = await supabase!
         .from('club_members')
         .select(`
           club_id,
@@ -505,7 +505,7 @@ export default function TournamentDetails() {
       }
 
       // Also check if user is a member of any club (for debugging)
-      const { data: memberClub, error: memberError } = await supabase
+      const { data: memberClub, error: memberError } = await supabase!
         .from('club_members')
         .select(`
           club_id,
@@ -535,7 +535,7 @@ export default function TournamentDetails() {
       console.log('Checking registration status for user:', userId, 'tournament:', tournament.id);
       
       // Check for team registration
-      const { data: teamRegistration, error: teamError } = await supabase
+      const { data: teamRegistration, error: teamError } = await supabase!
         .from('tournament_registrations')
         .select('*')
         .eq('tournament_id', tournament.id)
@@ -556,7 +556,7 @@ export default function TournamentDetails() {
       if (userClub) {
         console.log('Checking club registration for club:', userClub.id);
         setCheckingClubRegistration(true);
-        const { data: clubRegistration, error: clubError } = await supabase
+        const { data: clubRegistration, error: clubError } = await supabase!
           .from('tournament_registrations')
           .select('*')
           .eq('tournament_id', tournament.id)
@@ -727,7 +727,7 @@ export default function TournamentDetails() {
                     userClub ? (
                       <motion.button
                         onClick={async () => {
-                          const { data: { user } } = await supabase.auth.getUser();
+                          const { data: { user } } = await supabase!.auth.getUser();
                           if (!user) {
                             router.push(`/login?redirect=${encodeURIComponent(window.location.pathname)}`);
                             return;
@@ -756,7 +756,7 @@ export default function TournamentDetails() {
                     // Open tournament - anyone can register a team
                     <motion.button
                       onClick={async () => {
-                        const { data: { user } } = await supabase.auth.getUser();
+                        const { data: { user } } = await supabase!.auth.getUser();
                         if (!user) {
                           router.push(`/login?redirect=${encodeURIComponent(window.location.pathname)}`);
                           return;
