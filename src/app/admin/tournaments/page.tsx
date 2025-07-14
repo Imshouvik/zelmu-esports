@@ -470,6 +470,10 @@ export default function TournamentManagementPage() {
 
   const deleteTournament = async (tournamentId: string) => {
     if (!window.confirm('Are you sure you want to delete this tournament? This action cannot be undone.')) return;
+    if (!supabase) {
+      toast.error('Supabase client is not initialized');
+      return;
+    }
     try {
       // 1. Delete all team_player_status for this tournament
       await supabase.from('team_player_status').delete().eq('tournament_id', tournamentId);
