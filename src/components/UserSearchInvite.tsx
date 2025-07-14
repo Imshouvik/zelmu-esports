@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase } from '@/utils/supabaseClient'
+import { createPortal } from 'react-dom';
 
 interface User {
   id: string
@@ -16,6 +17,11 @@ interface UserSearchInviteProps {
   label?: string
   className?: string
   disabled?: boolean
+  onInviteUser?: (user: User) => void // Optional invite handler
+  pendingMemberIds?: string[]
+  activeMemberIds?: string[]
+  onCancelInvite?: (user: User) => void
+  refreshKey?: number // Add this line
 }
 
 export default function UserSearchInvite({
@@ -23,7 +29,12 @@ export default function UserSearchInvite({
   placeholder = "Search for a player...",
   label = "Player Name",
   className = "",
-  disabled = false
+  disabled = false,
+  onInviteUser,
+  pendingMemberIds = [],
+  activeMemberIds = [],
+  onCancelInvite,
+  refreshKey = 0 // Add this line
 }: UserSearchInviteProps) {
   const [searchTerm, setSearchTerm] = useState('')
   const [users, setUsers] = useState<User[]>([])
@@ -32,6 +43,7 @@ export default function UserSearchInvite({
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({});
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -59,7 +71,7 @@ export default function UserSearchInvite({
         const { data, error } = await supabase!
           .from('users')
           .select('id, name, email')
-          .or(`name.ilike.%${searchTerm}%`)
+          .or(`name.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%`)
           .order('name', { ascending: true })
           .limit(10)
 
@@ -67,28 +79,33 @@ export default function UserSearchInvite({
           console.error('Error searching users:', error)
           setUsers([])
         } else {
+          // Filter out users who are already active or pending members
+          const filteredUsers = (data || []).filter(u =>
+            !activeMemberIds.includes(u.id) && !pendingMemberIds.includes(u.id)
+          )
           // Sort results to prioritize exact matches first
-          const sortedUsers = (data || []).sort((a, b) => {
+          const sortedUsers = filteredUsers.sort((a, b) => {
             const searchLower = searchTerm.toLowerCase()
             const aNameLower = a.name.toLowerCase()
             const bNameLower = b.name.toLowerCase()
-            
-            // Exact match gets highest priority
-            if (aNameLower === searchLower && bNameLower !== searchLower) return -1
-            if (bNameLower === searchLower && aNameLower !== searchLower) return 1
-            
+            const aEmailLower = a.email.toLowerCase()
+            const bEmailLower = b.email.toLowerCase()
+
+            // Exact match gets highest priority (name or email)
+            if ((aNameLower === searchLower || aEmailLower === searchLower) && !(bNameLower === searchLower || bEmailLower === searchLower)) return -1
+            if ((bNameLower === searchLower || bEmailLower === searchLower) && !(aNameLower === searchLower || aEmailLower === searchLower)) return 1
+
             // Starts with search term gets second priority
-            if (aNameLower.startsWith(searchLower) && !bNameLower.startsWith(searchLower)) return -1
-            if (bNameLower.startsWith(searchLower) && !aNameLower.startsWith(searchLower)) return 1
-            
+            if ((aNameLower.startsWith(searchLower) || aEmailLower.startsWith(searchLower)) && !(bNameLower.startsWith(searchLower) || bEmailLower.startsWith(searchLower))) return -1
+            if ((bNameLower.startsWith(searchLower) || bEmailLower.startsWith(searchLower)) && !(aNameLower.startsWith(searchLower) || aEmailLower.startsWith(searchLower))) return 1
+
             // Contains search term gets third priority
-            if (aNameLower.includes(searchLower) && !bNameLower.includes(searchLower)) return -1
-            if (bNameLower.includes(searchLower) && !aNameLower.includes(searchLower)) return 1
-            
+            if ((aNameLower.includes(searchLower) || aEmailLower.includes(searchLower)) && !(bNameLower.includes(searchLower) || bEmailLower.includes(searchLower))) return -1
+            if ((bNameLower.includes(searchLower) || bEmailLower.includes(searchLower)) && !(aNameLower.includes(searchLower) || aEmailLower.includes(searchLower))) return 1
+
             // If both have same match type, sort alphabetically
             return aNameLower.localeCompare(bNameLower)
           })
-          
           setUsers(sortedUsers)
           setShowDropdown(true)
         }
@@ -102,7 +119,21 @@ export default function UserSearchInvite({
 
     const debounceTimer = setTimeout(searchUsers, 300)
     return () => clearTimeout(debounceTimer)
-  }, [searchTerm])
+  }, [searchTerm, refreshKey])
+
+  // Update dropdown position on showDropdown/input focus
+  useEffect(() => {
+    if (showDropdown && inputRef.current) {
+      const rect = inputRef.current.getBoundingClientRect();
+      setDropdownStyle({
+        position: 'absolute',
+        top: rect.bottom + window.scrollY,
+        left: rect.left + window.scrollX,
+        width: rect.width,
+        zIndex: 9999,
+      });
+    }
+  }, [showDropdown, searchTerm]);
 
   const handleUserSelect = (user: User) => {
     setSelectedUser(user)
@@ -137,7 +168,7 @@ export default function UserSearchInvite({
   }
 
   return (
-    <div className={`relative ${className}`}>
+    <div className={`relative ${className}`}> {/* Remove overflow-visible for portal */}
       <div className="relative">
         <input
           ref={inputRef}
@@ -173,64 +204,72 @@ export default function UserSearchInvite({
           </button>
         )}
       </div>
-
-      {/* Dropdown */}
-      <AnimatePresence>
-        {showDropdown && (
-          <motion.div
-            ref={dropdownRef}
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
-            className="absolute z-50 w-full mt-1 bg-[#232046]/95 backdrop-blur-sm border border-fuchsia-500/30 rounded-lg shadow-xl max-h-60 overflow-y-auto"
-          >
-            {loading ? (
-              <div className="p-4 text-center text-fuchsia-200">
-                <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-fuchsia-500"></div>
-                <span className="ml-2">Searching...</span>
-              </div>
-            ) : users.length > 0 ? (
-              <div className="py-2">
-                {users.map((user) => (
-                  <motion.button
+      {/* Dropdown rendered in portal */}
+      {typeof window !== 'undefined' && showDropdown && createPortal(
+        <motion.div
+          ref={dropdownRef}
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          transition={{ duration: 0.2 }}
+          style={dropdownStyle}
+          className="bg-[#232046]/95 backdrop-blur-sm border border-fuchsia-500/30 rounded-lg shadow-xl max-h-60 overflow-y-auto"
+        >
+          {loading ? (
+            <div className="p-4 text-center text-fuchsia-200">
+              <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-fuchsia-500"></div>
+              <span className="ml-2">Searching...</span>
+            </div>
+          ) : users.length > 0 ? (
+            <div className="py-2">
+              {users.map((user) => {
+                const isActive = activeMemberIds.includes(user.id)
+                const isPending = pendingMemberIds.includes(user.id)
+                return (
+                  <motion.div
                     key={user.id}
-                    type="button"
-                    onClick={() => handleUserSelect(user)}
-                    className="w-full px-4 py-3 text-left hover:bg-fuchsia-500/20 transition-colors flex items-center space-x-3"
-                    whileHover={{ backgroundColor: 'rgba(236, 72, 153, 0.2)' }}
-                    whileTap={{ scale: 0.98 }}
+                    className="flex items-center justify-between px-4 py-3 hover:bg-fuchsia-500/20 transition-colors"
                   >
-                    {/* User Avatar */}
-                    <div className="flex-shrink-0">
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-fuchsia-500 to-purple-600 flex items-center justify-center text-white text-sm font-semibold">
-                        {user.name.charAt(0).toUpperCase()}
-                      </div>
-                    </div>
-                    
-                    {/* User Info */}
-                    <div className="flex-1 min-w-0">
-                      <div className="text-white font-medium truncate">{user.name}</div>
-                      <div className="text-fuchsia-300 text-sm truncate">{user.email}</div>
-                    </div>
-                    
-                    {/* Select Indicator */}
-                    <div className="flex-shrink-0">
-                      <svg className="w-4 h-4 text-fuchsia-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </div>
-                  </motion.button>
-                ))}
-              </div>
-            ) : searchTerm.length >= 2 ? (
-              <div className="p-4 text-center text-fuchsia-300">
-                No users found matching "{searchTerm}"
-              </div>
-            ) : null}
-          </motion.div>
-        )}
-      </AnimatePresence>
+                    <button
+                      type="button"
+                      onClick={() => handleUserSelect(user)}
+                      className="flex-1 text-left flex items-center space-x-3 focus:outline-none"
+                      disabled={isActive}
+                    >
+                      <span className="font-medium text-white">{user.name}</span>
+                      <span className="text-xs text-fuchsia-300">{user.email}</span>
+                    </button>
+                    {isActive ? (
+                      <button type="button" className="ml-2 px-3 py-1 bg-green-600 text-white rounded text-xs font-semibold opacity-60 cursor-not-allowed" disabled>Member</button>
+                    ) : isPending ? (
+                      onCancelInvite ? (
+                        <button
+                          type="button"
+                          onClick={() => onCancelInvite(user)}
+                          className="ml-2 px-3 py-1 bg-yellow-600 hover:bg-yellow-700 text-white rounded text-xs font-semibold"
+                        >Cancel</button>
+                      ) : (
+                        <button type="button" className="ml-2 px-3 py-1 bg-yellow-600 text-white rounded text-xs font-semibold opacity-60 cursor-not-allowed" disabled>Invited</button>
+                      )
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => (onInviteUser ? onInviteUser(user) : onUserSelect(user))}
+                        className="ml-2 px-3 py-1 bg-fuchsia-600 hover:bg-fuchsia-700 text-white rounded transition-colors text-xs font-semibold"
+                      >Invite</button>
+                    )}
+                  </motion.div>
+                )
+              })}
+            </div>
+          ) : searchTerm.length >= 2 ? (
+            <div className="p-4 text-center text-fuchsia-300">
+              No users found matching "{searchTerm}"
+            </div>
+          ) : null}
+        </motion.div>,
+        document.body
+      )}
 
       {/* Selected User Display */}
       {selectedUser && (

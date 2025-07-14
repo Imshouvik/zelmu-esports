@@ -35,7 +35,8 @@ export default function AdminGroupsPage() {
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [editingGroup, setEditingGroup] = useState<Group | null>(null);
-  const [form, setForm] = useState<{ name: string; group_order: number }>({ name: "", group_order: 1 });
+  // Update form state to include time_slot, current_teams, max_teams
+  const [form, setForm] = useState<{ name: string; group_order: number; time_slot?: string; current_teams?: number; max_teams?: number }>({ name: "", group_order: 1, time_slot: "", current_teams: 0, max_teams: 24 });
   const [saving, setSaving] = useState(false);
 
   // Fetch tournaments for selection
@@ -138,10 +139,16 @@ export default function AdminGroupsPage() {
   const openModal = (group?: Group) => {
     if (group) {
       setEditingGroup(group);
-      setForm({ name: group.name, group_order: group.group_order || 1 });
+      setForm({
+        name: group.name,
+        group_order: group.group_order || 1,
+        time_slot: group.time_slot || "",
+        current_teams: group.current_teams || 0,
+        max_teams: group.max_teams || 24,
+      });
     } else {
       setEditingGroup(null);
-      setForm({ name: "", group_order: 1 });
+      setForm({ name: "", group_order: 1, time_slot: "", current_teams: 0, max_teams: 24 });
     }
     setShowModal(true);
   };
@@ -158,6 +165,9 @@ export default function AdminGroupsPage() {
         ...(editingGroup ? { id: editingGroup.id } : { tournament_id: selectedTournament, stage_id: selectedStage }),
         name: form.name,
         group_order: form.group_order,
+        time_slot: form.time_slot,
+        current_teams: editingGroup ? form.current_teams : 0,
+        max_teams: form.max_teams,
       };
       const res = await fetch("/api/groups", {
         method,
@@ -321,6 +331,37 @@ export default function AdminGroupsPage() {
                           value={form.group_order}
                           onChange={e => setForm(f => ({ ...f, group_order: Number(e.target.value) }))}
                           required
+                        />
+                      </div>
+                      <div className="mb-4">
+                        <label className="block text-fuchsia-200 text-sm mb-1">Time Slot</label>
+                        <input
+                          type="time"
+                          value={form.time_slot}
+                          onChange={e => setForm(f => ({ ...f, time_slot: e.target.value }))}
+                          className="w-full px-3 py-2 bg-white/10 border border-fuchsia-500/30 rounded text-white text-sm"
+                        />
+                      </div>
+                      {editingGroup && (
+                        <div className="mb-4">
+                          <label className="block text-fuchsia-200 text-sm mb-1">Teams</label>
+                          <input
+                            type="number"
+                            value={form.current_teams}
+                            min={0}
+                            onChange={e => setForm(f => ({ ...f, current_teams: Number(e.target.value) }))}
+                            className="w-full px-3 py-2 bg-white/10 border border-fuchsia-500/30 rounded text-white text-sm"
+                          />
+                        </div>
+                      )}
+                      <div className="mb-4">
+                        <label className="block text-fuchsia-200 text-sm mb-1">Max Teams</label>
+                        <input
+                          type="number"
+                          value={form.max_teams}
+                          min={1}
+                          onChange={e => setForm(f => ({ ...f, max_teams: Number(e.target.value) }))}
+                          className="w-full px-3 py-2 bg-white/10 border border-fuchsia-500/30 rounded text-white text-sm"
                         />
                       </div>
                       <div className="flex gap-3 mt-6">

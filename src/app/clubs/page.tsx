@@ -11,6 +11,7 @@ import UserSearchInvite from '@/components/UserSearchInvite'
 import { supabase } from '@/utils/supabaseClient'
 import PageGuard from '@/components/PageGuard'
 import { Bars3Icon } from '@heroicons/react/24/outline'
+import toast from 'react-hot-toast'
 
 interface Club {
   id: string
@@ -34,6 +35,8 @@ export default function ClubsPage() {
   const [membersLoading, setMembersLoading] = useState(false)
   const [removingMemberId, setRemovingMemberId] = useState<string | null>(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [optimisticPendingIds, setOptimisticPendingIds] = useState<string[]>([]);
+  const [userSearchRefreshKey, setUserSearchRefreshKey] = useState(0);
 
   // Fetch user's club
   const fetchUserClub = async () => {
@@ -158,6 +161,8 @@ export default function ClubsPage() {
       setMembers([])
     } finally {
       setMembersLoading(false)
+      // Remove any optimistic IDs that are now in the real pending list
+      setOptimisticPendingIds(prev => prev.filter(id => !pendingMemberIds.includes(id)));
     }
   }
 
@@ -204,6 +209,54 @@ export default function ClubsPage() {
     }
   }
 
+  // Add invite handler
+  const handleInviteUser = async (user: { id: string; name: string; email: string }) => {
+    if (!userClub) return;
+    try {
+      // Always try to delete any existing invite for this user and club
+      await supabase!
+        .from('club_members')
+        .delete()
+        .eq('club_id', userClub.id)
+        .eq('user_id', user.id);
+
+      // Now insert the new invite
+      const { error } = await supabase!
+        .from('club_members')
+        .insert([
+          {
+            club_id: userClub.id,
+            user_id: user.id,
+            role: 'member',
+            status: 'pending',
+          },
+        ]);
+      if (error) {
+        toast.error('Failed to invite user: ' + error.message);
+      } else {
+        toast.success('User invited!');
+        // Optimistically update members state
+        setMembers(prev => [
+          ...prev,
+          {
+            id: 'optimistic-' + user.id, // temporary id
+            user_id: user.id,
+            role: 'member',
+            status: 'pending',
+            joined_at: new Date().toISOString(),
+            users: { id: user.id, name: user.name, email: user.email }
+          }
+        ]);
+        setOptimisticPendingIds(prev => [...prev, user.id]);
+        setUserSearchRefreshKey(key => key + 1); // trigger search refresh
+        // Then fetch actual members from backend to sync
+        fetchMembers(userClub.id);
+      }
+    } catch (err) {
+      toast.error('Failed to invite user');
+    }
+  };
+
   useEffect(() => {
     fetchUserClub()
   }, [])
@@ -231,6 +284,12 @@ export default function ClubsPage() {
   const handleClubCreated = () => {
     fetchUserClub()
   }
+
+  // Track pending and active members' user IDs
+  const pendingMemberIds = members.filter(m => m.status === 'pending').map(m => m.user_id)
+  const activeMemberIds = members.filter(m => m.status === 'active').map(m => m.user_id)
+  // Merge real and optimistic pending IDs
+  const mergedPendingMemberIds = Array.from(new Set([...pendingMemberIds, ...optimisticPendingIds]));
 
   return (
     <PageGuard pageKey="clubs">
@@ -473,7 +532,32 @@ export default function ClubsPage() {
                         transition={{ delay: 0.2 }}
                         className="mt-4 sm:mt-6"
                       >
-                        <UserSearchInvite onUserSelect={() => {}} />
+                        <UserSearchInvite
+                          onUserSelect={() => {}}
+                          onInviteUser={handleInviteUser}
+                          pendingMemberIds={mergedPendingMemberIds}
+                          activeMemberIds={activeMemberIds}
+                          onCancelInvite={async (user) => {
+                            // Cancel invite logic
+                            const pendingMember = members.find(m => m.user_id === user.id && m.status === 'pending')
+                            if (pendingMember) {
+                              const { error } = await supabase!
+                                .from('club_members')
+                                .delete()
+                                .eq('id', pendingMember.id)
+                              if (error) {
+                                toast.error('Failed to cancel invite: ' + error.message)
+                              } else {
+                                toast.success('Invite cancelled')
+                                setMembers(prev => prev.filter(m => m.user_id !== user.id))
+                                setOptimisticPendingIds(prev => prev.filter(id => id !== user.id))
+                                setUserSearchRefreshKey(key => key + 1); // trigger search refresh
+                                fetchMembers(userClub.id)
+                              }
+                            }
+                          }}
+                          refreshKey={userSearchRefreshKey}
+                        />
                       </motion.div>
                     )}
                   </>

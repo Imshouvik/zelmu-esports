@@ -77,6 +77,10 @@ interface Registration {
     logo_url?: string;
     bio?: string;
   };
+  group?: {
+    id: string;
+    name: string;
+  };
   registered_by_user?: {
     id: string;
     name: string;
@@ -198,6 +202,10 @@ export default function TournamentManagementPage() {
             logo_url,
             bio
           ),
+          group:groups(
+            id,
+            name
+          ),
           registered_by_user:users!tournament_registrations_registered_by_fkey(
             id,
             name,
@@ -287,20 +295,21 @@ export default function TournamentManagementPage() {
 
   const updateRegistrationStatus = async (registrationId: string, newStatus: string) => {
     try {
-      const { error } = await supabase!
+      // Update registration status in tournament_registrations only
+      const { error: regError } = await supabase!
         .from('tournament_registrations')
         .update({ registration_status: newStatus })
         .eq('id', registrationId);
 
-      if (error) {
-        console.error('Error updating registration status:', error);
+      if (regError) {
+        console.error('Registration status update error:', regError);
         toast.error('Failed to update registration status');
-      } else {
-        toast.success('Registration status updated successfully');
-        // Refresh registrations
-        if (selectedTournament) {
-          await fetchTournamentRegistrations(selectedTournament.id);
-        }
+        return;
+      }
+
+      toast.success('Registration status updated successfully');
+      if (selectedTournament) {
+        await fetchTournamentRegistrations(selectedTournament.id);
       }
     } catch (error) {
       console.error('Error updating registration status:', error);
@@ -310,20 +319,21 @@ export default function TournamentManagementPage() {
 
   const updatePaymentStatus = async (registrationId: string, newStatus: string) => {
     try {
-      const { error } = await supabase!
+      // Update payment status in tournament_registrations only
+      const { error: regError } = await supabase!
         .from('tournament_registrations')
         .update({ payment_status: newStatus })
         .eq('id', registrationId);
 
-      if (error) {
-        console.error('Error updating payment status:', error);
+      if (regError) {
+        console.error('Payment status update error:', regError);
         toast.error('Failed to update payment status');
-      } else {
-        toast.success('Payment status updated successfully');
-        // Refresh registrations
-        if (selectedTournament) {
-          await fetchTournamentRegistrations(selectedTournament.id);
-        }
+        return;
+      }
+
+      toast.success('Payment status updated successfully');
+      if (selectedTournament) {
+        await fetchTournamentRegistrations(selectedTournament.id);
       }
     } catch (error) {
       console.error('Error updating payment status:', error);
@@ -341,6 +351,7 @@ export default function TournamentManagementPage() {
       'Registration ID': reg.id,
       'Type': reg.registration_type,
       'Name': reg.registration_type === 'team' ? reg.team?.name : reg.club?.name,
+      'Group': reg.group?.name || 'N/A',
       'Registered By': reg.registered_by_user?.name || 'Unknown',
       'Email': reg.registered_by_user?.email || 'Unknown',
       'Phone': reg.registered_by_user?.phone || 'Unknown',
@@ -454,6 +465,57 @@ export default function TournamentManagementPage() {
       else setGames([]);
     } catch {
       setGames([]);
+    }
+  };
+
+  const deleteTournament = async (tournamentId: string) => {
+    if (!window.confirm('Are you sure you want to delete this tournament? This action cannot be undone.')) return;
+    try {
+      // 1. Delete all team_player_status for this tournament
+      await supabase.from('team_player_status').delete().eq('tournament_id', tournamentId);
+
+      // 2. Delete all team_kills for this tournament
+      await supabase.from('team_kills').delete().eq('tournament_id', tournamentId);
+
+      // 3. Delete all matches for this tournament
+      await supabase.from('matches').delete().eq('tournament_id', tournamentId);
+
+      // 4. Delete all groups for this tournament
+      await supabase.from('groups').delete().eq('tournament_id', tournamentId);
+
+      // 5. Delete all tournament_stages for this tournament
+      await supabase.from('tournament_stages').delete().eq('tournament_id', tournamentId);
+
+      // 6. Delete all points_rules for this tournament
+      await supabase.from('points_rules').delete().eq('tournament_id', tournamentId);
+
+      // 7. Delete all overlay_state for this tournament
+      await supabase.from('overlay_state').delete().eq('tournament_id', tournamentId);
+
+      // 8. Delete all registrations for this tournament
+      await supabase.from('registrations').delete().eq('tournament_id', tournamentId);
+
+      // 9. Delete all club_tournaments for this tournament
+      await supabase.from('club_tournaments').delete().eq('tournament_id', tournamentId);
+
+      // 10. Delete all tournament_registrations for this tournament
+      await supabase.from('tournament_registrations').delete().eq('tournament_id', tournamentId);
+
+      // 11. Delete all teams for this tournament
+      await supabase.from('teams').delete().eq('tournament_id', tournamentId);
+
+      // 12. Finally, delete the tournament itself
+      const { error } = await supabase.from('tournaments').delete().eq('id', tournamentId);
+      if (error) {
+        console.error('Error deleting tournament:', error);
+        toast.error('Failed to delete tournament');
+      } else {
+        toast.success('Tournament deleted successfully!');
+        await fetchTournaments();
+      }
+    } catch (error) {
+      console.error('Error deleting tournament:', error);
+      toast.error('Failed to delete tournament');
     }
   };
 
@@ -673,6 +735,13 @@ export default function TournamentManagementPage() {
                     <FaEdit className="w-4 h-4" />
                     Edit
                   </button>
+                  <button
+                    onClick={() => deleteTournament(tournament.id)}
+                    className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2"
+                  >
+                    <FaTrash className="w-4 h-4" />
+                    Delete
+                  </button>
                 </div>
               </div>
             ))}
@@ -794,6 +863,10 @@ export default function TournamentManagementPage() {
                                   <div className="flex justify-between">
                                     <span className="text-fuchsia-200">Type:</span>
                                     <span className="text-white capitalize">{registration.registration_type}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-fuchsia-200">Group:</span>
+                                    <span className="text-white">{registration.group?.name || "N/A"}</span>
                                   </div>
                                   <div className="flex justify-between">
                                     <span className="text-fuchsia-200">Registered At:</span>
