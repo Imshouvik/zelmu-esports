@@ -1,21 +1,72 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/utils/supabaseClient'
 import Navigation from '@/components/Navigation'
 import PhoneInput from 'react-phone-input-2'
 import 'react-phone-input-2/lib/style.css'
+import { useSelector } from 'react-redux';  
+import { RootState } from '@/store';
+import { Country, State, City } from 'country-state-city';
+import { FaSpinner, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
 
 export default function RegisterPage() {
-  const router = useRouter()
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [name, setName] = useState('')
-  const [phone, setPhone] = useState('')
+  const router = useRouter();
+  const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
+  const authLoading = useSelector((state: RootState) => state.auth.loading);
+
+  // Redirect authenticated users to dashboard
+  useEffect(() => {
+    if (!authLoading && isAuthenticated) {
+      router.push('/dashboard');
+    }
+  }, [authLoading, isAuthenticated, router]);
+
+  // All hooks must be called unconditionally
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [country, setCountry] = useState('IN');
+  const [state, setState] = useState('');
+  const [city, setCity] = useState('');
   const DEFAULT_AVATAR = 'https://api.dicebear.com/7.x/adventurer/svg?seed=zelmu';
+  const [zelmuname, setZelmuname] = useState('');
+  const [zelmunameAvailable, setZelmunameAvailable] = useState<boolean | null>(null);
+  const [checkingZelmuname, setCheckingZelmuname] = useState(false);
+
+  const countries = Country.getAllCountries();
+  const states = State.getStatesOfCountry(country);
+  const cities = State.getStateByCodeAndCountry(state, country) ? City.getCitiesOfState(country, state) : [];
+
+  useEffect(() => { setState(''); setCity(''); }, [country]);
+  useEffect(() => { setCity(''); }, [state]);
+
+  // Debounced zelmuname check
+  useEffect(() => {
+    if (!zelmuname) {
+      setZelmunameAvailable(null);
+      return;
+    }
+    setCheckingZelmuname(true);
+    const timeout = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/check-zelmuname?zelmuname=${encodeURIComponent(zelmuname)}`);
+        const data = await res.json();
+        setZelmunameAvailable(data.available);
+      } catch {
+        setZelmunameAvailable(null);
+      } finally {
+        setCheckingZelmuname(false);
+      }
+    }, 500);
+    return () => clearTimeout(timeout);
+  }, [zelmuname]);
+
+  if (authLoading) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -27,6 +78,23 @@ export default function RegisterPage() {
       setError('Phone number is required.')
       setLoading(false)
       return
+    }
+
+    if (!country || !state || !city) {
+      setError('Country, state, and city are required.');
+      setLoading(false);
+      return;
+    }
+
+    if (!zelmuname) {
+      setError('Zelmu Name is required.');
+      setLoading(false);
+      return;
+    }
+    if (!zelmunameAvailable) {
+      setError('Zelmu Name is not available.');
+      setLoading(false);
+      return;
     }
 
     try {
@@ -52,6 +120,10 @@ export default function RegisterPage() {
           data: { 
             name, 
             phone,
+            country,
+            state,
+            city,
+            zelmuname,
             full_name: name // Add this for better compatibility
           },
           emailRedirectTo: `${window.location.origin}/login`
@@ -78,6 +150,10 @@ export default function RegisterPage() {
             email, 
             name, 
             phone, 
+            country,
+            state,
+            city,
+            zelmuname,
             created_at: new Date().toISOString(),
             role: 'user',
             avatar_url: avatarUrl
@@ -135,15 +211,23 @@ export default function RegisterPage() {
         <h2 className="text-3xl font-bold text-white mb-8 drop-shadow-lg">Register</h2>
         {/* Register form */}
         <form className="w-full flex flex-col gap-6" onSubmit={handleSubmit}>
-          <input
-            type="text"
-            placeholder="Full Name"
-            value={name}
-            onChange={e => setName(e.target.value)}
-            className="w-full px-5 py-3 rounded-xl bg-white/10 border border-fuchsia-500/30 text-white placeholder-fuchsia-200 focus:outline-none focus:ring-2 focus:ring-fuchsia-400 focus:border-fuchsia-400 transition-all text-base shadow-inner backdrop-blur-md"
-            required
-            disabled={loading}
-          />
+          {/* Full Name with floating label */}
+          <div className="relative w-full">
+            <input
+              type="text"
+              id="register-name"
+              placeholder=" "
+              value={name}
+              onChange={e => setName(e.target.value)}
+              className="peer w-full px-5 py-3 rounded-xl bg-white/10 border border-fuchsia-500/30 text-white placeholder-transparent focus:outline-none focus:ring-2 focus:ring-fuchsia-400 focus:border-fuchsia-400 transition-all text-base shadow-inner backdrop-blur-md"
+              required
+              disabled={loading}
+            />
+            <label htmlFor="register-name" className="absolute left-5 top-1/2 -translate-y-1/2 text-fuchsia-200 text-base pointer-events-none transition-all duration-200 peer-placeholder-shown:top-1/2 peer-placeholder-shown:text-base peer-focus:top-2 peer-focus:text-xs peer-focus:text-fuchsia-400 bg-transparent px-1">
+              Full Name
+            </label>
+          </div>
+          {/* Phone input unchanged */}
           <div className="w-full">
             <PhoneInput
               country={'in'}
@@ -160,24 +244,117 @@ export default function RegisterPage() {
               disabled={loading}
             />
           </div>
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            className="w-full px-5 py-3 rounded-xl bg-white/10 border border-fuchsia-500/30 text-white placeholder-fuchsia-200 focus:outline-none focus:ring-2 focus:ring-fuchsia-400 focus:border-fuchsia-400 transition-all text-base shadow-inner backdrop-blur-md"
-            required
-            disabled={loading}
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            className="w-full px-5 py-3 rounded-xl bg-white/10 border border-fuchsia-500/30 text-white placeholder-fuchsia-200 focus:outline-none focus:ring-2 focus:ring-fuchsia-400 focus:border-fuchsia-400 transition-all text-base shadow-inner backdrop-blur-md"
-            required
-            disabled={loading}
-          />
+          {/* Zelmu Name with floating label */}
+          <div className="w-full flex flex-col gap-2 relative">
+            <div className="relative">
+              <input
+                type="text"
+                id="register-zelmuname"
+                placeholder=" "
+                value={zelmuname}
+                onChange={e => setZelmuname(e.target.value.replace(/\s/g, ''))}
+                className="peer w-full px-4 py-3 pr-12 rounded-xl bg-white/10 border border-fuchsia-500/30 text-white placeholder-transparent focus:outline-none focus:ring-2 focus:ring-fuchsia-400 focus:border-fuchsia-400 transition-all text-base shadow-inner backdrop-blur-md"
+                required
+                disabled={loading}
+                minLength={3}
+                maxLength={20}
+                autoComplete="off"
+              />
+              <label htmlFor="register-zelmuname" className="absolute left-4 top-1/2 -translate-y-1/2 text-fuchsia-200 text-base pointer-events-none transition-all duration-200 peer-placeholder-shown:top-1/2 peer-placeholder-shown:text-base peer-focus:top-2 peer-focus:text-xs peer-focus:text-fuchsia-400 bg-transparent px-1">
+                Zelmu Name (unique)
+              </label>
+              {/* Spinner or check/cross icon */}
+              <span className="absolute right-3 top-1/2 -translate-y-1/2">
+                {checkingZelmuname && <FaSpinner className="animate-spin text-green-400 w-5 h-5" />}
+                {!checkingZelmuname && zelmuname && zelmunameAvailable === true && <FaCheckCircle className="text-green-400 w-5 h-5" />}
+                {!checkingZelmuname && zelmuname && zelmunameAvailable === false && <FaTimesCircle className="text-red-400 w-5 h-5" />}
+              </span>
+            </div>
+            {zelmuname && (
+              <span className={`text-xs mt-1 ${zelmunameAvailable === null ? 'text-gray-400' : zelmunameAvailable ? 'text-green-400' : 'text-red-400'}`}>
+                {checkingZelmuname ? 'Checking availability...' : zelmunameAvailable === null ? '' : zelmunameAvailable ? 'Available!' : 'Not available'}
+              </span>
+            )}
+          </div>
+          {/* Country/State/City unchanged */}
+          <div className="w-full flex flex-col sm:flex-row gap-2">
+            <div className="flex-1">
+              <label className="block text-left text-fuchsia-200 text-sm mb-1">Country</label>
+              <select
+                value={country}
+                onChange={e => setCountry(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl bg-white/10 border border-fuchsia-500/30 text-white focus:outline-none focus:ring-2 focus:ring-fuchsia-400 focus:border-fuchsia-400 transition-all text-base shadow-inner backdrop-blur-md"
+                required
+                disabled={loading}
+              >
+                {countries.map(c => (
+                  <option key={c.isoCode} value={c.isoCode}>{c.name}</option>
+                ))}
+              </select>
+            </div>
+            <div className="flex-1">
+              <label className="block text-left text-fuchsia-200 text-sm mb-1">State</label>
+              <select
+                value={state}
+                onChange={e => setState(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl bg-white/10 border border-fuchsia-500/30 text-white focus:outline-none focus:ring-2 focus:ring-fuchsia-400 focus:border-fuchsia-400 transition-all text-base shadow-inner backdrop-blur-md"
+                required
+                disabled={loading || !country}
+              >
+                <option value="" disabled>Select state</option>
+                {states.map(s => (
+                  <option key={s.isoCode} value={s.isoCode}>{s.name}</option>
+                ))}
+              </select>
+            </div>
+            <div className="flex-1">
+              <label className="block text-left text-fuchsia-200 text-sm mb-1">City</label>
+              <select
+                value={city}
+                onChange={e => setCity(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl bg-white/10 border border-fuchsia-500/30 text-white focus:outline-none focus:ring-2 focus:ring-fuchsia-400 focus:border-fuchsia-400 transition-all text-base shadow-inner backdrop-blur-md"
+                required
+                disabled={loading || !state}
+              >
+                <option value="" disabled>Select city</option>
+                {cities.map(c => (
+                  <option key={c.name} value={c.name}>{c.name}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+          {/* Email with floating label */}
+          <div className="relative w-full">
+            <input
+              type="email"
+              id="register-email"
+              placeholder=" "
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              className="peer w-full px-5 py-3 rounded-xl bg-white/10 border border-fuchsia-500/30 text-white placeholder-transparent focus:outline-none focus:ring-2 focus:ring-fuchsia-400 focus:border-fuchsia-400 transition-all text-base shadow-inner backdrop-blur-md"
+              required
+              disabled={loading}
+            />
+            <label htmlFor="register-email" className="absolute left-5 top-1/2 -translate-y-1/2 text-fuchsia-200 text-base pointer-events-none transition-all duration-200 peer-placeholder-shown:top-1/2 peer-placeholder-shown:text-base peer-focus:top-2 peer-focus:text-xs peer-focus:text-fuchsia-400 bg-transparent px-1">
+              Email
+            </label>
+          </div>
+          {/* Password with floating label */}
+          <div className="relative w-full">
+            <input
+              type="password"
+              id="register-password"
+              placeholder=" "
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              className="peer w-full px-5 py-3 rounded-xl bg-white/10 border border-fuchsia-500/30 text-white placeholder-transparent focus:outline-none focus:ring-2 focus:ring-fuchsia-400 focus:border-fuchsia-400 transition-all text-base shadow-inner backdrop-blur-md"
+              required
+              disabled={loading}
+            />
+            <label htmlFor="register-password" className="absolute left-5 top-1/2 -translate-y-1/2 text-fuchsia-200 text-base pointer-events-none transition-all duration-200 peer-placeholder-shown:top-1/2 peer-placeholder-shown:text-base peer-focus:top-2 peer-focus:text-xs peer-focus:text-fuchsia-400 bg-transparent px-1">
+              Password
+            </label>
+          </div>
           {error && <div className="text-red-400 text-sm font-semibold -mt-4 mb-2">{error}</div>}
           <button
             type="submit"
