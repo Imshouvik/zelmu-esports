@@ -12,6 +12,7 @@ import { setTournaments, setLoading, setError } from '@/store/slices/tournamentS
 import Link from 'next/link';
 import { FaTwitter, FaTrophy, FaUsers, FaStar, FaArrowRight } from 'react-icons/fa';
 import Navigation from '@/components/Navigation';
+import Footer from '@/components/Footer';
 
 const socialLinks = [
   { href: 'https://discord.gg/', icon: <FaDiscord />, label: 'Discord' },
@@ -46,7 +47,10 @@ export default function HomeClient() {
   }, [confirmed, message, userEmail]);
 
   if (loading) return null;
-  if (isAuthenticated) return null;
+  if (isAuthenticated) {
+    router.push('/dashboard');
+    return null;
+  }
 
   if (typeof window === 'undefined' || !supabase) {
     throw new Error('Supabase client is not available on the server.');
@@ -203,9 +207,22 @@ export default function HomeClient() {
                 </button>
               </div>
             </div>
+            {/* Register prompt below social login */}
+            <div className="w-full text-center mt-4">
+              <span className="text-gray-600 text-sm">Don’t have an account?{' '}
+                <button
+                  type="button"
+                  onClick={() => router.push('/register')}
+                  className="text-fuchsia-600 hover:underline font-semibold focus:outline-none"
+                >
+                  Register
+                </button>
+              </span>
+            </div>
           </div>
         </div>
       </main>
+      <Footer />
     </div>
   );
 } 
