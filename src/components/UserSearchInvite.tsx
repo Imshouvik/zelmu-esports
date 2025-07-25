@@ -230,33 +230,47 @@ export default function UserSearchInvite({
                     key={user.id}
                     className="flex items-center justify-between px-4 py-3 hover:bg-fuchsia-500/20 transition-colors"
                   >
-                    <button
-                      type="button"
-                      onClick={() => handleUserSelect(user)}
-                      className="flex-1 text-left flex items-center space-x-3 focus:outline-none"
-                      disabled={isActive}
-                    >
-                      <span className="font-medium text-white">{user.name}</span>
-                      <span className="text-xs text-fuchsia-300">{user.email}</span>
-                    </button>
-                    {isActive ? (
-                      <button type="button" className="ml-2 px-3 py-1 bg-green-600 text-white rounded text-xs font-semibold opacity-60 cursor-not-allowed" disabled>Member</button>
-                    ) : isPending ? (
-                      onCancelInvite ? (
+                    {/* If onInviteUser is not provided, just make the name clickable for selection */}
+                    {onInviteUser ? (
+                      <>
                         <button
                           type="button"
-                          onClick={() => onCancelInvite(user)}
-                          className="ml-2 px-3 py-1 bg-yellow-600 hover:bg-yellow-700 text-white rounded text-xs font-semibold"
-                        >Cancel</button>
-                      ) : (
-                        <button type="button" className="ml-2 px-3 py-1 bg-yellow-600 text-white rounded text-xs font-semibold opacity-60 cursor-not-allowed" disabled>Invited</button>
-                      )
+                          onClick={() => handleUserSelect(user)}
+                          className="flex-1 text-left flex items-center space-x-3 focus:outline-none"
+                          disabled={isActive}
+                        >
+                          <span className="font-medium text-white">{user.name}</span>
+                          <span className="text-xs text-fuchsia-300">{user.email}</span>
+                        </button>
+                        {isActive ? (
+                          <button type="button" className="ml-2 px-3 py-1 bg-green-600 text-white rounded text-xs font-semibold opacity-60 cursor-not-allowed" disabled>Member</button>
+                        ) : isPending ? (
+                          onCancelInvite ? (
+                            <button
+                              type="button"
+                              onClick={() => onCancelInvite(user)}
+                              className="ml-2 px-3 py-1 bg-yellow-600 hover:bg-yellow-700 text-white rounded text-xs font-semibold"
+                            >Cancel</button>
+                          ) : (
+                            <button type="button" className="ml-2 px-3 py-1 bg-yellow-600 text-white rounded text-xs font-semibold opacity-60 cursor-not-allowed" disabled>Invited</button>
+                          )
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => onInviteUser(user)}
+                            className="ml-2 px-3 py-1 bg-fuchsia-600 hover:bg-fuchsia-700 text-white rounded transition-colors text-xs font-semibold"
+                          >Invite</button>
+                        )}
+                      </>
                     ) : (
                       <button
                         type="button"
-                        onClick={() => (onInviteUser ? onInviteUser(user) : onUserSelect(user))}
-                        className="ml-2 px-3 py-1 bg-fuchsia-600 hover:bg-fuchsia-700 text-white rounded transition-colors text-xs font-semibold"
-                      >Invite</button>
+                        onClick={() => handleUserSelect(user)}
+                        className="flex-1 text-left flex items-center space-x-3 focus:outline-none"
+                      >
+                        <span className="font-medium text-white">{user.name}</span>
+                        <span className="text-xs text-fuchsia-300">{user.email}</span>
+                      </button>
                     )}
                   </motion.div>
                 )
