@@ -223,7 +223,9 @@ export default function RegisterPage() {
               required
               disabled={loading}
             />
-            <label htmlFor="register-name" className="absolute left-5 top-1/2 -translate-y-1/2 text-fuchsia-200 text-base pointer-events-none transition-all duration-200 peer-placeholder-shown:top-1/2 peer-placeholder-shown:text-base peer-focus:top-2 peer-focus:text-xs peer-focus:text-fuchsia-400 bg-transparent px-1">
+            <label htmlFor="register-name" className="absolute left-5 top-1/2 -translate-y-1/2 text-fuchsia-200 text-base pointer-events-none transition-all duration-200 bg-transparent px-1
+              peer-focus:top-2 peer-focus:-translate-y-0 peer-focus:text-xs peer-focus:text-fuchsia-400
+              peer-not-placeholder-shown:top-2 peer-not-placeholder-shown:-translate-y-0 peer-not-placeholder-shown:text-xs peer-not-placeholder-shown:text-fuchsia-400">
               Full Name
             </label>
           </div>
@@ -260,7 +262,9 @@ export default function RegisterPage() {
                 maxLength={20}
                 autoComplete="off"
               />
-              <label htmlFor="register-zelmuname" className="absolute left-4 top-1/2 -translate-y-1/2 text-fuchsia-200 text-base pointer-events-none transition-all duration-200 peer-placeholder-shown:top-1/2 peer-placeholder-shown:text-base peer-focus:top-2 peer-focus:text-xs peer-focus:text-fuchsia-400 bg-transparent px-1">
+              <label htmlFor="register-zelmuname" className="absolute left-4 top-1/2 -translate-y-1/2 text-fuchsia-200 text-base pointer-events-none transition-all duration-200 bg-transparent px-1
+                peer-focus:top-2 peer-focus:-translate-y-0 peer-focus:text-xs peer-focus:text-fuchsia-400
+                peer-not-placeholder-shown:top-2 peer-not-placeholder-shown:-translate-y-0 peer-not-placeholder-shown:text-xs peer-not-placeholder-shown:text-fuchsia-400">
                 Zelmu Name (unique)
               </label>
               {/* Spinner or check/cross icon */}
@@ -335,7 +339,9 @@ export default function RegisterPage() {
               required
               disabled={loading}
             />
-            <label htmlFor="register-email" className="absolute left-5 top-1/2 -translate-y-1/2 text-fuchsia-200 text-base pointer-events-none transition-all duration-200 peer-placeholder-shown:top-1/2 peer-placeholder-shown:text-base peer-focus:top-2 peer-focus:text-xs peer-focus:text-fuchsia-400 bg-transparent px-1">
+            <label htmlFor="register-email" className="absolute left-5 top-1/2 -translate-y-1/2 text-fuchsia-200 text-base pointer-events-none transition-all duration-200 bg-transparent px-1
+              peer-focus:top-2 peer-focus:-translate-y-0 peer-focus:text-xs peer-focus:text-fuchsia-400
+              peer-not-placeholder-shown:top-2 peer-not-placeholder-shown:-translate-y-0 peer-not-placeholder-shown:text-xs peer-not-placeholder-shown:text-fuchsia-400">
               Email
             </label>
           </div>
@@ -351,7 +357,9 @@ export default function RegisterPage() {
               required
               disabled={loading}
             />
-            <label htmlFor="register-password" className="absolute left-5 top-1/2 -translate-y-1/2 text-fuchsia-200 text-base pointer-events-none transition-all duration-200 peer-placeholder-shown:top-1/2 peer-placeholder-shown:text-base peer-focus:top-2 peer-focus:text-xs peer-focus:text-fuchsia-400 bg-transparent px-1">
+            <label htmlFor="register-password" className="absolute left-5 top-1/2 -translate-y-1/2 text-fuchsia-200 text-base pointer-events-none transition-all duration-200 bg-transparent px-1
+              peer-focus:top-2 peer-focus:-translate-y-0 peer-focus:text-xs peer-focus:text-fuchsia-400
+              peer-not-placeholder-shown:top-2 peer-not-placeholder-shown:-translate-y-0 peer-not-placeholder-shown:text-xs peer-not-placeholder-shown:text-fuchsia-400">
               Password
             </label>
           </div>
