@@ -29,361 +29,722 @@ export default function ZBCCSeason1Page() {
     return null; // Will redirect to login
   }
 
-  return (
-    <>
-      <Navigation />
-      <div className="min-h-screen bg-gray-900">
-        <div className="bg-gray-900 rounded-lg shadow-2xl p-6 max-w-5xl w-full mx-auto text-white">
-          {/* Header Section */}
-          <div className="flex justify-between items-center mb-6">
-            <div className="w-24 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded flex items-center justify-center text-white font-bold text-sm">
-              ZELMU
+      return (
+      <>
+        <Navigation />
+        <div className="min-h-screen bg-gray-900">
+          <style jsx>{`
+            .bracket-box {
+              background: #2D2D2D;
+              border: 2px solid #00D1FF;
+              border-radius: 8px;
+              padding: 1rem;
+              position: relative;
+            }
+            .group-table th, .group-table td {
+              border: 1px solid #00D1FF;
+              padding: 0.5rem;
+              text-align: left;
+            }
+            .animate-pulse-slow {
+              animation: pulse 3s ease-in-out infinite;
+            }
+            @keyframes pulse {
+              0%, 100% { opacity: 1; }
+              50% { opacity: 0.7; }
+            }
+          `}</style>
+          <div className="bg-gray-900 rounded-lg shadow-2xl p-6 max-w-5xl w-full mx-auto text-white">
+            {/* Header Section */}
+            <div className="flex justify-between items-center mb-6">
+              <div className="w-24 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded flex items-center justify-center text-white font-bold text-sm">
+                ZELMU
+              </div>
+              <div className="w-36 h-36 bg-gradient-to-r from-green-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                BGMI
+              </div>
             </div>
-            <div className="w-36 h-36 bg-gradient-to-r from-green-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
-              BGMI
+            <h1 className="text-4xl md:text-5xl font-bold text-center mb-4" style={{
+              textShadow: '0 0 10px #00D1FF, 0 0 20px #00D1FF, 0 0 30px #FF3333',
+              color: '#60A5FA'
+            }}>
+              ZELMU BGMI CLUB Championship - Season 1
+            </h1>
+            <h2 className="text-2xl md:text-3xl font-semibold text-center text-red-500 mb-6">
+              India's First & Biggest Club Championship for Esports
+            </h2>
+
+                    {/* Tournament Overview */}
+            <div className="bg-gray-800 p-4 rounded-lg mb-8">
+              <h3 className="text-xl font-bold text-yellow-400 mb-2">Overview</h3>
+              <p className="text-sm">The ZELMU BGMI CLUB Championship is a fully online Battlegrounds Mobile India (BGMI) tournament featuring <strong>192 teams</strong> (960 players, 4 players + 1 substitute per team). Running from <strong>August 5 to August 15, 2025</strong>, it includes <strong>17 online matches</strong> across three rounds and a final stage. Each match in the first three rounds involves 24 teams, with the top 12 qualifying for the next round. The final stage consists of two qualifier matches (Q1, Q2) and a 12-team Grand Final.</p>
+              <p className="text-sm mt-2"><strong>Note</strong>: R = Round, G = Group</p>
             </div>
-          </div>
-          
-          <h1 className="text-4xl md:text-5xl font-bold text-center mb-4" style={{
-            textShadow: '0 0 10px #00D1FF, 0 0 20px #00D1FF, 0 0 30px #FF3333',
-            color: '#60A5FA'
-          }}>
-            ZELMU BGMI CLUB Championship - Season 1
-          </h1>
-          <h2 className="text-2xl md:text-3xl font-semibold text-center text-red-500 mb-6">
-            India's First & Biggest Club Championship for Esports
-          </h2>
 
-          {/* Tournament Overview */}
-          <div className="bg-gray-800 p-4 rounded-lg mb-8">
-            <h3 className="text-xl font-bold text-yellow-400 mb-2">Overview</h3>
-            <p className="text-sm">The ZELMU BGMI CLUB Championship is a fully online Battlegrounds Mobile India (BGMI) tournament featuring <strong>192 teams</strong> (960 players, 4 players + 1 substitute per team). Running from <strong>August 5 to August 15, 2025</strong>, it includes <strong>17 online matches</strong> across three rounds and a final stage. Each match in the first three rounds involves 24 teams, with the top 12 qualifying for the next round. The final stage consists of two qualifier matches (Q1, Q2) and a 12-team Grand Final.</p>
-            <p className="text-sm mt-2"><strong>Note</strong>: R = Round, G = Group</p>
-          </div>
+                    {/* Prize Pool */}
+            <div className="bg-gray-800 p-4 rounded-lg mb-8">
+              <h3 className="text-xl font-bold text-yellow-400 mb-2">Prize Pool</h3>
+              <ul className="text-sm space-y-2">
+                <li><strong>Total Prize Pool</strong>: ₹50,000 + Trophy + Certificate + Listing on ZELMU.com</li>
+                <li>🏆 <strong>Winner (1 team)</strong>: ₹10,000 + Trophy + Certificate + Listing on ZELMU.com</li>
+                <li>🥈 <strong>2nd Place (1 team)</strong>: ₹5,000</li>
+                <li>🔫 <strong>Top Killed (MVP, 1 player)</strong>: ₹1,000</li>
+                <li>⭐ <strong>Player of the Tournament (1 player)</strong>: ₹3,000</li>
+                <li>🎖️ <strong>Player of the Match (15 matches)</strong>: ₹500 each (₹7,500 total)</li>
+                <li>🎉 <strong>Participation Prize (192 teams)</strong>: ₹100 each (₹19,200 total)</li>
+              </ul>
+            </div>
 
-          {/* Prize Pool */}
-          <div className="bg-gray-800 p-4 rounded-lg mb-8">
-            <h3 className="text-xl font-bold text-yellow-400 mb-2">Prize Pool</h3>
-            <ul className="text-sm space-y-2">
-              <li><strong>Total Prize Pool</strong>: ₹50,000 + Trophy + Certificate + Listing on ZELMU.com</li>
-              <li>🏆 <strong>Winner (1 team)</strong>: ₹10,000 + Trophy + Certificate + Listing on ZELMU.com</li>
-              <li>🥈 <strong>2nd Place (1 team)</strong>: ₹5,000</li>
-              <li>🔫 <strong>Top Killed (MVP, 1 player)</strong>: ₹1,000</li>
-              <li>⭐ <strong>Player of the Tournament (1 player)</strong>: ₹3,000</li>
-              <li>🎖️ <strong>Player of the Match (15 matches)</strong>: ₹500 each (₹7,500 total)</li>
-              <li>🎉 <strong>Participation Prize (192 teams)</strong>: ₹100 each (₹19,200 total)</li>
-            </ul>
-          </div>
-
-          {/* Tournament Structure */}
-          <div className="mb-8">
+        {/* Tournament Structure*/}
+        <div className="mb-8">
             <h3 className="text-xl font-bold text-blue-400 mb-4 text-center">Tournament Structure</h3>
             <div className="space-y-6">
-              {/* Round 1 */}
-              <div className="bg-gray-800 border-2 border-blue-400 rounded-lg p-4 relative">
-                <h4 className="text-lg font-bold text-blue-400 mb-2">Round 1 (Aug 5–7, 2025)</h4>
-                <p className="text-sm"><strong>Teams</strong>: 192 teams (divided into 8 groups)</p>
-                <p className="text-sm"><strong>Matches</strong>: 8 online matches (24 teams each)</p>
-                <p className="text-sm"><strong>Schedule</strong>:</p>
-                <ul className="text-sm list-disc list-inside">
-                  <li>Aug 5: 3 matches (8:00 PM, 9:00 PM, 10:00 PM IST)</li>
-                  <li>Aug 6: 3 matches (8:00 PM, 9:00 PM, 10:00 PM IST)</li>
-                  <li>Aug 7: 2 matches (8:00 PM, 9:00 PM IST)</li>
-                </ul>
-                <p className="text-sm"><strong>Map</strong>: Erangle (Advanced Mode)</p>
-                <p className="text-sm"><strong>Qualification</strong>: Top 12 teams per match (96 teams total) advance to Round 2</p>
-                <p className="text-sm"><strong>Scoring</strong>: 1st: 10 pts, 2nd: 6 pts, 3rd: 5 pts, 4th: 4 pts, 5th: 3 pts, 6th: 2 pts, 7th–8th: 1 pt</p>
-                
-                {/* Group A */}
-                <div className="mt-4">
-                  <h5 className="text-md font-bold text-red-500 mb-2">Group A - August 5, 8:00 PM IST</h5>
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm border-collapse">
-                      <thead>
-                        <tr className="border border-blue-400">
-                          <th className="border border-blue-400 p-2 text-left">#</th>
-                          <th className="border border-blue-400 p-2 text-left">Team Name</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">2</td><td className="border border-blue-400 p-2">Nabarun Songho</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">3</td><td className="border border-blue-400 p-2">Netaji Tarun Sangha</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">4</td><td className="border border-blue-400 p-2">Harishchandrapur Club</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">5</td><td className="border border-blue-400 p-2">Shantanir Sporting Club</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">6</td><td className="border border-blue-400 p-2">Panchasayar Club</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">7</td><td className="border border-blue-400 p-2">Yuba Sangha Club</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">8</td><td className="border border-blue-400 p-2">Ajitpur Club</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">9</td><td className="border border-blue-400 p-2">Bison Sangha</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">10</td><td className="border border-blue-400 p-2">Amra Sobai Club</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">11</td><td className="border border-blue-400 p-2">Club Angan</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">12</td><td className="border border-blue-400 p-2">Arambagh Club</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">13</td><td className="border border-blue-400 p-2">Yuva Kalyan Samiti</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">14</td><td className="border border-blue-400 p-2">Shahjahanpur Club</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">15</td><td className="border border-blue-400 p-2">Simulpur Runner Club</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">16</td><td className="border border-blue-400 p-2">Nayakamarga Spoting Club</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">17</td><td className="border border-blue-400 p-2">Ashariadaha Club</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">18</td><td className="border border-blue-400 p-2">Uttorpolli</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">19</td><td className="border border-blue-400 p-2">Sabuj Pally Naba Sammilani Song</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">20</td><td className="border border-blue-400 p-2">Arabpur Club</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">21</td><td className="border border-blue-400 p-2">Gopal Smriti Sangha</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">22</td><td className="border border-blue-400 p-2">Bansdroni Vevekananda Park Association</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">23</td><td className="border border-blue-400 p-2">Ranaghat Club Ten Star</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">24</td><td className="border border-blue-400 p-2">Sahebbari Church Club</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">25</td><td className="border border-blue-400 p-2">Bagnan Milan Sangha</td></tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-
-                {/* Group B */}
-                <div className="mt-4">
-                  <h5 className="text-md font-bold text-red-500 mb-2">Group B - August 5, 9:00 PM IST</h5>
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm border-collapse">
-                      <thead>
-                        <tr className="border border-blue-400">
-                          <th className="border border-blue-400 p-2 text-left">#</th>
-                          <th className="border border-blue-400 p-2 text-left">Team Name</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">2</td><td className="border border-blue-400 p-2">Jagoroni Club</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">3</td><td className="border border-blue-400 p-2">Murarai Amra Kajon Club</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">4</td><td className="border border-blue-400 p-2">Baruipur Warriors</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">5</td><td className="border border-blue-400 p-2">Achhipur Songho</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">6</td><td className="border border-blue-400 p-2">Talbagan Yuba Sangha Club</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">7</td><td className="border border-blue-400 p-2">Media Young Star Club</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">8</td><td className="border border-blue-400 p-2">Tarun Sangha Club</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">9</td><td className="border border-blue-400 p-2">Bagermore Club</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">10</td><td className="border border-blue-400 p-2">Biswashri Club</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">11</td><td className="border border-blue-400 p-2">Ghoshpur Adibasi Jubak Sangha</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">12</td><td className="border border-blue-400 p-2">Ghoshpur Cultural Association</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">13</td><td className="border border-blue-400 p-2">Gobardanga Club</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">14</td><td className="border border-blue-400 p-2">Maniktala Pragati Sangha</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">15</td><td className="border border-blue-400 p-2">Icchamohe Club</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">16</td><td className="border border-blue-400 p-2">Subhas Sangha Club</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">17</td><td className="border border-blue-400 p-2">Chalantika Club</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">18</td><td className="border border-blue-400 p-2">Debigarh Club</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">19</td><td className="border border-blue-400 p-2">Polli Union Songho Club</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">20</td><td className="border border-blue-400 p-2">Archana Club</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">21</td><td className="border border-blue-400 p-2">Kamar Danga Boys Club</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">22</td><td className="border border-blue-400 p-2">Baghogra Association</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">23</td><td className="border border-blue-400 p-2">Amra Sokole</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">24</td><td className="border border-blue-400 p-2">East Udayrajpur Club</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">25</td><td className="border border-blue-400 p-2">Arabpur Shongho</td></tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-
-                {/* Group C */}
-                <div className="mt-4">
-                  <h5 className="text-md font-bold text-red-500 mb-2">Group C - August 5, 10:00 PM IST</h5>
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm border-collapse">
-                      <thead>
-                        <tr className="border border-blue-400">
-                          <th className="border border-blue-400 p-2 text-left">#</th>
-                          <th className="border border-blue-400 p-2 text-left">Team Name</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">2</td><td className="border border-blue-400 p-2">Jabalpur Club</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">3</td><td className="border border-blue-400 p-2">Dahijuri Club</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">4</td><td className="border border-blue-400 p-2">Dahijuri Association</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">5</td><td className="border border-blue-400 p-2">Bamunmura Association Club</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">6</td><td className="border border-blue-400 p-2">Sanmatinagar Club</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">7</td><td className="border border-blue-400 p-2">Islampur Club</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">8</td><td className="border border-blue-400 p-2">Bhatri Sangha</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">9</td><td className="border border-blue-400 p-2">New Mahbir Club</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">10</td><td className="border border-blue-400 p-2">Dindori Club</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">11</td><td className="border border-blue-400 p-2">Milan Tritha Club</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">12</td><td className="border border-blue-400 p-2">Ashariadaha Club</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">13</td><td className="border border-blue-400 p-2">Motijheel Young Star Club</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">14</td><td className="border border-blue-400 p-2">We The Green Club</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">15</td><td className="border border-blue-400 p-2">Bankura United</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">16</td><td className="border border-blue-400 p-2">Ashoknagar Football Coaching Centre</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">17</td><td className="border border-blue-400 p-2">Chabi Club</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">18</td><td className="border border-blue-400 p-2">Banamalipur Five Star Club</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">19</td><td className="border border-blue-400 p-2">Udayan Sangha</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">20</td><td className="border border-blue-400 p-2">Gamila Nabin Sangha Rural Library</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">21</td><td className="border border-blue-400 p-2">Dhandighi Welfare Association</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">22</td><td className="border border-blue-400 p-2">Townhall Club</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">23</td><td className="border border-blue-400 p-2">Basirhat. Dhaltitha.Aamra Sobay Club</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">24</td><td className="border border-blue-400 p-2">Rajballavpur Agrani Sangha Club</td></tr>
-                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">25</td><td className="border border-blue-400 p-2">Maslandapur United</td></tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-
-                {/* Additional Groups - Collapsible for space */}
-                <div className="mt-4">
-                  <details className="group">
-                    <summary className="cursor-pointer text-red-500 font-bold hover:text-red-400">
-                      View All Groups (D-H) ▼
-                    </summary>
-                    <div className="mt-2 space-y-4">
-                      {/* Group D */}
-                      <div>
-                        <h6 className="text-sm font-bold text-red-500 mb-2">Group D - August 6, 8:00 PM IST</h6>
-                        <p className="text-xs text-gray-300">Purbachal Club, Khar West Association, Kamarthuba Pragati Sangha (K.P.S), Birnagar Sporting Club, Sinthi Peara Bagan Club, Pragatishil Nattaya Sangstha, Haroa Club, Vivekananda Sporting Club, Milan Sangha, Janata Club, Bergoom Morning Star Club, Bhaluka Shongho, Aghraduth Sangha, Pollishree Club, Jagrihi Club, Dhaltikuri Chetona Songho, Soneva Sports, Chakla Esports Club, Banni Sikha Sangha, Club Prantik, Sweet Club, Agnio Sangho, Arit Club, Bagpukur Purbapara New Ajad Sangha</p>
-                      </div>
-                      
-                      {/* Group E */}
-                      <div>
-                        <h6 className="text-sm font-bold text-red-500 mb-2">Group E - August 6, 9:00 PM IST</h6>
-                        <p className="text-xs text-gray-300">Canning Swastika Sangha, Kaipukur Kalibattala, Asutosh Boys Club, Santipally Club, Pratap Nagar Morning Star Club, Dighi Shongho, Bibekananda Sporting Club, Baliadanga Vidyasagar Club, Dreamland Club, Sonarpur Club, Basudeb Pur Boys Club, Bijoy Nagar Club, Islampur Shongho, Amral Club, Dinabondhu Club, Amra Sobai Club, Bediapara Club, Agomoni Sangha, United Club Habra, Akra Club, Gandacherra Club, Nalkura Arobindo Sriti Sangha, Club Angan, Deshbondhu Park</p>
-                      </div>
-
-                      {/* Group F */}
-                      <div>
-                        <h6 className="text-sm font-bold text-red-500 mb-2">Group F - August 6, 10:00 PM IST</h6>
-                        <p className="text-xs text-gray-300">Ferozpur United, Milan Sangha Club, Arunchal Rajas, Yuba Sanga Club, Keonjhar Club, Basirhat Association, Club Ranchi, Ratnagiri Maharashtra United, Basirhat Bhyabla, Puranpur Warriors, Gorakhpur Fighters, Surya Sangha, Pally Unnayan Sangha, Meerut Club, Mumbai Warriors, Sondalia Bandhob Sriti Songho Sporting Club, Shimla United, Navi Mumbai Kings, Madhay Pradesh Ujjain Kings, Yuva Kalyan Samiti, Team Goregaon, Team Howrah Hunterz, Aurangabad Maharashtra Club, Kamarthuba Pragati Sangha</p>
-                      </div>
-
-                      {/* Group G */}
-                      <div>
-                        <h6 className="text-sm font-bold text-red-500 mb-2">Group G - August 7, 8:00 PM IST</h6>
-                        <p className="text-xs text-gray-300">Team Ankola, Madhyamgram Santi Sangram, Team Maharastra, Nagpur Zen1Ns, Bihar Bhagalpur Lions, Patancheru Club, Team Dallupura, Dinobondhu Club, Greater Noida Club, Club Delhi, Jaipur Club, Meghalaya Club, Jharkhand Club, Hyderabad Kings, Sirsa United, Kalyangarh Ramkrishna Seba Samity, Kalanchi Biplabi Sangha, Diamond Harbour Club, Haridwar Kings, Nashik Club, Borivali Group, Behala Songho, Madhya Pradesh United, Padgha Kings</p>
-                      </div>
-
-                      {/* Group H */}
-                      <div>
-                        <h6 className="text-sm font-bold text-red-500 mb-2">Group H - August 7, 9:00 PM IST</h6>
-                        <p className="text-xs text-gray-300">Abdalpur Club, Maslandapur Akos Songho, Kamdevkati Dakshinpara Club, Dharavi Boys, Borivali Kings, Team Bhagalpur, Gujarat Sarkar'S, Thane Walkers, Ajmer Warriors, Meerut Falcon, New Delhi Viod, Shimpoli Fighters, Palghar Yodha, Team Telangana, Goat Ararka, Kalamboli Club, Pune Kings, Team Purkazi, Bhuj Warriors, Sopara Friends, Kanpur Lions, Meerut Legacy, Habra Kings, BIRBHUM United</p>
-                      </div>
+                {/* Round 1*/}
+                <div className="bracket-box">
+                    <h4 className="text-lg font-bold text-blue-400 mb-2">Round 1 (Aug 5–7, 2025)</h4>
+                    <p className="text-sm"><strong>Teams</strong>: 192 teams (divided into 8 groups)</p>
+                    <p className="text-sm"><strong>Matches</strong>: 8 online matches (24 teams each)</p>
+                    <p className="text-sm"><strong>Schedule</strong>:</p>
+                    <ul className="text-sm list-disc list-inside">
+                        <li>Aug 5: 3 matches (8:00 PM, 9:00 PM, 10:00 PM IST)</li>
+                        <li>Aug 6: 3 matches (8:00 PM, 9:00 PM, 10:00 PM IST)</li>
+                        <li>Aug 7: 2 matches (8:00 PM, 9:00 PM IST)</li>
+                    </ul>
+                    <p className="text-sm"><strong>Map</strong>: Erangle (Advanced Mode)</p>
+                    <p className="text-sm"><strong>Qualification</strong>: Top 12 teams per match (96 teams total) advance to Round 2</p>
+                    <p className="text-sm"><strong>Scoring</strong>: 1st: 10 pts, 2nd: 6 pts, 3rd: 5 pts, 4th: 4 pts, 5th: 3 pts, 6th: 2 pts, 7th–8th: 1 pt</p>
+                    {/* Group A*/}
+                    <div className="mt-4">
+                        <h5 className="text-md font-bold text-red-500 mb-2">Group A - August 5, 8:00 PM IST</h5>
+                        <table className="group-table w-full text-sm">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Team Name</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>2</td><td>Nabarun Songho</td></tr>
+                                <tr><td>3</td><td>Netaji Tarun Sangha</td></tr>
+                                <tr><td>4</td><td>Harishchandrapur Club</td></tr>
+                                <tr><td>5</td><td>Shantanir Sporting Club</td></tr>
+                                <tr><td>6</td><td>Panchasayar Club</td></tr>
+                                <tr><td>7</td><td>Yuba Sangha Club</td></tr>
+                                <tr><td>8</td><td>Ajitpur Club</td></tr>
+                                <tr><td>9</td><td>Bison Sangha</td></tr>
+                                <tr><td>10</td><td>Amra Sobai Club</td></tr>
+                                <tr><td>11</td><td>Club Angan</td></tr>
+                                <tr><td>12</td><td>Arambagh Club</td></tr>
+                                <tr><td>13</td><td>Yuva Kalyan Samiti</td></tr>
+                                <tr><td>14</td><td>Shahjahanpur Club</td></tr>
+                                <tr><td>15</td><td>Simulpur Runner Club</td></tr>
+                                <tr><td>16</td><td>Nayakamarga Spoting Club</td></tr>
+                                <tr><td>17</td><td>Ashariadaha Club</td></tr>
+                                <tr><td>18</td><td>Uttorpolli</td></tr>
+                                <tr><td>19</td><td>Sabuj Pally Naba Sammilani Song</td></tr>
+                                <tr><td>20</td><td>Arabpur Club</td></tr>
+                                <tr><td>21</td><td>Gopal Smriti Sangha</td></tr>
+                                <tr><td>22</td><td>Bansdroni Vevekananda Park Association</td></tr>
+                                <tr><td>23</td><td>Ranaghat Club Ten Star</td></tr>
+                                <tr><td>24</td><td>Sahebbari Church Club</td></tr>
+                                <tr><td>25</td><td>Bagnan Milan Sangha</td></tr>
+                            </tbody>
+                        </table>
                     </div>
-                  </details>
-                </div>
-              </div>
-
-              {/* Round 2 */}
-              <div className="bg-gray-800 border-2 border-blue-400 rounded-lg p-4 relative">
-                <h4 className="text-lg font-bold text-blue-400 mb-2">Round 2 (Aug 9–10, 2025)</h4>
-                <p className="text-sm"><strong>Teams</strong>: 96 teams (from Round 1, divided into 4 groups)</p>
-                <p className="text-sm"><strong>Matches</strong>: 4 online matches (24 teams each)</p>
-                <p className="text-sm"><strong>Schedule</strong>:</p>
-                <ul className="text-sm list-disc list-inside">
-                  <li>Aug 9: 2 matches (8:00 PM, 9:00 PM IST)</li>
-                  <li>Aug 10: 2 matches (8:00 PM, 9:00 PM IST)</li>
-                </ul>
-                <p className="text-sm"><strong>Map</strong>: Erangle (Advanced Mode)</p>
-                <p className="text-sm"><strong>Qualification</strong>: Top 12 teams per match (48 teams total) advance to Round 3</p>
-                <p className="text-sm"><strong>Scoring</strong>: Same as Round 1</p>
-                
-                <div className="mt-4">
-                  <details className="group">
-                    <summary className="cursor-pointer text-red-500 font-bold hover:text-red-400">
-                      View Round 2 Groups (W-Z) ▼
-                    </summary>
-                    <div className="mt-2 space-y-4">
-                      <div>
-                        <h6 className="text-sm font-bold text-red-500 mb-2">Group W - August 9, 8:00 PM IST</h6>
-                        <p className="text-xs text-gray-300">Top 12 teams from Round 1 Groups A & B</p>
-                      </div>
-                      <div>
-                        <h6 className="text-sm font-bold text-red-500 mb-2">Group X - August 9, 9:00 PM IST</h6>
-                        <p className="text-xs text-gray-300">Top 12 teams from Round 1 Groups C & D</p>
-                      </div>
-                      <div>
-                        <h6 className="text-sm font-bold text-red-500 mb-2">Group Y - August 10, 8:00 PM IST</h6>
-                        <p className="text-xs text-gray-300">Top 12 teams from Round 1 Groups E & F</p>
-                      </div>
-                      <div>
-                        <h6 className="text-sm font-bold text-red-500 mb-2">Group Z - August 10, 9:00 PM IST</h6>
-                        <p className="text-xs text-gray-300">Top 12 teams from Round 1 Groups G & H</p>
-                      </div>
+                    {/* Group B*/}
+                    <div className="mt-4">
+                        <h5 className="text-md font-bold text-red-500 mb-2">Group B - August 5, 9:00 PM IST</h5>
+                        <table className="group-table w-full text-sm">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Team Name</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>2</td><td>Jagoroni Club</td></tr>
+                                <tr><td>3</td><td>Murarai Amra Kajon Club</td></tr>
+                                <tr><td>4</td><td>Baruipur Warriors</td></tr>
+                                <tr><td>5</td><td>Achhipur Songho</td></tr>
+                                <tr><td>6</td><td>Talbagan Yuba Sangha Club</td></tr>
+                                <tr><td>7</td><td>Media Young Star Club</td></tr>
+                                <tr><td>8</td><td>Tarun Sangha Club</td></tr>
+                                <tr><td>9</td><td>Bagermore Club</td></tr>
+                                <tr><td>10</td><td>Biswashri Club</td></tr>
+                                <tr><td>11</td><td>Ghoshpur Adibasi Jubak Sangha</td></tr>
+                                <tr><td>12</td><td>Ghoshpur Cultural Association</td></tr>
+                                <tr><td>13</td><td>Gobardanga Club</td></tr>
+                                <tr><td>14</td><td>Maniktala Pragati Sangha</td></tr>
+                                <tr><td>15</td><td>Icchamohe Club</td></tr>
+                                <tr><td>16</td><td>Subhas Sangha Club</td></tr>
+                                <tr><td>17</td><td>Chalantika Club</td></tr>
+                                <tr><td>18</td><td>Debigarh Club</td></tr>
+                                <tr><td>19</td><td>Polli Union Songho Club</td></tr>
+                                <tr><td>20</td><td>Archana Club</td></tr>
+                                <tr><td>21</td><td>Kamar Danga Boys Club</td></tr>
+                                <tr><td>22</td><td>Baghogra Association</td></tr>
+                                <tr><td>23</td><td>Amra Sokole</td></tr>
+                                <tr><td>24</td><td>East Udayrajpur Club</td></tr>
+                                <tr><td>25</td><td>Arabpur Shongho</td></tr>
+                            </tbody>
+                        </table>
                     </div>
-                  </details>
-                </div>
-              </div>
-
-              {/* Round 3 */}
-              <div className="bg-gray-800 border-2 border-blue-400 rounded-lg p-4 relative">
-                <h4 className="text-lg font-bold text-blue-400 mb-2">Round 3 (Aug 12, 2025)</h4>
-                <p className="text-sm"><strong>Teams</strong>: 48 teams (from Round 2, divided into 2 groups)</p>
-                <p className="text-sm"><strong>Matches</strong>: 2 online matches (24 teams each)</p>
-                <p className="text-sm"><strong>Schedule</strong>:</p>
-                <ul className="text-sm list-disc list-inside">
-                  <li>Aug 12: 2 matches (8:00 PM, 9:00 PM IST)</li>
-                </ul>
-                <p className="text-sm"><strong>Map</strong>: Erangle (Advanced Mode)</p>
-                <p className="text-sm"><strong>Qualification</strong>: Top 12 teams per match (24 teams total) advance to Final Stage</p>
-                <p className="text-sm"><strong>Scoring</strong>: Same as Round 1</p>
-                
-                <div className="mt-4">
-                  <details className="group">
-                    <summary className="cursor-pointer text-red-500 font-bold hover:text-red-400">
-                      View Round 3 Groups (M-N) ▼
-                    </summary>
-                    <div className="mt-2 space-y-4">
-                      <div>
-                        <h6 className="text-sm font-bold text-red-500 mb-2">Group M - August 12, 8:00 PM IST</h6>
-                        <p className="text-xs text-gray-300">Top 12 teams from Round 2 Groups W & X</p>
-                      </div>
-                      <div>
-                        <h6 className="text-sm font-bold text-red-500 mb-2">Group N - August 12, 9:00 PM IST</h6>
-                        <p className="text-xs text-gray-300">Top 12 teams from Round 2 Groups Y & Z</p>
-                      </div>
+                    {/* Group C*/}
+                    <div className="mt-4">
+                        <h5 className="text-md font-bold text-red-500 mb-2">Group C - August 5, 10:00 PM IST</h5>
+                        <table className="group-table w-full text-sm">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Team Name</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>2</td><td>Jabalpur Club</td></tr>
+                                <tr><td>3</td><td>Dahijuri Club</td></tr>
+                                <tr><td>4</td><td>Dahijuri Association</td></tr>
+                                <tr><td>5</td><td>Bamunmura Association Club</td></tr>
+                                <tr><td>6</td><td>Sanmatinagar Club</td></tr>
+                                <tr><td>7</td><td>Islampur Club</td></tr>
+                                <tr><td>8</td><td>Bhatri Sangha</td></tr>
+                                <tr><td>9</td><td>New Mahbir Club</td></tr>
+                                <tr><td>10</td><td>Dindori Club</td></tr>
+                                <tr><td>11</td><td>Milan Tritha Club</td></tr>
+                                <tr><td>12</td><td>Ashariadaha Club</td></tr>
+                                <tr><td>13</td><td>Motijheel Young Star Club</td></tr>
+                                <tr><td>14</td><td>We The Green Club</td></tr>
+                                <tr><td>15</td><td>Bankura United</td></tr>
+                                <tr><td>16</td><td>Ashoknagar Football Coaching Centre</td></tr>
+                                <tr><td>17</td><td>Chabi Club</td></tr>
+                                <tr><td>18</td><td>Banamalipur Five Star Club</td></tr>
+                                <tr><td>19</td><td>Udayan Sangha</td></tr>
+                                <tr><td>20</td><td>Gamila Nabin Sangha Rural Library</td></tr>
+                                <tr><td>21</td><td>Dhandighi Welfare Association</td></tr>
+                                <tr><td>22</td><td>Townhall Club</td></tr>
+                                <tr><td>23</td><td>Basirhat. Dhaltitha.Aamra Sobay Club</td></tr>
+                                <tr><td>24</td><td>Rajballavpur Agrani Sangha Club</td></tr>
+                                <tr><td>25</td><td>Maslandapur United</td></tr>
+                            </tbody>
+                        </table>
                     </div>
-                  </details>
-                </div>
-              </div>
-
-              {/* Final Stage */}
-              <div className="bg-gray-800 border-2 border-blue-400 rounded-lg p-4 relative">
-                <h4 className="text-lg font-bold text-blue-400 mb-2">Final Stage (Aug 15, 2025)</h4>
-                <p className="text-sm"><strong>Teams</strong>: 24 teams (from Round 3)</p>
-                <p className="text-sm"><strong>Matches</strong>: 3 online matches</p>
-                <p className="text-sm"><strong>Schedule</strong>:</p>
-                <ul className="text-sm list-disc list-inside">
-                  <li>8:00 PM IST: Q1 Match (12 teams, top 6 qualify)</li>
-                  <li>9:00 PM IST: Q2 Match (12 teams, top 6 qualify)</li>
-                  <li>10:00 PM IST: Grand Final (12 teams: top 6 from Q1 + top 6 from Q2)</li>
-                </ul>
-                <p className="text-sm"><strong>Map</strong>: Erangle (Advanced Mode)</p>
-                <p className="text-sm"><strong>Scoring</strong>: Same as Round 1</p>
-                
-                <div className="mt-4">
-                  <details className="group">
-                    <summary className="cursor-pointer text-red-500 font-bold hover:text-red-400">
-                      View Final Stage Details ▼
-                    </summary>
-                    <div className="mt-2 space-y-4">
-                      <div>
-                        <h6 className="text-sm font-bold text-red-500 mb-2">Qualifier 1 - August 15, 8:00 PM IST</h6>
-                        <p className="text-xs text-gray-300">Top 12 teams from Round 3 Group M, top 6 qualify for Grand Final</p>
-                      </div>
-                      <div>
-                        <h6 className="text-sm font-bold text-red-500 mb-2">Qualifier 2 - August 15, 9:00 PM IST</h6>
-                        <p className="text-xs text-gray-300">Top 12 teams from Round 3 Group N, top 6 qualify for Grand Final</p>
-                      </div>
-                      <div>
-                        <h6 className="text-sm font-bold text-red-500 mb-2">Grand Final - August 15, 10:00 PM IST</h6>
-                        <p className="text-xs text-gray-300">12 teams: top 6 from Q1 + top 6 from Q2 compete for the championship</p>
-                      </div>
+                    {/* Group D*/}
+                    <div className="mt-4">
+                        <h5 className="text-md font-bold text-red-500 mb-2">Group D - August 6, 8:00 PM IST</h5>
+                        <table className="group-table w-full text-sm">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Team Name</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>2</td><td>Purbachal Club</td></tr>
+                                <tr><td>3</td><td>Khar West Association</td></tr>
+                                <tr><td>4</td><td>Kamarthuba Pragati Sangha (K.P.S)</td></tr>
+                                <tr><td>5</td><td>Birnagar Sporting Club</td></tr>
+                                <tr><td>6</td><td>Sinthi Peara Bagan Club</td></tr>
+                                <tr><td>7</td><td>Pragatishil Nattaya Sangstha</td></tr>
+                                <tr><td>8</td><td>Haroa Club</td></tr>
+                                <tr><td>9</td><td>Vivekananda Sporting Club</td></tr>
+                                <tr><td>10</td><td>Milan Sangha</td></tr>
+                                <tr><td>11</td><td>Janata Club</td></tr>
+                                <tr><td>12</td><td>Bergoom Morning Star Club</td></tr>
+                                <tr><td>13</td><td>Bhaluka Shongho</td></tr>
+                                <tr><td>14</td><td>Aghraduth Sangha</td></tr>
+                                <tr><td>15</td><td>Pollishree Club</td></tr>
+                                <tr><td>16</td><td>Jagrihi Club</td></tr>
+                                <tr><td>17</td><td>Dhaltikuri Chetona Songho</td></tr>
+                                <tr><td>18</td><td>Soneva Sports</td></tr>
+                                <tr><td>19</td><td>Chakla Esports Club</td></tr>
+                                <tr><td>20</td><td>Banni Sikha Sangha</td></tr>
+                                <tr><td>21</td><td>Club Prantik</td></tr>
+                                <tr><td>22</td><td>Sweet Club</td></tr>
+                                <tr><td>23</td><td>Agnio Sangho</td></tr>
+                                <tr><td>24</td><td>Arit Club</td></tr>
+                                <tr><td>25</td><td>Bagpukur Purbapara New Ajad Sangha</td></tr>
+                            </tbody>
+                        </table>
                     </div>
-                  </details>
+                    {/* Group E*/}
+                    <div className="mt-4">
+                        <h5 className="text-md font-bold text-red-500 mb-2">Group E - August 6, 9:00 PM IST</h5>
+                        <table className="group-table w-full text-sm">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Team Name</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>2</td><td>Canning Swastika Sangha</td></tr>
+                                <tr><td>3</td><td>Kaipukur Kalibattala</td></tr>
+                                <tr><td>4</td><td>Asutosh Boys Club</td></tr>
+                                <tr><td>5</td><td>Santipally Club</td></tr>
+                                <tr><td>6</td><td>Pratap Nagar Morning Star Club</td></tr>
+                                <tr><td>7</td><td>Dighi Shongho</td></tr>
+                                <tr><td>8</td><td>Bibekananda Sporting Club</td></tr>
+                                <tr><td>9</td><td>Baliadanga Vidyasagar Club</td></tr>
+                                <tr><td>10</td><td>Dreamland Club</td></tr>
+                                <tr><td>11</td><td>Sonarpur Club</td></tr>
+                                <tr><td>12</td><td>Basudeb Pur Boys Club</td></tr>
+                                <tr><td>13</td><td>Bijoy Nagar Club</td></tr>
+                                <tr><td>14</td><td>Islampur Shongho</td></tr>
+                                <tr><td>15</td><td>Amral Club</td></tr>
+                                <tr><td>16</td><td>Dinabondhu Club</td></tr>
+                                <tr><td>17</td><td>Amra Sobai Club</td></tr>
+                                <tr><td>18</td><td>Bediapara Club</td></tr>
+                                <tr><td>19</td><td>Agomoni Sangha</td></tr>
+                                <tr><td>20</td><td>United Club Habra</td></tr>
+                                <tr><td>21</td><td>Akra Club</td></tr>
+                                <tr><td>22</td><td>Gandacherra Club</td></tr>
+                                <tr><td>23</td><td>Nalkura Arobindo Sriti Sangha</td></tr>
+                                <tr><td>24</td><td>Club Angan</td></tr>
+                                <tr><td>25</td><td>Deshbondhu Park</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    {/* Group F*/}
+                    <div className="mt-4">
+                        <h5 className="text-md font-bold text-red-500 mb-2">Group F - August 6, 10:00 PM IST</h5>
+                        <table className="group-table w-full text-sm">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Team Name</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>2</td><td>Ferozpur United</td></tr>
+                                <tr><td>3</td><td>Milan Sangha Club</td></tr>
+                                <tr><td>4</td><td>Arunchal Rajas</td></tr>
+                                <tr><td>5</td><td>Yuba Sanga Club</td></tr>
+                                <tr><td>6</td><td>Keonjhar Club</td></tr>
+                                <tr><td>7</td><td>Basirhat Association</td></tr>
+                                <tr><td>8</td><td>Club Ranchi</td></tr>
+                                <tr><td>9</td><td>Ratnagiri Maharashtra United</td></tr>
+                                <tr><td>10</td><td>Basirhat Bhyabla</td></tr>
+                                <tr><td>11</td><td>Puranpur Warriors</td></tr>
+                                <tr><td>12</td><td>Gorakhpur Fighters</td></tr>
+                                <tr><td>13</td><td>Surya Sangha</td></tr>
+                                <tr><td>14</td><td>Pally Unnayan Sangha</td></tr>
+                                <tr><td>15</td><td>Meerut Club</td></tr>
+                                <tr><td>16</td><td>Mumbai Warriors</td></tr>
+                                <tr><td>17</td><td>Sondalia Bandhob Sriti Songho Sporting Club</td></tr>
+                                <tr><td>18</td><td>Shimla United</td></tr>
+                                <tr><td>19</td><td>Navi Mumbai Kings</td></tr>
+                                <tr><td>20</td><td>Madhay Pradesh Ujjain Kings</td></tr>
+                                <tr><td>21</td><td>Yuva Kalyan Samiti</td></tr>
+                                <tr><td>22</td><td>Team Goregaon</td></tr>
+                                <tr><td>23</td><td>Team Howrah Hunterz</td></tr>
+                                <tr><td>24</td><td>Aurangabad Maharashtra Club</td></tr>
+                                <tr><td>25</td><td>Kamarthuba Pragati Sangha</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    {/* Group G*/}
+                    <div className="mt-4">
+                        <h5 className="text-md font-bold text-red-500 mb-2">Group G - August 7, 8:00 PM IST</h5>
+                        <table className="group-table w-full text-sm">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Team Name</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>2</td><td>Team Ankola</td></tr>
+                                <tr><td>3</td><td>Madhyamgram Santi Sangram</td></tr>
+                                <tr><td>4</td><td>Team Maharastra</td></tr>
+                                <tr><td>5</td><td>Nagpur Zen1Ns</td></tr>
+                                <tr><td>6</td><td>Bihar Bhagalpur Lions</td></tr>
+                                <tr><td>7</td><td>Patancheru Club</td></tr>
+                                <tr><td>8</td><td>Team Dallupura</td></tr>
+                                <tr><td>9</td><td>Dinobondhu Club</td></tr>
+                                <tr><td>10</td><td>Greater Noida Club</td></tr>
+                                <tr><td>11</td><td>Club Delhi</td></tr>
+                                <tr><td>12</td><td>Jaipur Club</td></tr>
+                                <tr><td>13</td><td>Meghalaya Club</td></tr>
+                                <tr><td>14</td><td>Jharkhand Club</td></tr>
+                                <tr><td>15</td><td>Hyderabad Kings</td></tr>
+                                <tr><td>16</td><td>Sirsa United</td></tr>
+                                <tr><td>17</td><td>Kalyangarh Ramkrishna Seba Samity</td></tr>
+                                <tr><td>18</td><td>Kalanchi Biplabi Sangha</td></tr>
+                                <tr><td>19</td><td>Diamond Harbour Club</td></tr>
+                                <tr><td>20</td><td>Haridwar Kings</td></tr>
+                                <tr><td>21</td><td>Nashik Club</td></tr>
+                                <tr><td>22</td><td>Borivali Group</td></tr>
+                                <tr><td>23</td><td>Behala Songho</td></tr>
+                                <tr><td>24</td><td>Madhya Pradesh United</td></tr>
+                                <tr><td>25</td><td>Padgha Kings</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    {/* Group H*/}
+                    <div className="mt-4">
+                        <h5 className="text-md font-bold text-red-500 mb-2">Group H - August 7, 9:00 PM IST</h5>
+                        <table className="group-table w-full text-sm">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Team Name</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>2</td><td>Abdalpur Club</td></tr>
+                                <tr><td>3</td><td>Maslandapur Akos Songho</td></tr>
+                                <tr><td>4</td><td>Kamdevkati Dakshinpara Club</td></tr>
+                                <tr><td>5</td><td>Dharavi Boys</td></tr>
+                                <tr><td>6</td><td>Borivali Kings</td></tr>
+                                <tr><td>7</td><td>Team Bhagalpur</td></tr>
+                                <tr><td>8</td><td>Gujarat Sarkar'S</td></tr>
+                                <tr><td>9</td><td>Thane Walkers</td></tr>
+                                <tr><td>10</td><td>Ajmer Warriors</td></tr>
+                                <tr><td>11</td><td>Meerut Falcon</td></tr>
+                                <tr><td>12</td><td>New Delhi Viod</td></tr>
+                                <tr><td>13</td><td>Shimpoli Fighters</td></tr>
+                                <tr><td>14</td><td>Palghar Yodha</td></tr>
+                                <tr><td>15</td><td>Team Telangana</td></tr>
+                                <tr><td>16</td><td>Goat Ararka</td></tr>
+                                <tr><td>17</td><td>Kalamboli Club</td></tr>
+                                <tr><td>18</td><td>Pune Kings</td></tr>
+                                <tr><td>19</td><td>Team Purkazi</td></tr>
+                                <tr><td>20</td><td>Bhuj Warriors</td></tr>
+                                <tr><td>21</td><td>Sopara Friends</td></tr>
+                                <tr><td>22</td><td>Kanpur Lions</td></tr>
+                                <tr><td>23</td><td>Meerut Legacy</td></tr>
+                                <tr><td>24</td><td>Habra Kings</td></tr>
+                                <tr><td>25</td><td>BIRBHUM United</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-              </div>
+
+                {/* Round 2*/}
+                <div className="bracket-box">
+                    <h4 className="text-lg font-bold text-blue-400 mb-2">Round 2 (Aug 9–10, 2025)</h4>
+                    <p className="text-sm"><strong>Teams</strong>: 96 teams (from Round 1, divided into 4 groups)</p>
+                    <p className="text-sm"><strong>Matches</strong>: 4 online matches (24 teams each)</p>
+                    <p className="text-sm"><strong>Schedule</strong>:</p>
+                    <ul className="text-sm list-disc list-inside">
+                        <li>Aug 9: 2 matches (8:00 PM, 9:00 PM IST)</li>
+                        <li>Aug 10: 2 matches (8:00 PM, 9:00 PM IST)</li>
+                    </ul>
+                    <p className="text-sm"><strong>Map</strong>: Erangle (Advanced Mode)</p>
+                    <p className="text-sm"><strong>Qualification</strong>: Top 12 teams per match (48 teams total) advance to Round 3</p>
+                    <p className="text-sm"><strong>Scoring</strong>: Same as Round 1</p>
+                    {/* Group W*/}
+                    <div className="mt-4">
+                        <h5 className="text-md font-bold text-red-500 mb-2">Group W - August 9, 8:00 PM IST</h5>
+                        <table className="group-table w-full text-sm">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Team Name</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>2</td><td>R1GA Winner 1</td></tr>
+                                <tr><td>3</td><td>R1GA Winner 2</td></tr>
+                                <tr><td>4</td><td>R1GA Winner 3</td></tr>
+                                <tr><td>5</td><td>R1GA Winner 4</td></tr>
+                                <tr><td>6</td><td>R1GA Winner 5</td></tr>
+                                <tr><td>7</td><td>R1GA Winner 6</td></tr>
+                                <tr><td>8</td><td>R1GA Winner 7</td></tr>
+                                <tr><td>9</td><td>R1GA Winner 8</td></tr>
+                                <tr><td>10</td><td>R1GA Winner 9</td></tr>
+                                <tr><td>11</td><td>R1GA Winner 10</td></tr>
+                                <tr><td>12</td><td>R1GA Winner 11</td></tr>
+                                <tr><td>13</td><td>R1GA Winner 12</td></tr>
+                                <tr><td>14</td><td>R1GB Winner 1</td></tr>
+                                <tr><td>15</td><td>R1GB Winner 2</td></tr>
+                                <tr><td>16</td><td>R1GB Winner 3</td></tr>
+                                <tr><td>17</td><td>R1GB Winner 4</td></tr>
+                                <tr><td>18</td><td>R1GB Winner 5</td></tr>
+                                <tr><td>19</td><td>R1GB Winner 6</td></tr>
+                                <tr><td>20</td><td>R1GB Winner 7</td></tr>
+                                <tr><td>21</td><td>R1GB Winner 8</td></tr>
+                                <tr><td>22</td><td>R1GB Winner 9</td></tr>
+                                <tr><td>23</td><td>R1GB Winner 10</td></tr>
+                                <tr><td>24</td><td>R1GB Winner 11</td></tr>
+                                <tr><td>25</td><td>R1GB Winner 12</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    {/* Group X*/}
+                    <div className="mt-4">
+                        <h5 className="text-md font-bold text-red-500 mb-2">Group X - August 9, 9:00 PM IST</h5>
+                        <table className="group-table w-full text-sm">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Team Name</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>2</td><td>R1GC Winner 1</td></tr>
+                                <tr><td>3</td><td>R1GC Winner 2</td></tr>
+                                <tr><td>4</td><td>R1GC Winner 3</td></tr>
+                                <tr><td>5</td><td>R1GC Winner 4</td></tr>
+                                <tr><td>6</td><td>R1GC Winner 5</td></tr>
+                                <tr><td>7</td><td>R1GC Winner 6</td></tr>
+                                <tr><td>8</td><td>R1GC Winner 7</td></tr>
+                                <tr><td>9</td><td>R1GC Winner 8</td></tr>
+                                <tr><td>10</td><td>R1GC Winner 9</td></tr>
+                                <tr><td>11</td><td>R1GC Winner 10</td></tr>
+                                <tr><td>12</td><td>R1GC Winner 11</td></tr>
+                                <tr><td>13</td><td>R1GC Winner 12</td></tr>
+                                <tr><td>14</td><td>R1GD Winner 1</td></tr>
+                                <tr><td>15</td><td>R1GD Winner 2</td></tr>
+                                <tr><td>16</td><td>R1GD Winner 3</td></tr>
+                                <tr><td>17</td><td>R1GD Winner 4</td></tr>
+                                <tr><td>18</td><td>R1GD Winner 5</td></tr>
+                                <tr><td>19</td><td>R1GD Winner 6</td></tr>
+                                <tr><td>20</td><td>R1GD Winner 7</td></tr>
+                                <tr><td>21</td><td>R1GD Winner 8</td></tr>
+                                <tr><td>22</td><td>R1GD Winner 9</td></tr>
+                                <tr><td>23</td><td>R1GD Winner 10</td></tr>
+                                <tr><td>24</td><td>R1GD Winner 11</td></tr>
+                                <tr><td>25</td><td>R1GD Winner 12</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    {/* Group Y*/}
+                    <div className="mt-4">
+                        <h5 className="text-md font-bold text-red-500 mb-2">Group Y - August 10, 8:00 PM IST</h5>
+                        <table className="group-table w-full text-sm">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Team Name</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>2</td><td>R1GE Winner 1</td></tr>
+                                <tr><td>3</td><td>R1GE Winner 2</td></tr>
+                                <tr><td>4</td><td>R1GE Winner 3</td></tr>
+                                <tr><td>5</td><td>R1GE Winner 4</td></tr>
+                                <tr><td>6</td><td>R1GE Winner 5</td></tr>
+                                <tr><td>7</td><td>R1GE Winner 6</td></tr>
+                                <tr><td>8</td><td>R1GE Winner 7</td></tr>
+                                <tr><td>9</td><td>R1GE Winner 8</td></tr>
+                                <tr><td>10</td><td>R1GE Winner 9</td></tr>
+                                <tr><td>11</td><td>R1GE Winner 10</td></tr>
+                                <tr><td>12</td><td>R1GE Winner 11</td></tr>
+                                <tr><td>13</td><td>R1GE Winner 12</td></tr>
+                                <tr><td>14</td><td>R1GF Winner 1</td></tr>
+                                <tr><td>15</td><td>R1GF Winner 2</td></tr>
+                                <tr><td>16</td><td>R1GF Winner 3</td></tr>
+                                <tr><td>17</td><td>R1GF Winner 4</td></tr>
+                                <tr><td>18</td><td>R1GF Winner 5</td></tr>
+                                <tr><td>19</td><td>R1GF Winner 6</td></tr>
+                                <tr><td>20</td><td>R1GF Winner 7</td></tr>
+                                <tr><td>21</td><td>R1GF Winner 8</td></tr>
+                                <tr><td>22</td><td>R1GF Winner 9</td></tr>
+                                <tr><td>23</td><td>R1GF Winner 10</td></tr>
+                                <tr><td>24</td><td>R1GF Winner 11</td></tr>
+                                <tr><td>25</td><td>R1GF Winner 12</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    {/* Group Z*/}
+                    <div className="mt-4">
+                        <h5 className="text-md font-bold text-red-500 mb-2">Group Z - August 10, 9:00 PM IST</h5>
+                        <table className="group-table w-full text-sm">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Team Name</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>2</td><td>R1GG Winner 1</td></tr>
+                                <tr><td>3</td><td>R1GG Winner 2</td></tr>
+                                <tr><td>4</td><td>R1GG Winner 3</td></tr>
+                                <tr><td>5</td><td>R1GG Winner 4</td></tr>
+                                <tr><td>6</td><td>R1GG Winner 5</td></tr>
+                                <tr><td>7</td><td>R1GG Winner 6</td></tr>
+                                <tr><td>8</td><td>R1GG Winner 7</td></tr>
+                                <tr><td>9</td><td>R1GG Winner 8</td></tr>
+                                <tr><td>10</td><td>R1GG Winner 9</td></tr>
+                                <tr><td>11</td><td>R1GG Winner 10</td></tr>
+                                <tr><td>12</td><td>R1GG Winner 11</td></tr>
+                                <tr><td>13</td><td>R1GG Winner 12</td></tr>
+                                <tr><td>14</td><td>R1GH Winner 1</td></tr>
+                                <tr><td>15</td><td>R1GH Winner 2</td></tr>
+                                <tr><td>16</td><td>R1GH Winner 3</td></tr>
+                                <tr><td>17</td><td>R1GH Winner 4</td></tr>
+                                <tr><td>18</td><td>R1GH Winner 5</td></tr>
+                                <tr><td>19</td><td>R1GH Winner 6</td></tr>
+                                <tr><td>20</td><td>R1GH Winner 7</td></tr>
+                                <tr><td>21</td><td>R1GH Winner 8</td></tr>
+                                <tr><td>22</td><td>R1GH Winner 9</td></tr>
+                                <tr><td>23</td><td>R1GH Winner 10</td></tr>
+                                <tr><td>24</td><td>R1GH Winner 11</td></tr>
+                                <tr><td>25</td><td>BIRBHUM United</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                {/* Round 3*/}
+                <div className="bracket-box">
+                    <h4 className="text-lg font-bold text-blue-400 mb-2">Round 3 (Aug 12, 2025)</h4>
+                    <p className="text-sm"><strong>Teams</strong>: 48 teams (from Round 2, divided into 2 groups)</p>
+                    <p className="text-sm"><strong>Matches</strong>: 2 online matches (24 teams each)</p>
+                    <p className="text-sm"><strong>Schedule</strong>:</p>
+                    <ul className="text-sm list-disc list-inside">
+                        <li>Aug 12: 2 matches (8:00 PM, 9:00 PM IST)</li>
+                    </ul>
+                    <p className="text-sm"><strong>Map</strong>: Erangle (Advanced Mode)</p>
+                    <p className="text-sm"><strong>Qualification</strong>: Top 12 teams per match (24 teams total) advance to Final Stage</p>
+                    <p className="text-sm"><strong>Scoring</strong>: Same as Round 1</p>
+                    {/* Group M*/}
+                    <div className="mt-4">
+                        <h5 className="text-md font-bold text-red-500 mb-2">Group M - August 12, 8:00 PM IST</h5>
+                        <table className="group-table w-full text-sm">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Team Name</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>2</td><td>R2GW Winner 1</td></tr>
+                                <tr><td>3</td><td>R2GW Winner 2</td></tr>
+                                <tr><td>4</td><td>R2GW Winner 3</td></tr>
+                                <tr><td>5</td><td>R2GW Winner 4</td></tr>
+                                <tr><td>6</td><td>R2GW Winner 5</td></tr>
+                                <tr><td>7</td><td>R2GW Winner 6</td></tr>
+                                <tr><td>8</td><td>R2GW Winner 7</td></tr>
+                                <tr><td>9</td><td>R2GW Winner 8</td></tr>
+                                <tr><td>10</td><td>R2GW Winner 9</td></tr>
+                                <tr><td>11</td><td>R2GW Winner 10</td></tr>
+                                <tr><td>12</td><td>R2GW Winner 11</td></tr>
+                                <tr><td>13</td><td>R2GW Winner 12</td></tr>
+                                <tr><td>14</td><td>R2GX Winner 1</td></tr>
+                                <tr><td>15</td><td>R2GX Winner 2</td></tr>
+                                <tr><td>16</td><td>R2GX Winner 3</td></tr>
+                                <tr><td>17</td><td>R2GX Winner 4</td></tr>
+                                <tr><td>18</td><td>R2GX Winner 5</td></tr>
+                                <tr><td>19</td><td>R2GX Winner 6</td></tr>
+                                <tr><td>20</td><td>R2GX Winner 7</td></tr>
+                                <tr><td>21</td><td>R2GX Winner 8</td></tr>
+                                <tr><td>22</td><td>R2GX Winner 9</td></tr>
+                                <tr><td>23</td><td>R2GX Winner 10</td></tr>
+                                <tr><td>24</td><td>R2GX Winner 11</td></tr>
+                                <tr><td>25</td><td>R2GX Winner 12</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    {/* Group N*/}
+                    <div className="mt-4">
+                        <h5 className="text-md font-bold text-red-500 mb-2">Group N - August 12, 9:00 PM IST</h5>
+                        <table className="group-table w-full text-sm">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Team Name</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>2</td><td>R2GY Winner 1</td></tr>
+                                <tr><td>3</td><td>R2GY Winner 2</td></tr>
+                                <tr><td>4</td><td>R2GY Winner 3</td></tr>
+                                <tr><td>5</td><td>R2GY Winner 4</td></tr>
+                                <tr><td>6</td><td>R2GY Winner 5</td></tr>
+                                <tr><td>7</td><td>R2GY Winner 6</td></tr>
+                                <tr><td>8</td><td>R2GY Winner 7</td></tr>
+                                <tr><td>9</td><td>R2GY Winner 8</td></tr>
+                                <tr><td>10</td><td>R2GY Winner 9</td></tr>
+                                <tr><td>11</td><td>R2GY Winner 10</td></tr>
+                                <tr><td>12</td><td>R2GY Winner 11</td></tr>
+                                <tr><td>13</td><td>R2GY Winner 12</td></tr>
+                                <tr><td>14</td><td>R2GZ Winner 1</td></tr>
+                                <tr><td>15</td><td>R2GZ Winner 2</td></tr>
+                                <tr><td>16</td><td>R2GZ Winner 3</td></tr>
+                                <tr><td>17</td><td>R2GZ Winner 4</td></tr>
+                                <tr><td>18</td><td>R2GZ Winner 5</td></tr>
+                                <tr><td>19</td><td>R2GZ Winner 6</td></tr>
+                                <tr><td>20</td><td>R2GZ Winner 7</td></tr>
+                                <tr><td>21</td><td>R2GZ Winner 8</td></tr>
+                                <tr><td>22</td><td>R2GZ Winner 9</td></tr>
+                                <tr><td>23</td><td>R2GZ Winner 10</td></tr>
+                                <tr><td>24</td><td>R2GZ Winner 11</td></tr>
+                                <tr><td>25</td><td>BIRBHUM United</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                {/* Final Stage*/}
+                <div className="bracket-box">
+                    <h4 className="text-lg font-bold text-blue-400 mb-2">Final Stage (Aug 15, 2025)</h4>
+                    <p className="text-sm"><strong>Teams</strong>: 24 teams (from Round 3)</p>
+                    <p className="text-sm"><strong>Matches</strong>: 3 online matches</p>
+                    <p className="text-sm"><strong>Schedule</strong>:</p>
+                    <ul className="text-sm list-disc list-inside">
+                        <li>8:00 PM IST: Q1 Match (12 teams, top 6 qualify)</li>
+                        <li>9:00 PM IST: Q2 Match (12 teams, top 6 qualify)</li>
+                        <li>10:00 PM IST: Grand Final (12 teams: top 6 from Q1 + top 6 from Q2)</li>
+                    </ul>
+                    <p className="text-sm"><strong>Map</strong>: Erangle (Advanced Mode)</p>
+                    <p className="text-sm"><strong>Scoring</strong>: Same as Round 1</p>
+                    {/* Final Group*/}
+                    <div className="mt-4">
+                        <h5 className="text-md font-bold text-red-500 mb-2">Final Group - August 15, 8:00 PM, 9:00 PM, 10:00 PM IST</h5>
+                        <table className="group-table w-full text-sm">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Team Name</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>2</td><td>R3GM Winner 1</td></tr>
+                                <tr><td>3</td><td>R3GM Winner 2</td></tr>
+                                <tr><td>4</td><td>R3GM Winner 3</td></tr>
+                                <tr><td>5</td><td>R3GM Winner 4</td></tr>
+                                <tr><td>6</td><td>R3GM Winner 5</td></tr>
+                                <tr><td>7</td><td>R3GM Winner 6</td></tr>
+                                <tr><td>8</td><td>R3GM Winner 7</td></tr>
+                                <tr><td>9</td><td>R3GM Winner 8</td></tr>
+                                <tr><td>10</td><td>R3GM Winner 9</td></tr>
+                                <tr><td>11</td><td>R3GM Winner 10</td></tr>
+                                <tr><td>12</td><td>R3GM Winner 11</td></tr>
+                                <tr><td>13</td><td>R3GM Winner 12</td></tr>
+                                <tr><td>14</td><td>R3GN Winner 1</td></tr>
+                                <tr><td>15</td><td>R3GN Winner 2</td></tr>
+                                <tr><td>16</td><td>R3GN Winner 3</td></tr>
+                                <tr><td>17</td><td>R3GN Winner 4</td></tr>
+                                <tr><td>18</td><td>R3GN Winner 5</td></tr>
+                                <tr><td>19</td><td>R3GN Winner 6</td></tr>
+                                <tr><td>20</td><td>R3GN Winner 7</td></tr>
+                                <tr><td>21</td><td>R3GN Winner 8</td></tr>
+                                <tr><td>22</td><td>R3GN Winner 9</td></tr>
+                                <tr><td>23</td><td>R3GN Winner 10</td></tr>
+                                <tr><td>24</td><td>R3GN Winner 11</td></tr>
+                                <tr><td>25</td><td>BIRBHUM United</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
-          </div>
+        </div>
 
-          {/* Streaming Platforms */}
-          <div className="text-center mb-8">
+        {/* Streaming Platforms*/}
+        <div className="text-center mb-8">
             <h3 className="text-xl font-bold text-red-500 mb-2">Watch Live</h3>
             <p className="text-sm">Catch all the action on:</p>
             <div className="flex justify-center space-x-4">
-              <a href="https://www.youtube.com/@ZELMUESPORTS" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">YouTube @ZELMUESPORTS</a>
-              <a href="https://watch.jiogames.com/channels/?name=@zelmu&id=dfde15c1-fb32-4bcf-84e4-f45d64ac3fc5" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">JioGames @zelmu</a>
+                <a href="https://www.youtube.com/@ZELMUESPORTS" target="_blank" className="text-blue-400 hover:underline">YouTube @ZELMUESPORTS</a>
+                <a href="https://watch.jiogames.com/channels/?name=@zelmu&id=dfde15c1-fb32-4bcf-84e4-f45d64ac3fc5" target="_blank" className="text-blue-400 hover:underline">JioGames @zelmu</a>
             </div>
-          </div>
+        </div>
 
-          {/* Collab Call-to-Action */}
-          <div className="text-center mb-8">
-            <h3 className="text-2xl font-bold text-yellow-400 mb-4 animate-pulse">Ready to Collab? 🙏</h3>
-            <p className="text-sm mb-4">Join us for the ultimate BGMI showdown! 192 teams, 960 players, 17 epic matches. Let's make esports history together!</p>
+        {/* Collab Call-to-Action*/}
+        <div className="text-center mb-8">
+            <h3 className="text-2xl font-bold text-gold-400 mb-4 animate-pulse-slow">Ready to Collab? 🙏</h3>
+            <p className="text-sm mb-4">Join us for the ultimate BGMI showdown! 192 teams, 960 players, 17 epic matches. Let’s make esports history together!</p>
             <p className="text-sm mb-4"><strong>Preferred Time Slots</strong>: 8:00 PM, 9:00 PM, 10:00 PM IST</p>
             <button 
               onClick={() => window.open('mailto:contact@zelmu.com?subject=ZBCC Season 1 Collaboration', '_blank')}
@@ -391,21 +752,21 @@ export default function ZBCCSeason1Page() {
             >
               Collab with Us
             </button>
-          </div>
+        </div>
 
-          {/* Organizer Details */}
-          <div className="text-center mb-8">
+        {/* Organizer Details*/}
+        <div className="text-center mb-8">
             <h3 className="text-xl font-bold text-blue-400 mb-2">Organized By</h3>
             <p className="text-sm">ZELMU MEDIATECH PRIVATE LIMITED</p>
             <p className="text-sm">CIN: U90001WB2025PTC281131</p>
-          </div>
-
-          {/* Footer */}
-          <div className="text-center text-sm text-gray-400">
-            <p>Follow us on <a href="https://zelmu.com" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">ZELMU.com</a> for updates!</p>
-            <p>&copy; 2025 ZELMU BGMI CLUB Championship. All rights reserved.</p>
-          </div>
         </div>
+
+        {/* Footer*/}
+        <div className="text-center text-sm text-gray-400">
+            <p>Follow us on <a href="https://zelmu.com" target="_blank" className="text-blue-400 hover:underline">ZELMU.com</a> for updates!</p>
+            <p>&copy; 2025 ZELMU BGMI CLUB Championship. All rights reserved.</p>
+        </div>
+            </div>
       </div>
       <Footer />
     </>
