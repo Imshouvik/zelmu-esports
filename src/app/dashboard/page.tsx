@@ -428,6 +428,63 @@ export default function DashboardPage() {
               </div>
             </section>
 
+            {/* Featured Tournament - ZBCC Season 1 */}
+            <section className="mb-8">
+              <div className="bg-gradient-to-r from-blue-900/90 to-purple-900/90 backdrop-blur-2xl rounded-3xl shadow-2xl border-2 border-blue-400/50 overflow-hidden">
+                <div className="p-8">
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-4">
+                      <Image src="/app/images/BGMI logo.webp" alt="BGMI Logo" width={60} height={60} className="rounded-lg" />
+                      <div>
+                        <h2 className="text-3xl font-bold text-blue-300">ZELMU BGMI CLUB Championship</h2>
+                        <p className="text-xl text-blue-200">Season 1</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-3xl font-bold text-yellow-400">₹50,000</div>
+                      <div className="text-sm text-gray-300">Prize Pool</div>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-red-400">192</div>
+                      <div className="text-sm text-gray-300">Teams</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-green-400">17</div>
+                      <div className="text-sm text-gray-300">Matches</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-purple-400">960</div>
+                      <div className="text-sm text-gray-300">Players</div>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2 text-sm text-gray-300 mb-6">
+                    <p><strong>Dates:</strong> August 5-15, 2025</p>
+                    <p><strong>Type:</strong> Club Championship</p>
+                    <p><strong>Status:</strong> <span className="text-green-400 font-semibold">Upcoming</span></p>
+                  </div>
+                  
+                  <div className="flex gap-4">
+                    <Link
+                      href="/tournaments/zbcc-season1"
+                      className="flex-1 bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-semibold text-center transition-colors"
+                    >
+                      View Tournament Details
+                    </Link>
+                    <button 
+                      onClick={() => window.open('mailto:contact@zelmu.com?subject=ZBCC Season 1 Registration', '_blank')}
+                      className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
+                    >
+                      Register Now
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </section>
+
             {/* Join Club Section */}
             {!clubLoading && !userClub && (
               <section className="mb-8">
