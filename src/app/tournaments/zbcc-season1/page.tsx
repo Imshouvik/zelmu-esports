@@ -31,7 +31,7 @@ export default function ZBCCSeason1Page() {
 
       return (
       <>
-        <Navigation />
+       
         <div className="min-h-screen bg-gray-900">
           <style jsx>{`
             .bracket-box {
@@ -60,8 +60,12 @@ export default function ZBCCSeason1Page() {
               <div className="w-24 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded flex items-center justify-center text-white font-bold text-sm">
                 ZELMU
               </div>
-              <div className="w-36 h-36 bg-gradient-to-r from-green-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
-                BGMI
+              <div className="w-36 h-36 rounded-full overflow-hidden">
+                <img 
+                  src="/app/images/BGMI logo.webp" 
+                  alt="BGMI Logo" 
+                  className="w-full h-full object-cover"
+                />
               </div>
             </div>
             <h1 className="text-4xl md:text-5xl font-bold text-center mb-4" style={{
@@ -74,7 +78,75 @@ export default function ZBCCSeason1Page() {
               India's First & Biggest Club Championship for Esports
             </h2>
 
-                    {/* Tournament Overview */}
+            {/* Search Section */}
+            <div className="bg-gray-800 p-4 rounded-lg mb-6">
+              <h3 className="text-lg font-bold text-blue-400 mb-3">🔍 Search Your Club</h3>
+              <div className="flex flex-col md:flex-row gap-3">
+                <input
+                  type="text"
+                  placeholder="Enter your club name..."
+                  className="flex-1 px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg focus:outline-none focus:border-blue-400"
+                  onChange={(e) => {
+                    const searchTerm = e.target.value.toLowerCase();
+                    const rows = document.querySelectorAll('tbody tr');
+                    let foundClubs: Array<{name: string, group: string}> = [];
+                    
+                    rows.forEach(row => {
+                      const teamName = row.querySelector('td:last-child')?.textContent?.toLowerCase() || '';
+                      if (teamName.includes(searchTerm)) {
+                        row.classList.remove('hidden');
+                        row.classList.add('bg-yellow-600', 'bg-opacity-20');
+                        
+                        // Find the group header for this team
+                        const groupHeader = row.closest('div')?.querySelector('h5')?.textContent || '';
+                        foundClubs.push({ name: row.querySelector('td:last-child')?.textContent || '', group: groupHeader });
+                      } else {
+                        row.classList.add('hidden');
+                        row.classList.remove('bg-yellow-600', 'bg-opacity-20');
+                      }
+                    });
+                    
+                    // Show search results
+                    const resultsDiv = document.getElementById('search-results');
+                    const matchInfoDiv = document.getElementById('match-info');
+                    if (resultsDiv && matchInfoDiv) {
+                      if (foundClubs.length > 0 && searchTerm.length > 0) {
+                        resultsDiv.classList.remove('hidden');
+                        matchInfoDiv.innerHTML = foundClubs.map(club => 
+                          `<div class="mb-1">🏆 <strong>${club.name}</strong> - ${club.group}</div>`
+                        ).join('');
+                      } else {
+                        resultsDiv.classList.add('hidden');
+                      }
+                    }
+                  }}
+                />
+                <button
+                  onClick={() => {
+                    const rows = document.querySelectorAll('tbody tr');
+                    rows.forEach(row => {
+                      row.classList.remove('hidden', 'bg-yellow-600', 'bg-opacity-20');
+                    });
+                    const input = document.querySelector('input[type="text"]') as HTMLInputElement;
+                    if (input) input.value = '';
+                    const resultsDiv = document.getElementById('search-results');
+                    if (resultsDiv) resultsDiv.classList.add('hidden');
+                  }}
+                  className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors"
+                >
+                  Clear Search
+                </button>
+              </div>
+              <p className="text-xs text-gray-400 mt-2">
+                💡 Tip: Search for your club name to quickly find your match schedule and group
+              </p>
+              <div id="search-results" className="mt-3 p-3 bg-blue-900 rounded-lg hidden">
+                <h4 className="text-sm font-bold text-blue-300 mb-2">📅 Match Details Found:</h4>
+                <div id="match-info" className="text-xs text-gray-300"></div>
+              </div>
+            </div>
+
+            {/* Tournament Overview */}
             <div className="bg-gray-800 p-4 rounded-lg mb-8">
               <h3 className="text-xl font-bold text-yellow-400 mb-2">Overview</h3>
               <p className="text-sm">The ZELMU BGMI CLUB Championship is a fully online Battlegrounds Mobile India (BGMI) tournament featuring <strong>192 teams</strong> (960 players, 4 players + 1 substitute per team). Running from <strong>August 5 to August 15, 2025</strong>, it includes <strong>17 online matches</strong> across three rounds and a final stage. Each match in the first three rounds involves 24 teams, with the top 12 qualifying for the next round. The final stage consists of two qualifier matches (Q1, Q2) and a 12-team Grand Final.</p>
@@ -768,7 +840,7 @@ export default function ZBCCSeason1Page() {
         </div>
             </div>
       </div>
-      <Footer />
+     
     </>
   );
 } 
