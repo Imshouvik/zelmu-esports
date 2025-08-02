@@ -299,7 +299,7 @@ export default function ZBCCSeason1Page() {
                                 <tr><td>9</td><td>New Mahbir Club</td></tr>
                                 <tr><td>10</td><td>Dindori Club</td></tr>
                                 <tr><td>11</td><td>Milan Tritha Club</td></tr>
-                                <tr><td>12</td><td>Ashariadaha Club</td></tr>
+                                <tr><td>12</td><td>Bidhanpally Seba Sangha</td></tr>
                                 <tr><td>13</td><td>Motijheel Young Star Club</td></tr>
                                 <tr><td>14</td><td>We The Green Club</td></tr>
                                 <tr><td>15</td><td>Bankura United</td></tr>
