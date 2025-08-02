@@ -135,29 +135,123 @@ export default function ZBCCSeason1Page() {
                   </div>
                 </div>
 
+                {/* Group B */}
+                <div className="mt-4">
+                  <h5 className="text-md font-bold text-red-500 mb-2">Group B - August 5, 9:00 PM IST</h5>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm border-collapse">
+                      <thead>
+                        <tr className="border border-blue-400">
+                          <th className="border border-blue-400 p-2 text-left">#</th>
+                          <th className="border border-blue-400 p-2 text-left">Team Name</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">2</td><td className="border border-blue-400 p-2">Jagoroni Club</td></tr>
+                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">3</td><td className="border border-blue-400 p-2">Murarai Amra Kajon Club</td></tr>
+                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">4</td><td className="border border-blue-400 p-2">Baruipur Warriors</td></tr>
+                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">5</td><td className="border border-blue-400 p-2">Achhipur Songho</td></tr>
+                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">6</td><td className="border border-blue-400 p-2">Talbagan Yuba Sangha Club</td></tr>
+                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">7</td><td className="border border-blue-400 p-2">Media Young Star Club</td></tr>
+                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">8</td><td className="border border-blue-400 p-2">Tarun Sangha Club</td></tr>
+                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">9</td><td className="border border-blue-400 p-2">Bagermore Club</td></tr>
+                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">10</td><td className="border border-blue-400 p-2">Biswashri Club</td></tr>
+                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">11</td><td className="border border-blue-400 p-2">Ghoshpur Adibasi Jubak Sangha</td></tr>
+                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">12</td><td className="border border-blue-400 p-2">Ghoshpur Cultural Association</td></tr>
+                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">13</td><td className="border border-blue-400 p-2">Gobardanga Club</td></tr>
+                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">14</td><td className="border border-blue-400 p-2">Maniktala Pragati Sangha</td></tr>
+                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">15</td><td className="border border-blue-400 p-2">Icchamohe Club</td></tr>
+                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">16</td><td className="border border-blue-400 p-2">Subhas Sangha Club</td></tr>
+                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">17</td><td className="border border-blue-400 p-2">Chalantika Club</td></tr>
+                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">18</td><td className="border border-blue-400 p-2">Debigarh Club</td></tr>
+                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">19</td><td className="border border-blue-400 p-2">Polli Union Songho Club</td></tr>
+                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">20</td><td className="border border-blue-400 p-2">Archana Club</td></tr>
+                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">21</td><td className="border border-blue-400 p-2">Kamar Danga Boys Club</td></tr>
+                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">22</td><td className="border border-blue-400 p-2">Baghogra Association</td></tr>
+                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">23</td><td className="border border-blue-400 p-2">Amra Sokole</td></tr>
+                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">24</td><td className="border border-blue-400 p-2">East Udayrajpur Club</td></tr>
+                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">25</td><td className="border border-blue-400 p-2">Arabpur Shongho</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Group C */}
+                <div className="mt-4">
+                  <h5 className="text-md font-bold text-red-500 mb-2">Group C - August 5, 10:00 PM IST</h5>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm border-collapse">
+                      <thead>
+                        <tr className="border border-blue-400">
+                          <th className="border border-blue-400 p-2 text-left">#</th>
+                          <th className="border border-blue-400 p-2 text-left">Team Name</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">2</td><td className="border border-blue-400 p-2">Jabalpur Club</td></tr>
+                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">3</td><td className="border border-blue-400 p-2">Dahijuri Club</td></tr>
+                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">4</td><td className="border border-blue-400 p-2">Dahijuri Association</td></tr>
+                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">5</td><td className="border border-blue-400 p-2">Bamunmura Association Club</td></tr>
+                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">6</td><td className="border border-blue-400 p-2">Sanmatinagar Club</td></tr>
+                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">7</td><td className="border border-blue-400 p-2">Islampur Club</td></tr>
+                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">8</td><td className="border border-blue-400 p-2">Bhatri Sangha</td></tr>
+                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">9</td><td className="border border-blue-400 p-2">New Mahbir Club</td></tr>
+                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">10</td><td className="border border-blue-400 p-2">Dindori Club</td></tr>
+                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">11</td><td className="border border-blue-400 p-2">Milan Tritha Club</td></tr>
+                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">12</td><td className="border border-blue-400 p-2">Ashariadaha Club</td></tr>
+                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">13</td><td className="border border-blue-400 p-2">Motijheel Young Star Club</td></tr>
+                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">14</td><td className="border border-blue-400 p-2">We The Green Club</td></tr>
+                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">15</td><td className="border border-blue-400 p-2">Bankura United</td></tr>
+                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">16</td><td className="border border-blue-400 p-2">Ashoknagar Football Coaching Centre</td></tr>
+                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">17</td><td className="border border-blue-400 p-2">Chabi Club</td></tr>
+                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">18</td><td className="border border-blue-400 p-2">Banamalipur Five Star Club</td></tr>
+                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">19</td><td className="border border-blue-400 p-2">Udayan Sangha</td></tr>
+                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">20</td><td className="border border-blue-400 p-2">Gamila Nabin Sangha Rural Library</td></tr>
+                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">21</td><td className="border border-blue-400 p-2">Dhandighi Welfare Association</td></tr>
+                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">22</td><td className="border border-blue-400 p-2">Townhall Club</td></tr>
+                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">23</td><td className="border border-blue-400 p-2">Basirhat. Dhaltitha.Aamra Sobay Club</td></tr>
+                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">24</td><td className="border border-blue-400 p-2">Rajballavpur Agrani Sangha Club</td></tr>
+                        <tr className="border border-blue-400"><td className="border border-blue-400 p-2">25</td><td className="border border-blue-400 p-2">Maslandapur United</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
                 {/* Additional Groups - Collapsible for space */}
                 <div className="mt-4">
                   <details className="group">
                     <summary className="cursor-pointer text-red-500 font-bold hover:text-red-400">
-                      View All Groups (B-H) ▼
+                      View All Groups (D-H) ▼
                     </summary>
                     <div className="mt-2 space-y-4">
-                      {/* Group B */}
+                      {/* Group D */}
                       <div>
-                        <h6 className="text-sm font-bold text-red-500 mb-2">Group B - August 5, 9:00 PM IST</h6>
-                        <p className="text-xs text-gray-300">Jagoroni Club, Murarai Amra Kajon Club, Baruipur Warriors, Achhipur Songho, Talbagan Yuba Sangha Club, Media Young Star Club, Tarun Sangha Club, Bagermore Club, Biswashri Club, Ghoshpur Adibasi Jubak Sangha, Ghoshpur Cultural Association, Gobardanga Club, Maniktala Pragati Sangha, Icchamohe Club, Subhas Sangha Club, Chalantika Club, Debigarh Club, Polli Union Songho Club, Archana Club, Kamar Danga Boys Club, Baghogra Association, Amra Sokole, East Udayrajpur Club, Arabpur Shongho</p>
+                        <h6 className="text-sm font-bold text-red-500 mb-2">Group D - August 6, 8:00 PM IST</h6>
+                        <p className="text-xs text-gray-300">Purbachal Club, Khar West Association, Kamarthuba Pragati Sangha (K.P.S), Birnagar Sporting Club, Sinthi Peara Bagan Club, Pragatishil Nattaya Sangstha, Haroa Club, Vivekananda Sporting Club, Milan Sangha, Janata Club, Bergoom Morning Star Club, Bhaluka Shongho, Aghraduth Sangha, Pollishree Club, Jagrihi Club, Dhaltikuri Chetona Songho, Soneva Sports, Chakla Esports Club, Banni Sikha Sangha, Club Prantik, Sweet Club, Agnio Sangho, Arit Club, Bagpukur Purbapara New Ajad Sangha</p>
                       </div>
                       
-                      {/* Group C */}
+                      {/* Group E */}
                       <div>
-                        <h6 className="text-sm font-bold text-red-500 mb-2">Group C - August 5, 10:00 PM IST</h6>
-                        <p className="text-xs text-gray-300">Jabalpur Club, Dahijuri Club, Dahijuri Association, Bamunmura Association Club, Sanmatinagar Club, Islampur Club, Bhatri Sangha, New Mahbir Club, Dindori Club, Milan Tritha Club, Ashariadaha Club, Motijheel Young Star Club, We The Green Club, Bankura United, Ashoknagar Football Coaching Centre, Chabi Club, Banamalipur Five Star Club, Udayan Sangha, Gamila Nabin Sangha Rural Library, Dhandighi Welfare Association, Townhall Club, Basirhat. Dhaltitha.Aamra Sobay Club, Rajballavpur Agrani Sangha Club, Maslandapur United</p>
+                        <h6 className="text-sm font-bold text-red-500 mb-2">Group E - August 6, 9:00 PM IST</h6>
+                        <p className="text-xs text-gray-300">Canning Swastika Sangha, Kaipukur Kalibattala, Asutosh Boys Club, Santipally Club, Pratap Nagar Morning Star Club, Dighi Shongho, Bibekananda Sporting Club, Baliadanga Vidyasagar Club, Dreamland Club, Sonarpur Club, Basudeb Pur Boys Club, Bijoy Nagar Club, Islampur Shongho, Amral Club, Dinabondhu Club, Amra Sobai Club, Bediapara Club, Agomoni Sangha, United Club Habra, Akra Club, Gandacherra Club, Nalkura Arobindo Sriti Sangha, Club Angan, Deshbondhu Park</p>
                       </div>
 
-                      {/* Groups D-H similar structure */}
+                      {/* Group F */}
                       <div>
-                        <h6 className="text-sm font-bold text-red-500 mb-2">Groups D-H</h6>
-                        <p className="text-xs text-gray-300">Groups D-H follow the same structure with 24 teams each, scheduled across August 6-7 at 8:00 PM, 9:00 PM, and 10:00 PM IST.</p>
+                        <h6 className="text-sm font-bold text-red-500 mb-2">Group F - August 6, 10:00 PM IST</h6>
+                        <p className="text-xs text-gray-300">Ferozpur United, Milan Sangha Club, Arunchal Rajas, Yuba Sanga Club, Keonjhar Club, Basirhat Association, Club Ranchi, Ratnagiri Maharashtra United, Basirhat Bhyabla, Puranpur Warriors, Gorakhpur Fighters, Surya Sangha, Pally Unnayan Sangha, Meerut Club, Mumbai Warriors, Sondalia Bandhob Sriti Songho Sporting Club, Shimla United, Navi Mumbai Kings, Madhay Pradesh Ujjain Kings, Yuva Kalyan Samiti, Team Goregaon, Team Howrah Hunterz, Aurangabad Maharashtra Club, Kamarthuba Pragati Sangha</p>
+                      </div>
+
+                      {/* Group G */}
+                      <div>
+                        <h6 className="text-sm font-bold text-red-500 mb-2">Group G - August 7, 8:00 PM IST</h6>
+                        <p className="text-xs text-gray-300">Team Ankola, Madhyamgram Santi Sangram, Team Maharastra, Nagpur Zen1Ns, Bihar Bhagalpur Lions, Patancheru Club, Team Dallupura, Dinobondhu Club, Greater Noida Club, Club Delhi, Jaipur Club, Meghalaya Club, Jharkhand Club, Hyderabad Kings, Sirsa United, Kalyangarh Ramkrishna Seba Samity, Kalanchi Biplabi Sangha, Diamond Harbour Club, Haridwar Kings, Nashik Club, Borivali Group, Behala Songho, Madhya Pradesh United, Padgha Kings</p>
+                      </div>
+
+                      {/* Group H */}
+                      <div>
+                        <h6 className="text-sm font-bold text-red-500 mb-2">Group H - August 7, 9:00 PM IST</h6>
+                        <p className="text-xs text-gray-300">Abdalpur Club, Maslandapur Akos Songho, Kamdevkati Dakshinpara Club, Dharavi Boys, Borivali Kings, Team Bhagalpur, Gujarat Sarkar'S, Thane Walkers, Ajmer Warriors, Meerut Falcon, New Delhi Viod, Shimpoli Fighters, Palghar Yodha, Team Telangana, Goat Ararka, Kalamboli Club, Pune Kings, Team Purkazi, Bhuj Warriors, Sopara Friends, Kanpur Lions, Meerut Legacy, Habra Kings, BIRBHUM United</p>
                       </div>
                     </div>
                   </details>

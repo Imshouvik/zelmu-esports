@@ -178,20 +178,14 @@ export default function DashboardTournamentsPage() {
                 <p><strong>Status:</strong> <span className="text-green-400 font-semibold">Upcoming</span></p>
               </div>
               
-              <div className="flex gap-4">
-                <Link
-                  href="/tournaments/zbcc-season1"
-                  className="flex-1 bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-semibold text-center transition-colors"
-                >
-                  View Tournament Details
-                </Link>
-                <button 
-                  onClick={() => window.open('mailto:contact@zelmu.com?subject=ZBCC Season 1 Registration', '_blank')}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
-                >
-                  Register Now
-                </button>
-              </div>
+                              <div className="flex gap-4">
+                  <Link
+                    href="/tournaments/zbcc-season1"
+                    className="w-full bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-semibold text-center transition-colors"
+                  >
+                    View Tournament Details
+                  </Link>
+                </div>
             </div>
           </motion.div>
         </div>
