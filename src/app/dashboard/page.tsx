@@ -15,7 +15,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { supabase } from '@/utils/supabaseClient'
 import { setUser } from '@/store/slices/authSlice'
-import { FaTrophy, FaUsers, FaCrown, FaGamepad, FaLink, FaArrowRight, FaBars } from 'react-icons/fa'
+import { FaTrophy, FaUsers, FaCrown, FaGamepad, FaLink, FaArrowRight, FaBars, FaClock } from 'react-icons/fa'
 import Navigation from '@/components/Navigation'
 import AdminNotificationBell from '@/components/AdminNotificationBell'
 import NotificationBell from '@/components/NotificationBell'
@@ -60,6 +60,7 @@ export default function DashboardPage() {
   const [featuredTournaments, setFeaturedTournaments] = useState<any[]>([])
   const [upcomingTournaments, setUpcomingTournaments] = useState<any[]>([])
   const [users, setUsers] = useState<{ id: string; name: string; avatar_url?: string }[]>([]);
+  const [countdown, setCountdown] = useState<{ days: number; hours: number; minutes: number; seconds: number }>({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
   const {
     register,
@@ -208,6 +209,32 @@ export default function DashboardPage() {
   }
 
   // Handle manual invite code join
+  // Countdown timer for tournament start
+  useEffect(() => {
+    const tournamentStart = new Date('2025-08-05T20:00:00+05:30'); // August 5, 8:00 PM IST
+    
+    const updateCountdown = () => {
+      const now = new Date();
+      const difference = tournamentStart.getTime() - now.getTime();
+      
+      if (difference > 0) {
+        const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+        
+        setCountdown({ days, hours, minutes, seconds });
+      } else {
+        setCountdown({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+      }
+    };
+    
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 1000);
+    
+    return () => clearInterval(interval);
+  }, []);
+
   const handleJoinWithCode = async (e: React.FormEvent) => {
     e.preventDefault()
     setInviteError('')
@@ -408,7 +435,58 @@ export default function DashboardPage() {
                   <div className="space-y-2 text-sm text-gray-300 mb-6">
                     <p><strong>Dates:</strong> August 5-15, 2025</p>
                     <p><strong>Type:</strong> Club Championship</p>
-                    <p><strong>Status:</strong> <span className="text-green-400 font-semibold">Upcoming</span></p>
+                    <div className="flex items-center gap-2">
+                      <strong>Status:</strong> 
+                      {countdown.days === 0 && countdown.hours === 0 && countdown.minutes === 0 && countdown.seconds === 0 ? (
+                        <div className="flex items-center gap-2">
+                          <span className="text-red-500 font-bold animate-pulse">LIVE</span>
+                          <div className="w-3 h-3 bg-red-500 rounded-full animate-ping"></div>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <span className="text-green-400 font-semibold">Upcoming</span>
+                          <FaClock className="text-yellow-400 ml-2" />
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Countdown Timer */}
+                    <div className="bg-black/20 rounded-lg p-4 mt-3">
+                      <div className="text-center">
+                        {countdown.days === 0 && countdown.hours === 0 && countdown.minutes === 0 && countdown.seconds === 0 ? (
+                          <div>
+                            <p className="text-xs text-red-400 mb-2 font-bold">🎮 TOURNAMENT IS LIVE NOW!</p>
+                            <div className="flex items-center justify-center gap-2">
+                              <span className="text-2xl font-bold text-red-500 animate-pulse">LIVE</span>
+                              <div className="w-4 h-4 bg-red-500 rounded-full animate-ping"></div>
+                            </div>
+                            <p className="text-xs text-gray-400 mt-2">Watch live on YouTube & JioGames</p>
+                          </div>
+                        ) : (
+                          <div>
+                            <p className="text-xs text-gray-400 mb-2">Tournament Starts In:</p>
+                            <div className="grid grid-cols-4 gap-2">
+                              <div className="text-center">
+                                <div className="text-lg lg:text-xl font-bold text-red-400">{countdown.days}</div>
+                                <div className="text-xs text-gray-400">Days</div>
+                              </div>
+                              <div className="text-center">
+                                <div className="text-lg lg:text-xl font-bold text-blue-400">{countdown.hours.toString().padStart(2, '0')}</div>
+                                <div className="text-xs text-gray-400">Hours</div>
+                              </div>
+                              <div className="text-center">
+                                <div className="text-lg lg:text-xl font-bold text-green-400">{countdown.minutes.toString().padStart(2, '0')}</div>
+                                <div className="text-xs text-gray-400">Minutes</div>
+                              </div>
+                              <div className="text-center">
+                                <div className="text-lg lg:text-xl font-bold text-purple-400">{countdown.seconds.toString().padStart(2, '0')}</div>
+                                <div className="text-xs text-gray-400">Seconds</div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
                   
                   <div className="flex gap-4">
