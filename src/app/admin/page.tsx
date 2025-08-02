@@ -13,6 +13,7 @@ const SIDEBAR_OPTIONS = [
   { key: 'community', label: 'Community' },
   { key: 'adminPanel', label: 'Admin Panel' },
   { key: 'settings', label: 'Settings' },
+  { key: 'edit_profile', label: 'Edit Profile' },
 ];
 const PAGE_OPTIONS = [
   { key: 'dashboard', label: 'Dashboard Page' },
@@ -21,6 +22,7 @@ const PAGE_OPTIONS = [
   { key: 'community', label: 'Community Page' },
   { key: 'adminPanel', label: 'Admin Panel Page' },
   { key: 'settings', label: 'Settings Page' },
+  { key: 'edit_profile', label: 'Edit Profile Page' },
 ];
 const ROLES = ['user', 'admin'];
 

@@ -283,9 +283,14 @@ export default function PostDetailPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-4 px-0 sm:px-2">
       <div className="w-full sm:max-w-2xl sm:mx-auto">
-        <Link href="/community" className="flex items-center gap-2 text-purple-600 hover:underline mb-6 px-4 sm:px-0">
+        {/* Back to Community Button */}
+        <button
+          onClick={() => router.push('/community')}
+          className="flex items-center gap-2 text-purple-600 hover:underline mb-6 px-4 sm:px-0 text-base font-semibold focus:outline-none focus:ring-2 focus:ring-purple-400 rounded"
+          aria-label="Back to Community"
+        >
           <FaArrowLeft /> Back to Community
-        </Link>
+        </button>
         {loading || !post ? (
           <div className="text-center text-gray-500 py-10">Loading post...</div>
         ) : (
@@ -463,7 +468,7 @@ export default function PostDetailPage() {
             {!userId && (
               <div className="flex flex-col items-center gap-2 my-4">
                 <div className="text-gray-500">You must be logged in to like, react, or comment.</div>
-                <Link href="/login" className="text-purple-600 underline font-semibold">Login or Register</Link>
+                <Link href={`/login?redirect=/community/${postId}`} className="text-purple-600 underline font-semibold">Login or Register</Link>
               </div>
             )}
             {/* Comments */}
@@ -584,7 +589,7 @@ export default function PostDetailPage() {
             <div className="font-bold text-lg mb-2 text-center">You must be logged in to like or react to posts.</div>
             <button
               className="w-full py-2 rounded bg-gradient-to-r from-purple-600 to-fuchsia-500 hover:from-fuchsia-600 hover:to-purple-700 text-white font-semibold text-lg"
-              onClick={() => router.push('/login')}
+              onClick={() => router.push(`/login?redirect=/community/${postId}`)}
             >
               Go to Login
             </button>

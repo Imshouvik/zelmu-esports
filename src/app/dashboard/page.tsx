@@ -75,7 +75,6 @@ export default function DashboardPage() {
     if (!supabase) return;
     try {
       setClubLoading(true)
-      console.log('Starting club check for user:', userId)
       
       // First check if user owns a club
       const { data: ownedClub, error: ownedClubError } = await supabase
@@ -85,7 +84,6 @@ export default function DashboardPage() {
         .single()
 
       if (ownedClub) {
-        console.log('User owns club:', ownedClub)
         setUserClub(ownedClub)
         setClubLoading(false)
         return
@@ -102,10 +100,8 @@ export default function DashboardPage() {
         .eq('status', 'active')
         .limit(1)
 
-      console.log('Memberships check result:', memberships, membershipError)
-
       if (membershipError && membershipError.code !== 'PGRST116') {
-        console.error('Error checking membership:', membershipError)
+        // console.error('Error checking membership:', membershipError)
       } else if (memberships && memberships.length > 0) {
         const membership = memberships[0];
         let clubData = undefined;
@@ -116,7 +112,6 @@ export default function DashboardPage() {
             clubData = membership.clubs;
           }
         }
-        console.log('User is member of club:', clubData);
         if (clubData) {
           setUserClub(clubData);
           setClubLoading(false);
@@ -125,10 +120,9 @@ export default function DashboardPage() {
       }
 
       // User has no club
-      console.log('User has no club')
       setUserClub(null)
     } catch (err) {
-      console.error('Error checking user club:', err)
+      // console.error('Error checking user club:', err)
       setUserClub(null)
     } finally {
       setClubLoading(false)
@@ -196,7 +190,6 @@ export default function DashboardPage() {
     if (!supabase) return;
     try {
       // TODO: Replace with actual API call
-      console.log('Tournament data:', data)
       toast.success('Tournament created successfully!')
       setShowCreateForm(false)
       reset()
@@ -333,7 +326,6 @@ export default function DashboardPage() {
       }, 2000)
       
     } catch (err: any) {
-      console.error('Join with code error:', err)
       setInviteError(err.message || 'Failed to join club.')
     } finally {
       setJoining(false)
@@ -353,8 +345,6 @@ export default function DashboardPage() {
   if (!isLoggedIn) {
     return null
   }
-
-  console.log('[Dashboard] userClub:', userClub, 'userInfo:', userInfo);
 
   return (
     <PageGuard pageKey="dashboard">
@@ -385,7 +375,7 @@ export default function DashboardPage() {
               {/* Left: Logo and Info */}
               <div className="flex flex-col justify-between p-8 z-10 w-full md:w-[420px] bg-gradient-to-br from-[#18122b]/80 to-[#232046]/80">
                 <div className="flex items-center gap-3 mb-4">
-                  <Image src="/app/images/BGMI logo.webp" alt="BGMI Logo" width={60} height={60} className="rounded-lg bg-white/10" />
+                  <Image src="/app/images/BGMI logo.webp" alt="BGMI Logo" width={60} height={60} className="rounded-lg bg-white/10" priority />
                   <span className="bg-white/10 text-white text-xs font-bold px-3 py-1 rounded-lg">345 Members</span>
                   <span className="ml-2 text-white/40 text-lg">📱</span>
                 </div>

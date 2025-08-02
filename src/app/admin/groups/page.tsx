@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import PageGuard from "@/components/PageGuard";
 import { supabase } from '@/utils/supabaseClient';
+import { istLocalStringToUtcIso, utcIsoToIstDisplay, utcIsoToIstLocalInput } from '@/utils/timezone';
 
 interface Tournament {
   id: string;
@@ -21,9 +22,25 @@ interface Group {
   stage_id: string;
   name: string;
   group_order: number;
-  time_slot?: string;
+  scheduled_at?: string;
   max_teams?: number;
   current_teams?: number;
+  registration_open?: boolean;
+}
+
+function formatDateTime(raw: string) {
+  const clean = raw.replace('T', ' ').slice(0, 16);
+  const [date, time] = clean.split(' ');
+  const [year, month, day] = date.split('-');
+  let [hour, minute] = time.split(':');
+  let ampm = 'AM';
+  let hourNum = parseInt(hour, 10);
+  if (hourNum >= 12) {
+    ampm = 'PM';
+    if (hourNum > 12) hourNum -= 12;
+  }
+  if (hourNum === 0) hourNum = 12;
+  return `${day}/${month}/${year}, ${hourNum}:${minute} ${ampm}`;
 }
 
 export default function AdminGroupsPage() {
@@ -36,7 +53,7 @@ export default function AdminGroupsPage() {
   const [showModal, setShowModal] = useState(false);
   const [editingGroup, setEditingGroup] = useState<Group | null>(null);
   // Update form state to include time_slot, current_teams, max_teams
-  const [form, setForm] = useState<{ name: string; group_order: number; time_slot?: string; current_teams?: number; max_teams?: number }>({ name: "", group_order: 1, time_slot: "", current_teams: 0, max_teams: 24 });
+  const [form, setForm] = useState<{ name: string; group_order: number; scheduled_at?: string; current_teams?: number; max_teams?: number; registration_open?: boolean }>({ name: "", group_order: 1, scheduled_at: "", current_teams: 0, max_teams: 24, registration_open: false });
   const [saving, setSaving] = useState(false);
 
   // Fetch tournaments for selection
@@ -142,13 +159,14 @@ export default function AdminGroupsPage() {
       setForm({
         name: group.name,
         group_order: group.group_order || 1,
-        time_slot: group.time_slot || "",
+        scheduled_at: group.scheduled_at ? utcIsoToIstLocalInput(group.scheduled_at) : "",
         current_teams: group.current_teams || 0,
         max_teams: group.max_teams || 24,
+        registration_open: group.registration_open || false,
       });
     } else {
       setEditingGroup(null);
-      setForm({ name: "", group_order: 1, time_slot: "", current_teams: 0, max_teams: 24 });
+      setForm({ name: "", group_order: 1, scheduled_at: "", current_teams: 0, max_teams: 24, registration_open: false });
     }
     setShowModal(true);
   };
@@ -160,14 +178,16 @@ export default function AdminGroupsPage() {
     try {
       const { data: { session } } = await supabase!.auth.getSession();
       const accessToken = session?.access_token;
+      const scheduledAt = istLocalStringToUtcIso(form.scheduled_at ?? '');
       const method = editingGroup ? "PUT" : "POST";
       const body = {
         ...(editingGroup ? { id: editingGroup.id } : { tournament_id: selectedTournament, stage_id: selectedStage }),
         name: form.name,
         group_order: form.group_order,
-        time_slot: form.time_slot,
+        scheduled_at: scheduledAt,
         current_teams: editingGroup ? form.current_teams : 0,
         max_teams: form.max_teams,
+        registration_open: form.registration_open,
       };
       const res = await fetch("/api/groups", {
         method,
@@ -267,7 +287,7 @@ export default function AdminGroupsPage() {
                       <tr className="bg-fuchsia-900/30">
                         <th className="p-3 text-left">Name</th>
                         <th className="p-3 text-left">Order</th>
-                        <th className="p-3 text-left">Time Slot</th>
+                        <th className="p-3 text-left">Scheduled Date/Time</th>
                         <th className="p-3 text-left">Teams</th>
                         <th className="p-3 text-left">Max Teams</th>
                         <th className="p-3">Actions</th>
@@ -278,7 +298,7 @@ export default function AdminGroupsPage() {
                         <tr key={group.id} className="border-b border-fuchsia-700/20">
                           <td className="p-3">{group.name}</td>
                           <td className="p-3">{group.group_order}</td>
-                          <td className="p-3">{group.time_slot ? group.time_slot.slice(0,5) : '-'}</td>
+                          <td className="p-3">{group.scheduled_at ? utcIsoToIstDisplay(group.scheduled_at) : '-'}</td>
                           <td className="p-3">{typeof group.current_teams === 'number' ? group.current_teams : '-'}</td>
                           <td className="p-3">{typeof group.max_teams === 'number' ? group.max_teams : '-'}</td>
                           <td className="p-3 flex gap-2">
@@ -334,11 +354,11 @@ export default function AdminGroupsPage() {
                         />
                       </div>
                       <div className="mb-4">
-                        <label className="block text-fuchsia-200 text-sm mb-1">Time Slot</label>
+                        <label className="block text-fuchsia-200 text-sm mb-1">Scheduled Date/Time</label>
                         <input
-                          type="time"
-                          value={form.time_slot}
-                          onChange={e => setForm(f => ({ ...f, time_slot: e.target.value }))}
+                          type="datetime-local"
+                          value={form.scheduled_at}
+                          onChange={e => setForm(f => ({ ...f, scheduled_at: e.target.value }))}
                           className="w-full px-3 py-2 bg-white/10 border border-fuchsia-500/30 rounded text-white text-sm"
                         />
                       </div>
@@ -362,6 +382,15 @@ export default function AdminGroupsPage() {
                           min={1}
                           onChange={e => setForm(f => ({ ...f, max_teams: Number(e.target.value) }))}
                           className="w-full px-3 py-2 bg-white/10 border border-fuchsia-500/30 rounded text-white text-sm"
+                        />
+                      </div>
+                      <div className="mb-4">
+                        <label className="block text-fuchsia-200 text-sm mb-1">Open for Registration</label>
+                        <input
+                          type="checkbox"
+                          checked={form.registration_open}
+                          onChange={e => setForm(f => ({ ...f, registration_open: e.target.checked }))}
+                          className="accent-fuchsia-500 w-5 h-5"
                         />
                       </div>
                       <div className="flex gap-3 mt-6">

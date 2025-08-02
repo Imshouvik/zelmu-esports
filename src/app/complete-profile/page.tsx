@@ -2,10 +2,10 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/utils/supabaseClient'
-import Navigation from '@/components/Navigation'
 import PhoneInput from 'react-phone-input-2'
 import 'react-phone-input-2/lib/style.css'
 import { FaSpinner } from 'react-icons/fa'
+import { Country, State, City } from 'country-state-city';
 
 export default function CompleteProfilePage() {
   const router = useRouter()
@@ -16,6 +16,40 @@ export default function CompleteProfilePage() {
   const [error, setError] = useState('')
   const [user, setUser] = useState<any>(null)
   const DEFAULT_AVATAR = 'https://api.dicebear.com/7.x/adventurer/svg?seed=zelmu';
+  const [country, setCountry] = useState('IN');
+  const [state, setState] = useState('');
+  const [city, setCity] = useState('');
+  const [zelmuname, setZelmuname] = useState('');
+  const [zelmunameAvailable, setZelmunameAvailable] = useState<boolean | null>(null);
+  const [checkingZelmuname, setCheckingZelmuname] = useState(false);
+
+  const countries = Country.getAllCountries();
+  const states = State.getStatesOfCountry(country);
+  const cities = State.getStateByCodeAndCountry(state, country) ? City.getCitiesOfState(country, state) : [];
+
+  useEffect(() => { setState(''); setCity(''); }, [country]);
+  useEffect(() => { setCity(''); }, [state]);
+
+  // Debounced zelmuname check
+  useEffect(() => {
+    if (!zelmuname) {
+      setZelmunameAvailable(null);
+      return;
+    }
+    setCheckingZelmuname(true);
+    const timeout = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/check-zelmuname?zelmuname=${encodeURIComponent(zelmuname)}`);
+        const data = await res.json();
+        setZelmunameAvailable(data.available);
+      } catch {
+        setZelmunameAvailable(null);
+      } finally {
+        setCheckingZelmuname(false);
+      }
+    }, 500);
+    return () => clearTimeout(timeout);
+  }, [zelmuname]);
 
   useEffect(() => {
     // Fetch current user info
@@ -32,7 +66,7 @@ export default function CompleteProfilePage() {
         // Get user data from users table
         const { data: userRow, error: userError } = await supabase!
           .from('users')
-          .select('name, phone')
+          .select('name, phone, country, state, city, zelmuname')
           .eq('id', user.id)
           .single()
 
@@ -47,6 +81,10 @@ export default function CompleteProfilePage() {
           // Pre-fill with existing data from users table
           setName(userRow.name || '')
           setPhone(userRow.phone || '')
+          setCountry(userRow.country || 'IN');
+          setState(userRow.state || '');
+          setCity(userRow.city || '');
+          setZelmuname(userRow.zelmuname || '');
           
           // If user already has a phone number, redirect to dashboard
           if (userRow.phone) {
@@ -92,11 +130,28 @@ export default function CompleteProfilePage() {
       return
     }
 
+    if (!zelmuname) {
+      setError('Zelmu Name is required.');
+      setLoading(false);
+      return;
+    }
+    if (!zelmunameAvailable) {
+      setError('Zelmu Name is not available.');
+      setLoading(false);
+      return;
+    }
+
+    if (!country || !state || !city) {
+      setError('Country, state, and city are required.');
+      setLoading(false);
+      return;
+    }
+
     try {
       // Update users table
       const { error: updateError } = await supabase!
         .from('users')
-        .update({ name: name.trim(), phone: phone.trim(), avatar_url: avatarUrl })
+        .update({ name: name.trim(), phone: phone.trim(), avatar_url: avatarUrl, country, state, city, zelmuname })
         .eq('id', user.id)
 
       if (updateError) {
@@ -120,7 +175,6 @@ export default function CompleteProfilePage() {
   if (initialLoading) {
     return (
       <div className="relative min-h-screen w-full flex flex-col items-center justify-center">
-        <Navigation />
         <div className="absolute inset-0 w-full h-full -z-10 bg-black">
           <img
             src="/app/images/esports%20bg.webp"
@@ -140,7 +194,6 @@ export default function CompleteProfilePage() {
 
   return (
     <div className="relative min-h-screen w-full flex flex-col items-center justify-center">
-      <Navigation />
       <div className="absolute inset-0 w-full h-full -z-10 bg-black">
         <img
           src="/app/images/esports%20bg.webp"
@@ -181,6 +234,70 @@ export default function CompleteProfilePage() {
               buttonStyle={{ background: 'transparent', border: 'none', borderRadius: '0.75rem 0 0 0.75rem', height: '48px' }}
               disabled={loading}
             />
+          </div>
+          <div className="w-full flex flex-col gap-2">
+            <label className="block text-left text-fuchsia-200 text-sm mb-1">Zelmu Name (unique)</label>
+            <input
+              type="text"
+              placeholder="Choose your unique Zelmu Name"
+              value={zelmuname}
+              onChange={e => setZelmuname(e.target.value.replace(/\s/g, ''))}
+              className="w-full px-4 py-3 rounded-xl bg-white/10 border border-fuchsia-500/30 text-white placeholder-fuchsia-200 focus:outline-none focus:ring-2 focus:ring-fuchsia-400 focus:border-fuchsia-400 transition-all text-base shadow-inner backdrop-blur-md"
+              required
+              disabled={loading}
+              minLength={3}
+              maxLength={20}
+              autoComplete="off"
+            />
+            {zelmuname && (
+              <span className={`text-xs mt-1 ${zelmunameAvailable === null ? 'text-gray-400' : zelmunameAvailable ? 'text-green-400' : 'text-red-400'}`}>
+                {checkingZelmuname ? 'Checking availability...' : zelmunameAvailable === null ? '' : zelmunameAvailable ? 'Available!' : 'Not available'}
+              </span>
+            )}
+          </div>
+          <div className="w-full flex flex-col gap-2">
+            <label className="block text-left text-fuchsia-200 text-sm mb-1">Country</label>
+            <select
+              value={country}
+              onChange={e => setCountry(e.target.value)}
+              className="w-full px-4 py-3 rounded-xl bg-white/10 border border-fuchsia-500/30 text-white focus:outline-none focus:ring-2 focus:ring-fuchsia-400 focus:border-fuchsia-400 transition-all text-base shadow-inner backdrop-blur-md"
+              required
+              disabled={loading}
+            >
+              {countries.map(c => (
+                <option key={c.isoCode} value={c.isoCode}>{c.name}</option>
+              ))}
+            </select>
+          </div>
+          <div className="w-full flex flex-col gap-2">
+            <label className="block text-left text-fuchsia-200 text-sm mb-1">State</label>
+            <select
+              value={state}
+              onChange={e => setState(e.target.value)}
+              className="w-full px-4 py-3 rounded-xl bg-white/10 border border-fuchsia-500/30 text-white focus:outline-none focus:ring-2 focus:ring-fuchsia-400 focus:border-fuchsia-400 transition-all text-base shadow-inner backdrop-blur-md"
+              required
+              disabled={loading || !country}
+            >
+              <option value="" disabled>Select state</option>
+              {states.map(s => (
+                <option key={s.isoCode} value={s.isoCode}>{s.name}</option>
+              ))}
+            </select>
+          </div>
+          <div className="w-full flex flex-col gap-2">
+            <label className="block text-left text-fuchsia-200 text-sm mb-1">City</label>
+            <select
+              value={city}
+              onChange={e => setCity(e.target.value)}
+              className="w-full px-4 py-3 rounded-xl bg-white/10 border border-fuchsia-500/30 text-white focus:outline-none focus:ring-2 focus:ring-fuchsia-400 focus:border-fuchsia-400 transition-all text-base shadow-inner backdrop-blur-md"
+              required
+              disabled={loading || !state}
+            >
+              <option value="" disabled>Select city</option>
+              {cities.map(c => (
+                <option key={c.name} value={c.name}>{c.name}</option>
+              ))}
+            </select>
           </div>
           {error && <div className="text-red-400 text-sm font-semibold -mt-4 mb-2">{error}</div>}
           <button

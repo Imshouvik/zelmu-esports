@@ -21,16 +21,13 @@ export default function NotificationSetup() {
       try {
         const permission = await Notification.requestPermission();
         setPermissionStatus(permission);
-        console.log('Notification permission:', permission);
         
         if (permission === 'granted' && messaging && typeof getToken === 'function') {
           // Register service worker and get token
           const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
-          console.log('Service worker registered');
           
           const currentToken = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: registration });
           if (currentToken) {
-            console.log('FCM token obtained:', currentToken);
             
             // Save token to localStorage for now
             localStorage.setItem('fcm_token', currentToken);
@@ -81,7 +78,6 @@ export default function NotificationSetup() {
     // Listen for foreground messages only if messaging is available
     if (messaging && typeof onMessage === 'function') {
       onMessage(messaging, (payload: any) => {
-        console.log('Message received. ', payload);
         // Optionally show a toast or in-app notification
       });
     }

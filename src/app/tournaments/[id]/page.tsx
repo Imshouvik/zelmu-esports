@@ -16,11 +16,27 @@ import BackButton from '@/components/BackButton'
 import UserSearchInvite from '@/components/UserSearchInvite'
 import { supabase } from '@/utils/supabaseClient'
 import Link from 'next/link'
+import { utcIsoToIstDisplay } from '@/utils/timezone';
+
+function formatDateTime(raw: string) {
+  const clean = raw.replace('T', ' ').slice(0, 16);
+  const [date, time] = clean.split(' ');
+  const [year, month, day] = date.split('-');
+  let [hour, minute] = time.split(':');
+  let ampm = 'AM';
+  let hourNum = parseInt(hour, 10);
+  if (hourNum >= 12) {
+    ampm = 'PM';
+    if (hourNum > 12) hourNum -= 12;
+  }
+  if (hourNum === 0) hourNum = 12;
+  return `${day}/${month}/${year}, ${hourNum}:${minute} ${ampm}`;
+}
 
 const schema = yup.object({
   teamName: yup.string().required('Team name is required'),
   leaderName: yup.string().required('Leader name is required'),
-  leaderPhone: yup.string().matches(/^[0-9]{10}$/, 'Phone number must be 10 digits'),
+  leaderPhone: yup.string().matches(/^\+\d{10,15}$/, 'Phone number must include country code and be 10-15 digits.'),
   leaderEmail: yup.string().email('Invalid email').required('Email is required'),
   leaderGameId: yup.string().required('Game ID is required'),
   player2Name: yup.string().optional(),
@@ -58,10 +74,10 @@ export default function TournamentDetails() {
   const [registrationLoading, setRegistrationLoading] = useState(false);
   const [checkingClubRegistration, setCheckingClubRegistration] = useState(false);
   const [selectedPlayers, setSelectedPlayers] = useState<{
-    leader: { id: string; name: string; email: string } | null;
-    player2: { id: string; name: string; email: string } | null;
-    player3: { id: string; name: string; email: string } | null;
-    player4: { id: string; name: string; email: string } | null;
+    leader: { id: string; name: string; email: string; phone?: string } | null;
+    player2: { id: string; name: string; email: string; phone?: string } | null;
+    player3: { id: string; name: string; email: string; phone?: string } | null;
+    player4: { id: string; name: string; email: string; phone?: string } | null;
   }>({
     leader: null,
     player2: null,
@@ -69,8 +85,14 @@ export default function TournamentDetails() {
     player4: null,
   });
   const [groups, setGroups] = useState<any[]>([]);
+  const [stages, setStages] = useState<any[]>([]);
   const [selectedGroupId, setSelectedGroupId] = useState<string>("");
   const [groupsLoading, setGroupsLoading] = useState(false);
+  const [userMatches, setUserMatches] = useState<any[]>([]);
+  const [matchCredentials, setMatchCredentials] = useState<{ [matchId: string]: any }>({});
+  const [matchesLoading, setMatchesLoading] = useState(false);
+  // Add a state to store the user's registered group
+  const [userGroup, setUserGroup] = useState<any>(null);
 
   const {
     register,
@@ -83,7 +105,7 @@ export default function TournamentDetails() {
   })
 
   // Handler functions for player selection
-  const handlePlayer2Select = (user: { id: string; name: string; email: string }) => {
+  const handlePlayer2Select = (user: { id: string; name: string; email: string; phone?: string }) => {
     // Check for duplicate selection
     if (selectedPlayers.player3?.id === user.id || selectedPlayers.player4?.id === user.id) {
       toast.error('This player is already selected for another position');
@@ -94,7 +116,7 @@ export default function TournamentDetails() {
     setValue('player2UserId', user.id);
   };
 
-  const handlePlayer3Select = (user: { id: string; name: string; email: string }) => {
+  const handlePlayer3Select = (user: { id: string; name: string; email: string; phone?: string }) => {
     // Check for duplicate selection
     if (selectedPlayers.player2?.id === user.id || selectedPlayers.player4?.id === user.id) {
       toast.error('This player is already selected for another position');
@@ -105,7 +127,7 @@ export default function TournamentDetails() {
     setValue('player3UserId', user.id);
   };
 
-  const handlePlayer4Select = (user: { id: string; name: string; email: string }) => {
+  const handlePlayer4Select = (user: { id: string; name: string; email: string; phone?: string }) => {
     // Check for duplicate selection
     if (selectedPlayers.player2?.id === user.id || selectedPlayers.player3?.id === user.id) {
       toast.error('This player is already selected for another position');
@@ -116,7 +138,7 @@ export default function TournamentDetails() {
     setValue('player4UserId', user.id);
   };
 
-  const handleLeaderSelect = (user: { id: string; name: string; email: string }) => {
+  const handleLeaderSelect = (user: { id: string; name: string; email: string; phone?: string }) => {
     // Check for duplicate selection
     if (
       selectedPlayers.player2?.id === user.id ||
@@ -129,6 +151,7 @@ export default function TournamentDetails() {
     setSelectedPlayers(prev => ({ ...prev, leader: user }));
     setValue('leaderName', user.name);
     setValue('leaderEmail', user.email);
+    setValue('leaderPhone', user.phone || '');
     setValue('leaderUserId', user.id);
   };
 
@@ -243,28 +266,36 @@ export default function TournamentDetails() {
     if (id) fetchTournamentDetails();
   }, [id]);
 
-  // Fetch groups for the current tournament (and optionally stage)
+  // Fetch groups and stages for the current tournament
   useEffect(() => {
-    const fetchGroups = async () => {
+    const fetchGroupsAndStages = async () => {
       setGroupsLoading(true);
       try {
         const { data: { session } } = await supabase!.auth.getSession();
         const accessToken = session?.access_token;
-        // For now, fetch all groups for this tournament (could filter by stage if needed)
-        const res = await fetch(`/api/groups?tournament_id=${id}`, {
+        // Fetch all groups for this tournament
+        const resGroups = await fetch(`/api/groups?tournament_id=${id}`, {
           headers: accessToken ? { 'Authorization': `Bearer ${accessToken}` } : {},
         });
-        const data = await res.json();
-        if (Array.isArray(data)) setGroups(data);
+        const dataGroups = await resGroups.json();
+        if (Array.isArray(dataGroups)) setGroups(dataGroups);
         else setGroups([]);
+        // Fetch all stages for this tournament
+        const resStages = await fetch(`/api/tournament-stages?tournament_id=${id}`, {
+          headers: accessToken ? { 'Authorization': `Bearer ${accessToken}` } : {},
+        });
+        const dataStages = await resStages.json();
+        if (Array.isArray(dataStages)) setStages(dataStages);
+        else setStages([]);
       } catch {
         setGroups([]);
+        setStages([]);
       } finally {
         setGroupsLoading(false);
       }
     };
-    if (id && showRegistrationForm) fetchGroups();
-  }, [id, showRegistrationForm]);
+    if (id) fetchGroupsAndStages();
+  }, [id]);
 
   const onSubmit = async (data: TeamRegistrationForm) => {
     if (!user) {
@@ -587,6 +618,52 @@ export default function TournamentDetails() {
     }
   };
 
+  // Fetch matches for the user's group after registration is confirmed
+  useEffect(() => {
+    const fetchUserMatches = async () => {
+      if (!isRegistered || !user || !tournament) return;
+      setMatchesLoading(true);
+      // Find the user's group registration
+      const { data: reg } = await supabase
+        .from('tournament_registrations')
+        .select('group_id')
+        .eq('tournament_id', tournament.id)
+        .eq('registered_by', user.id)
+        .eq('registration_status', 'approved')
+        .single();
+      if (!reg || !reg.group_id) {
+        setUserMatches([]);
+        setUserGroup(null);
+        setMatchesLoading(false);
+        return;
+      }
+      // Find the group object
+      const groupObj = groups.find(g => g.id === reg.group_id);
+      setUserGroup(groupObj);
+      // Fetch matches for this group
+      const { data: matches } = await supabase
+        .from('matches')
+        .select('*')
+        .eq('group_id', reg.group_id)
+        .order('scheduled_at', { ascending: true });
+      setUserMatches(matches || []);
+      setMatchesLoading(false);
+      // Fetch credentials for each match
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData?.session?.access_token;
+      if (matches && accessToken) {
+        for (const match of matches) {
+          fetch(`/api/match-credentials/${match.id}`, {
+            headers: { Authorization: `Bearer ${accessToken}` }
+          })
+            .then(res => res.json())
+            .then(data => setMatchCredentials(prev => ({ ...prev, [match.id]: data })));
+        }
+      }
+    };
+    fetchUserMatches();
+  }, [isRegistered, user, tournament]);
+
   if (tournamentLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0f051d] via-[#18122b] to-[#232046]">
@@ -883,58 +960,75 @@ export default function TournamentDetails() {
                           <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 md:gap-8">
                             <div className="space-y-4 sm:space-y-6">
                               <div className="relative">
+                                <label htmlFor="teamName" className="inline-block mb-1 px-3 py-1 rounded-full border border-fuchsia-500 bg-[#232046]/80 text-fuchsia-200 text-xs font-semibold">Team Name</label>
                                 <input
                                   id="teamName"
                                   type="text"
                                   {...register('teamName')}
-                                  className="peer w-full px-3 sm:px-4 py-2 sm:py-3 bg-white/10 border border-fuchsia-500/30 rounded-lg text-white placeholder-transparent focus:outline-none focus:ring-2 focus:ring-fuchsia-500 focus:border-fuchsia-500 transition-all text-sm sm:text-base"
-                                  placeholder="Team Name"
+                                  className="w-full px-4 py-3 rounded-lg bg-white/10 border border-fuchsia-500/30 text-white focus:outline-none focus:ring-2 focus:ring-fuchsia-400 focus:border-fuchsia-400 transition-all text-base shadow-inner backdrop-blur-md"
+                                  placeholder="Enter team name"
+                                  required
                                 />
-                                <label htmlFor="teamName" className="absolute left-3 sm:left-4 top-2 sm:top-3 text-fuchsia-200 text-xs sm:text-sm transition-all peer-placeholder-shown:top-2 sm:peer-placeholder-shown:top-3 peer-placeholder-shown:text-fuchsia-200 peer-focus:-top-5 peer-focus:text-xs peer-focus:text-fuchsia-400 bg-[#232046]/80 px-1 rounded">Team Name</label>
                                 {errors.teamName && <p className="mt-1 text-xs sm:text-sm text-red-400">{errors.teamName.message}</p>}
                               </div>
-                              <div className="relative">
+                              <div className="relative mt-4">
+                                <UserSearchInvite
+                                  onUserSelect={handleLeaderSelect}
+                                  placeholder="Search for Leader..."
+                                  label="Leader Name"
+                                  className="w-full"
+                                />
+                                {errors.leaderUserId && <p className="mt-1 text-xs sm:text-sm text-red-400">{errors.leaderUserId.message}</p>}
+                              </div>
+                              <div className="relative mt-4">
+                                <label htmlFor="leaderName" className="inline-block mb-1 px-3 py-1 rounded-full border border-fuchsia-500 bg-[#232046]/80 text-fuchsia-200 text-xs font-semibold">Leader Name</label>
                                 <input
                                   id="leaderName"
                                   type="text"
                                   {...register('leaderName')}
-                                  className="peer w-full px-3 sm:px-4 py-2 sm:py-3 bg-white/10 border border-fuchsia-500/30 rounded-lg text-white placeholder-transparent focus:outline-none focus:ring-2 focus:ring-fuchsia-500 focus:border-fuchsia-500 transition-all text-sm sm:text-base"
-                                  placeholder="Leader Name"
+                                  className="w-full px-4 py-3 rounded-lg bg-white/10 border border-fuchsia-500/30 text-white focus:outline-none focus:ring-2 focus:ring-fuchsia-400 focus:border-fuchsia-400 transition-all text-base shadow-inner backdrop-blur-md"
+                                  placeholder="Leader name will be auto-filled"
+                                  value={watch('leaderName')}
+                                  readOnly
+                                  tabIndex={-1}
                                 />
-                                <label htmlFor="leaderName" className="absolute left-3 sm:left-4 top-2 sm:top-3 text-fuchsia-200 text-xs sm:text-sm transition-all peer-placeholder-shown:top-2 sm:peer-placeholder-shown:top-3 peer-placeholder-shown:text-fuchsia-200 peer-focus:-top-5 peer-focus:text-xs peer-focus:text-fuchsia-400 bg-[#232046]/80 px-1 rounded">Leader Name</label>
-                                {errors.leaderName && <p className="mt-1 text-xs sm:text-sm text-red-400">{errors.leaderName.message}</p>}
                               </div>
-                              <div className="relative">
-                                <input
-                                  id="leaderPhone"
-                                  type="tel"
-                                  {...register('leaderPhone')}
-                                  className="peer w-full px-3 sm:px-4 py-2 sm:py-3 bg-white/10 border border-fuchsia-500/30 rounded-lg text-white placeholder-transparent focus:outline-none focus:ring-2 focus:ring-fuchsia-500 focus:border-fuchsia-500 transition-all text-sm sm:text-base"
-                                  placeholder="Leader Phone"
-                                />
-                                <label htmlFor="leaderPhone" className="absolute left-3 sm:left-4 top-2 sm:top-3 text-fuchsia-200 text-xs sm:text-sm transition-all peer-placeholder-shown:top-2 sm:peer-placeholder-shown:top-3 peer-placeholder-shown:text-fuchsia-200 peer-focus:-top-5 peer-focus:text-xs peer-focus:text-fuchsia-400 bg-[#232046]/80 px-1 rounded">Leader Phone</label>
-                                {errors.leaderPhone && <p className="mt-1 text-xs sm:text-sm text-red-400">{errors.leaderPhone.message}</p>}
-                              </div>
-                              <div className="relative">
+                              <div className="relative mt-4">
+                                <label htmlFor="leaderEmail" className="inline-block mb-1 px-3 py-1 rounded-full border border-fuchsia-500 bg-[#232046]/80 text-fuchsia-200 text-xs font-semibold">Leader Email</label>
                                 <input
                                   id="leaderEmail"
                                   type="email"
                                   {...register('leaderEmail')}
-                                  className="peer w-full px-3 sm:px-4 py-2 sm:py-3 bg-white/10 border border-fuchsia-500/30 rounded-lg text-white placeholder-transparent focus:outline-none focus:ring-2 focus:ring-fuchsia-500 focus:border-fuchsia-500 transition-all text-sm sm:text-base"
-                                  placeholder="Leader Email"
+                                  className="w-full px-4 py-3 rounded-lg bg-white/10 border border-fuchsia-500/30 text-white focus:outline-none focus:ring-2 focus:ring-fuchsia-400 focus:border-fuchsia-400 transition-all text-base shadow-inner backdrop-blur-md"
+                                  placeholder="Leader email will be auto-filled"
+                                  value={watch('leaderEmail')}
+                                  readOnly
+                                  tabIndex={-1}
                                 />
-                                <label htmlFor="leaderEmail" className="absolute left-3 sm:left-4 top-2 sm:top-3 text-fuchsia-200 text-xs sm:text-sm transition-all peer-placeholder-shown:top-2 sm:peer-placeholder-shown:top-3 peer-placeholder-shown:text-fuchsia-200 peer-focus:-top-5 peer-focus:text-xs peer-focus:text-fuchsia-400 bg-[#232046]/80 px-1 rounded">Leader Email</label>
-                                {errors.leaderEmail && <p className="mt-1 text-xs sm:text-sm text-red-400">{errors.leaderEmail.message}</p>}
+                              </div>
+                              <div className="relative mt-4">
+                                <label htmlFor="leaderPhone" className="inline-block mb-1 px-3 py-1 rounded-full border border-fuchsia-500 bg-[#232046]/80 text-fuchsia-200 text-xs font-semibold">Leader Phone</label>
+                                <input
+                                  id="leaderPhone"
+                                  type="tel"
+                                  {...register('leaderPhone')}
+                                  className="w-full px-4 py-3 rounded-lg bg-white/10 border border-fuchsia-500/30 text-white focus:outline-none focus:ring-2 focus:ring-fuchsia-400 focus:border-fuchsia-400 transition-all text-base shadow-inner backdrop-blur-md"
+                                  placeholder="Leader phone will be auto-filled if available"
+                                  value={watch('leaderPhone')}
+                                  readOnly={!!watch('leaderPhone')}
+                                />
+                                {errors.leaderPhone && <p className="mt-1 text-xs sm:text-sm text-red-400">{errors.leaderPhone.message}</p>}
                               </div>
                               <div className="relative">
+                                <label htmlFor="leaderGameId" className="inline-block mb-1 px-3 py-1 rounded-full border border-fuchsia-500 bg-[#232046]/80 text-fuchsia-200 text-xs font-semibold">Leader Game ID</label>
                                 <input
                                   id="leaderGameId"
                                   type="text"
                                   {...register('leaderGameId')}
-                                  className="peer w-full px-3 sm:px-4 py-2 sm:py-3 bg-white/10 border border-fuchsia-500/30 rounded-lg text-white placeholder-transparent focus:outline-none focus:ring-2 focus:ring-fuchsia-500 focus:border-fuchsia-500 transition-all text-sm sm:text-base"
-                                  placeholder="Leader Game ID"
+                                  className="w-full px-4 py-3 rounded-lg bg-white/10 border border-fuchsia-500/30 text-white focus:outline-none focus:ring-2 focus:ring-fuchsia-400 focus:border-fuchsia-400 transition-all text-base shadow-inner backdrop-blur-md"
+                                  placeholder="Enter leader game ID"
+                                  required
                                 />
-                                <label htmlFor="leaderGameId" className="absolute left-3 sm:left-4 top-2 sm:top-3 text-fuchsia-200 text-xs sm:text-sm transition-all peer-placeholder-shown:top-2 sm:peer-placeholder-shown:top-3 peer-placeholder-shown:text-fuchsia-200 peer-focus:-top-5 peer-focus:text-xs peer-focus:text-fuchsia-400 bg-[#232046]/80 px-1 rounded">Leader Game ID</label>
                                 {errors.leaderGameId && <p className="mt-1 text-xs sm:text-sm text-red-400">{errors.leaderGameId.message}</p>}
                               </div>
                             </div>
@@ -963,11 +1057,11 @@ export default function TournamentDetails() {
                               
                               {groupsLoading ? (
                                 <div className="text-fuchsia-200">Loading groups...</div>
-                              ) : groups.length > 0 ? (
+                              ) : groups.filter(g => g.registration_open).length > 0 ? (
                                 <div className="mb-4">
-                                  <label className="block text-fuchsia-200 text-sm mb-1">Select Group / Time Slot</label>
+                                  <label className="block text-fuchsia-200 text-sm mb-1">Select Group / Date & Time</label>
                                   <div className="space-y-2">
-                                    {groups.map(group => (
+                                    {groups.filter(g => g.registration_open).map(group => (
                                       <label key={group.id} className={`flex items-center gap-2 p-2 rounded-lg border ${group.current_teams >= group.max_teams ? 'border-gray-500 bg-gray-800/40 text-gray-400' : 'border-fuchsia-500/30 bg-white/10 text-white'}`}>
                                         <input
                                           type="radio"
@@ -979,7 +1073,7 @@ export default function TournamentDetails() {
                                           className="accent-fuchsia-500"
                                         />
                                         <span className="font-semibold">{group.name}</span>
-                                        <span className="ml-2 text-xs">{group.time_slot ? `${group.time_slot.slice(0,5)}` : ''}</span>
+                                        <span className="ml-2 text-xs">{group.scheduled_at ? utcIsoToIstDisplay(group.scheduled_at) : '-'}</span>
                                         <span className="ml-2 text-xs">({group.current_teams}/{group.max_teams} spots filled)</span>
                                         {group.current_teams >= group.max_teams && <span className="ml-2 text-xs text-red-400">Full</span>}
                                       </label>
@@ -991,14 +1085,6 @@ export default function TournamentDetails() {
                               )}
                               
                               <UserSearchInvite
-                                onUserSelect={handleLeaderSelect}
-                                placeholder="Search for Leader..."
-                                label="Leader Name"
-                                className="w-full"
-                              />
-                              {errors.leaderUserId && <p className="mt-1 text-xs sm:text-sm text-red-400">{errors.leaderUserId.message}</p>}
-                              
-                              <UserSearchInvite
                                 onUserSelect={handlePlayer2Select}
                                 placeholder="Search for Player 2..."
                                 label="Player 2 Name"
@@ -1007,14 +1093,15 @@ export default function TournamentDetails() {
                               {errors.player2UserId && <p className="mt-1 text-xs sm:text-sm text-red-400">{errors.player2UserId.message}</p>}
                               
                               <div className="relative">
+                                <label htmlFor="player2GameId" className="inline-block mb-1 px-3 py-1 rounded-full border border-fuchsia-500 bg-[#232046]/80 text-fuchsia-200 text-xs font-semibold">Player 2 Game ID</label>
                                 <input
                                   id="player2GameId"
                                   type="text"
                                   {...register('player2GameId')}
-                                  className="peer w-full px-3 sm:px-4 py-2 sm:py-3 bg-white/10 border border-fuchsia-500/30 rounded-lg text-white placeholder-transparent focus:outline-none focus:ring-2 focus:ring-fuchsia-500 focus:border-fuchsia-500 transition-all text-sm sm:text-base"
-                                  placeholder="Player 2 Game ID"
+                                  className="w-full px-4 py-3 rounded-lg bg-white/10 border border-fuchsia-500/30 text-white focus:outline-none focus:ring-2 focus:ring-fuchsia-400 focus:border-fuchsia-400 transition-all text-base shadow-inner backdrop-blur-md"
+                                  placeholder="Enter player 2 game ID"
+                                  required
                                 />
-                                <label htmlFor="player2GameId" className="absolute left-3 sm:left-4 top-2 sm:top-3 text-fuchsia-200 text-xs sm:text-sm transition-all peer-placeholder-shown:top-2 sm:peer-placeholder-shown:top-3 peer-placeholder-shown:text-fuchsia-200 peer-focus:-top-5 peer-focus:text-xs peer-focus:text-fuchsia-400 bg-[#232046]/80 px-1 rounded">Player 2 Game ID</label>
                                 {errors.player2GameId && <p className="mt-1 text-xs sm:text-sm text-red-400">{errors.player2GameId.message}</p>}
                               </div>
                               
@@ -1027,14 +1114,15 @@ export default function TournamentDetails() {
                               {errors.player3UserId && <p className="mt-1 text-xs sm:text-sm text-red-400">{errors.player3UserId.message}</p>}
                               
                               <div className="relative">
+                                <label htmlFor="player3GameId" className="inline-block mb-1 px-3 py-1 rounded-full border border-fuchsia-500 bg-[#232046]/80 text-fuchsia-200 text-xs font-semibold">Player 3 Game ID</label>
                                 <input
                                   id="player3GameId"
                                   type="text"
                                   {...register('player3GameId')}
-                                  className="peer w-full px-3 sm:px-4 py-2 sm:py-3 bg-white/10 border border-fuchsia-500/30 rounded-lg text-white placeholder-transparent focus:outline-none focus:ring-2 focus:ring-fuchsia-500 focus:border-fuchsia-500 transition-all text-sm sm:text-base"
-                                  placeholder="Player 3 Game ID"
+                                  className="w-full px-4 py-3 rounded-lg bg-white/10 border border-fuchsia-500/30 text-white focus:outline-none focus:ring-2 focus:ring-fuchsia-400 focus:border-fuchsia-400 transition-all text-base shadow-inner backdrop-blur-md"
+                                  placeholder="Enter player 3 game ID"
+                                  required
                                 />
-                                <label htmlFor="player3GameId" className="absolute left-3 sm:left-4 top-2 sm:top-3 text-fuchsia-200 text-xs sm:text-sm transition-all peer-placeholder-shown:top-2 sm:peer-placeholder-shown:top-3 peer-placeholder-shown:text-fuchsia-200 peer-focus:-top-5 peer-focus:text-xs peer-focus:text-fuchsia-400 bg-[#232046]/80 px-1 rounded">Player 3 Game ID</label>
                                 {errors.player3GameId && <p className="mt-1 text-xs sm:text-sm text-red-400">{errors.player3GameId.message}</p>}
                               </div>
                               
@@ -1047,14 +1135,15 @@ export default function TournamentDetails() {
                               {errors.player4UserId && <p className="mt-1 text-xs sm:text-sm text-red-400">{errors.player4UserId.message}</p>}
                               
                               <div className="relative">
+                                <label htmlFor="player4GameId" className="inline-block mb-1 px-3 py-1 rounded-full border border-fuchsia-500 bg-[#232046]/80 text-fuchsia-200 text-xs font-semibold">Player 4 Game ID</label>
                                 <input
                                   id="player4GameId"
                                   type="text"
                                   {...register('player4GameId')}
-                                  className="peer w-full px-3 sm:px-4 py-2 sm:py-3 bg-white/10 border border-fuchsia-500/30 rounded-lg text-white placeholder-transparent focus:outline-none focus:ring-2 focus:ring-fuchsia-500 focus:border-fuchsia-500 transition-all text-sm sm:text-base"
-                                  placeholder="Player 4 Game ID"
+                                  className="w-full px-4 py-3 rounded-lg bg-white/10 border border-fuchsia-500/30 text-white focus:outline-none focus:ring-2 focus:ring-fuchsia-400 focus:border-fuchsia-400 transition-all text-base shadow-inner backdrop-blur-md"
+                                  placeholder="Enter player 4 game ID"
+                                  required
                                 />
-                                <label htmlFor="player4GameId" className="absolute left-3 sm:left-4 top-2 sm:top-3 text-fuchsia-200 text-xs sm:text-sm transition-all peer-placeholder-shown:top-2 sm:peer-placeholder-shown:top-3 peer-placeholder-shown:text-fuchsia-200 peer-focus:-top-5 peer-focus:text-xs peer-focus:text-fuchsia-400 bg-[#232046]/80 px-1 rounded">Player 4 Game ID</label>
                                 {errors.player4GameId && <p className="mt-1 text-xs sm:text-sm text-red-400">{errors.player4GameId.message}</p>}
                               </div>
                             </div>
@@ -1103,6 +1192,67 @@ export default function TournamentDetails() {
           </div>
         </motion.div>
       </div>
+      {isRegistered && userGroup && (
+  <div className="mt-8">
+    <h2 className="text-xl font-bold text-fuchsia-300 mb-4">Your Group's Matches & Lobby Credentials</h2>
+    <div className="mb-2 text-fuchsia-200 font-semibold text-lg">
+      Registered Group: <span className="text-white">{userGroup.name}</span>
+    </div>
+    {matchesLoading ? (
+      <div className="text-fuchsia-200">Loading matches...</div>
+    ) : userMatches.length === 0 ? (
+      <div className="text-fuchsia-200">No matches scheduled for your group yet.</div>
+    ) : (
+      <div className="space-y-4">
+        {userMatches.map(match => {
+          const cred = matchCredentials[match.id];
+          const showTime = cred?.show_credentials_from ? new Date(cred.show_credentials_from) : null;
+          const now = new Date();
+          let countdown = '';
+          if (showTime && now < showTime) {
+            const diff = showTime.getTime() - now.getTime();
+            const mins = Math.floor(diff / 60000);
+            const secs = Math.floor((diff % 60000) / 1000);
+            countdown = `${mins}m ${secs}s`;
+          }
+          // Find group and stage name
+          const group = groups.find(g => g.id === match.group_id);
+          const stage = group ? stages.find(s => s.id === group.stage_id) : null;
+          const stageName = stage ? stage.name : '-';
+          return (
+            <div key={match.id} className="bg-white/10 rounded-xl p-4 border border-fuchsia-700/30">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mb-2">
+                {/* Removed Scheduled: line */}
+                <div>
+                  <span className="font-bold text-fuchsia-200">Scheduled Date/Time:</span> {match.scheduled_at ? utcIsoToIstDisplay(match.scheduled_at) : '-'}
+                </div>
+                <div>
+                  <span className="font-bold text-fuchsia-200">Map:</span> {match.map_name || '-'}
+                </div>
+                <div>
+                  <span className="font-bold text-fuchsia-200">Stage:</span> {stageName}
+                </div>
+              </div>
+              {cred?.can_view ? (
+                <div className="mt-2">
+                  <div className="text-green-300 font-bold">Room Credentials Available!</div>
+                  <div className="flex flex-col gap-1 mt-1">
+                    <span><span className="font-semibold text-fuchsia-200">Room ID:</span> <span className="font-mono text-white">{cred.room_id}</span></span>
+                    <span><span className="font-semibold text-fuchsia-200">Password:</span> <span className="font-mono text-white">{cred.room_password}</span></span>
+                  </div>
+                </div>
+              ) : cred && showTime && now < showTime ? (
+                <div className="mt-2 text-yellow-300">Room credentials will be available in <span className="font-mono">{countdown}</span></div>
+              ) : (
+                <div className="mt-2 text-fuchsia-200">Room credentials are not available yet.</div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    )}
+  </div>
+)}
     </div>
   )
 } 

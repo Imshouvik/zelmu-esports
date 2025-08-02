@@ -6,9 +6,10 @@ import { supabase } from '@/utils/supabaseClient'
 import { createPortal } from 'react-dom';
 
 interface User {
-  id: string
-  name: string
-  email: string
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
 }
 
 interface UserSearchInviteProps {
@@ -70,7 +71,7 @@ export default function UserSearchInvite({
       try {
         const { data, error } = await supabase!
           .from('users')
-          .select('id, name, email')
+          .select('id, name, email, phone')
           .or(`name.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%`)
           .order('name', { ascending: true })
           .limit(10)
@@ -170,6 +171,9 @@ export default function UserSearchInvite({
   return (
     <div className={`relative ${className}`}> {/* Remove overflow-visible for portal */}
       <div className="relative">
+        {label && (
+          <label className="block mb-1 text-fuchsia-200 font-medium text-sm">{label}</label>
+        )}
         <input
           ref={inputRef}
           type="text"
@@ -178,11 +182,8 @@ export default function UserSearchInvite({
           onFocus={handleInputFocus}
           placeholder={placeholder}
           disabled={disabled}
-          className="peer w-full px-3 sm:px-4 py-2 sm:py-3 bg-white/10 border border-fuchsia-500/30 rounded-lg text-white placeholder-transparent focus:outline-none focus:ring-2 focus:ring-fuchsia-500 focus:border-fuchsia-500 transition-all text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full px-3 sm:px-4 py-2 sm:py-3 bg-white/10 border border-fuchsia-500/30 rounded-lg text-white placeholder-fuchsia-200 focus:outline-none focus:ring-2 focus:ring-fuchsia-500 focus:border-fuchsia-500 transition-all text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed"
         />
-        <label className="absolute left-3 sm:left-4 top-2 sm:top-3 text-fuchsia-200 text-xs sm:text-sm transition-all peer-placeholder-shown:top-2 sm:peer-placeholder-shown:top-3 peer-placeholder-shown:text-fuchsia-200 peer-focus:-top-5 peer-focus:text-xs peer-focus:text-fuchsia-400 bg-[#232046]/80 px-1 rounded">
-          {label}
-        </label>
         
         {/* Search Icon */}
         <div className="absolute right-3 top-1/2 transform -translate-y-1/2">

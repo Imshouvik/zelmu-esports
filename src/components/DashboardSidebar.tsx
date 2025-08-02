@@ -2,22 +2,24 @@ import Link from 'next/link';
 import { useSelector } from 'react-redux';
 import { usePathname } from 'next/navigation';
 import { RootState } from '@/store';
-import { FaTrophy, FaHome, FaBook, FaStore, FaChartBar, FaHeadset, FaCog, FaCrown, FaDiscord, FaInstagram, FaYoutube, FaTwitter, FaSignOutAlt, FaWallet, FaTimes, FaCamera, FaSpinner } from 'react-icons/fa';
+import { FaTrophy, FaHome, FaBook, FaStore, FaChartBar, FaHeadset, FaCog, FaCrown, FaDiscord, FaInstagram, FaYoutube, FaTwitter, FaSignOutAlt, FaWallet, FaTimes, FaCamera, FaSpinner, FaUserCircle } from 'react-icons/fa';
 import { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/utils/supabaseClient';
 import React, { MouseEvent } from 'react';
 import toast from 'react-hot-toast';
+import imageCompression from 'browser-image-compression';
 
 const navLinks = [
-  { name: 'Home', href: '/dashboard', icon: <FaHome /> },
-  { name: 'Tournaments', href: '/dashboard/tournaments', icon: <FaTrophy /> },
-  { name: 'Clubs', href: '/clubs', icon: <FaCrown /> },
-  { name: 'Leaderboard', href: '/dashboard/leaderboard', icon: <FaChartBar /> },
-  { name: 'Teams', href: '/dashboard/teams', icon: <FaCrown /> },
-  { name: 'Wallet', href: '/dashboard/wallet', icon: <FaWallet /> },
-  { name: 'Community', href: '/community', icon: <FaBook /> },
-  { name: 'Settings', href: '/dashboard/settings', icon: <FaCog /> },
-  { name: 'Support', href: '/dashboard/support', icon: <FaHeadset /> },
+  { name: 'Home', href: '/dashboard', icon: <FaHome />, key: 'dashboard' },
+  { name: 'Tournaments', href: '/dashboard/tournaments', icon: <FaTrophy />, key: 'tournaments' },
+  { name: 'Clubs', href: '/clubs', icon: <FaCrown />, key: 'clubs' },
+  { name: 'Leaderboard', href: '/dashboard/leaderboard', icon: <FaChartBar />, key: 'leaderboard' },
+  { name: 'Teams', href: '/dashboard/teams', icon: <FaCrown />, key: 'teams' },
+  { name: 'Wallet', href: '/dashboard/wallet', icon: <FaWallet />, key: 'wallet' },
+  { name: 'Community', href: '/community', icon: <FaBook />, key: 'community' },
+  { name: 'Settings', href: '/dashboard/settings', icon: <FaCog />, key: 'settings' },
+  { name: 'Edit Profile', href: '/dashboard/settings/profile', icon: <FaUserCircle />, key: 'edit_profile' },
+  { name: 'Support', href: '/dashboard/support', icon: <FaHeadset />, key: 'support' },
 ];
 
 const socialLinks = [
@@ -27,17 +29,7 @@ const socialLinks = [
   { href: 'https://twitter.com/', icon: <FaTwitter />, label: 'Twitter' },
 ];
 
-const SIDEBAR_KEYS = [
-  { name: 'Home', key: 'dashboard' },
-  { name: 'Tournaments', key: 'tournaments' },
-  { name: 'Clubs', key: 'clubs' },
-  { name: 'Leaderboard', key: 'leaderboard' },
-  { name: 'Teams', key: 'teams' },
-  { name: 'Wallet', key: 'wallet' },
-  { name: 'Community', key: 'community' },
-  { name: 'Settings', key: 'settings' },
-  { name: 'Support', key: 'support' },
-];
+const SIDEBAR_KEYS = navLinks.map(link => ({ name: link.name, key: link.key }));
 
 interface DashboardSidebarProps {
   isOpen?: boolean;
@@ -175,14 +167,41 @@ export default function DashboardSidebar({ isOpen = false, onClose }: DashboardS
     if (!file || !user) return;
     setUploading(true);
     try {
+      // 1. Get the old avatar URL from the user
+      const { data: userData } = await supabase
+        .from('users')
+        .select('avatar_url')
+        .eq('id', user.id)
+        .single();
+
+      // 2. If there is an old avatar, delete it from storage
+      if (userData?.avatar_url) {
+        const urlParts = userData.avatar_url.split('/');
+        const idx = urlParts.indexOf('user-avatars');
+        const filePath = idx !== -1 ? urlParts.slice(idx + 1).join('/') : '';
+        if (filePath) {
+          await supabase.storage.from('user-avatars').remove([filePath]);
+        }
+      }
+
+      // 3. Compress the image before upload
+      const compressedFile = await imageCompression(file, {
+        maxWidthOrHeight: 512, // e.g., 512px max dimension
+        maxSizeMB: 0.2,        // e.g., 200KB max size
+        useWebWorker: true,
+        initialQuality: 0.8,   // Good balance of quality and size
+      });
+
+      // 4. Upload the compressed file
       const fileExt = file.name.split('.').pop();
       const filePath = `${user.id}-${Date.now()}.${fileExt}`;
-      const { data: uploadData, error: uploadError } = await supabase!.storage.from('user-avatars').upload(filePath, file, { upsert: true });
+      const { error: uploadError } = await supabase.storage.from('user-avatars').upload(filePath, compressedFile, { upsert: true });
       if (uploadError) throw uploadError;
-      const { data: urlData } = supabase!.storage.from('user-avatars').getPublicUrl(filePath);
+      const { data: urlData } = supabase.storage.from('user-avatars').getPublicUrl(filePath);
       const avatarUrl = urlData.publicUrl;
-      // Update users table
-      await supabase!.from('users').update({ avatar_url: avatarUrl }).eq('id', user.id);
+
+      // 5. Update users table
+      await supabase.from('users').update({ avatar_url: avatarUrl }).eq('id', user.id);
       setAvatar(avatarUrl);
       toast.success('Profile picture updated!');
     } catch (err) {
@@ -236,10 +255,7 @@ export default function DashboardSidebar({ isOpen = false, onClose }: DashboardS
       <nav className="flex-1 flex flex-col gap-1 mt-2 pb-10">
         {sidebarLoading
           ? <SidebarSkeleton />
-          : navLinks.filter((link, i) => {
-              const key = SIDEBAR_KEYS[i]?.key;
-              return allowedSidebar.length === 0 || allowedSidebar.includes(key);
-            }).map((link) => {
+          : navLinks.filter(link => allowedSidebar.length === 0 || allowedSidebar.includes(link.key)).map((link) => {
               const isActive = pathname === link.href || (link.href !== '/dashboard' && pathname.startsWith(link.href));
               return (
                 <Ripple key={link.name} className="rounded-lg">

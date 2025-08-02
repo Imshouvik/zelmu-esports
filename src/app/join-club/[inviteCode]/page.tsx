@@ -44,6 +44,7 @@ export default function JoinClubPage() {
   const [joining, setJoining] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  const [checkingAuth, setCheckingAuth] = useState(true);
 
   // Fetch invite and club details
   const fetchInviteDetails = async () => {
@@ -107,6 +108,22 @@ export default function JoinClubPage() {
     }
   }, [inviteCode])
 
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        router.replace(`/login?redirect=/join-club/${inviteCode}`);
+      } else {
+        setCheckingAuth(false);
+      }
+    };
+    checkAuth();
+  }, [inviteCode, router]);
+
+  if (checkingAuth) {
+    return null;
+  }
+
   // Join the club
   const handleJoinClub = async () => {
     try {
@@ -116,16 +133,14 @@ export default function JoinClubPage() {
       const { data: { user }, error: userError } = await supabase!.auth.getUser()
       
       if (userError || !user) {
-        // User is not logged in, redirect to register with invite code
+        // User is not logged in, redirect to login with invite code as redirect param
         setError('You must be logged in to join a club.')
         setJoining(false)
-        
-        // Store invite code in localStorage for after registration
+        // Store invite code in localStorage for after registration (optional, can keep for register flow)
         localStorage.setItem('pendingInviteCode', inviteCode)
-        
-        // Redirect to register page
+        // Redirect to login page with redirect param
         setTimeout(() => {
-          router.push('/register')
+          router.push(`/login?redirect=/join-club/${inviteCode}`)
         }, 2000)
         return
       }
@@ -196,7 +211,6 @@ export default function JoinClubPage() {
 
   return (
     <div className="relative min-h-screen w-full flex flex-col items-center justify-center">
-      <Navigation />
       {/* Background image with blue-black overlay */}
       <div className="absolute inset-0 w-full h-full -z-10 bg-black">
         <img

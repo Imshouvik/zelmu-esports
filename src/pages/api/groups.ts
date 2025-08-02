@@ -34,11 +34,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
     case 'POST': {
       // Create a new group
-      const { tournament_id, stage_id, name, group_order, time_slot, max_teams, current_teams } = req.body;
+      const { tournament_id, stage_id, name, group_order, scheduled_at, max_teams, current_teams, registration_open } = req.body;
       if (!tournament_id || !name) return res.status(400).json({ error: 'tournament_id and name are required' });
       const { data, error } = await supabase
         .from('groups')
-        .insert([{ tournament_id, stage_id, name, group_order, time_slot, max_teams, current_teams }])
+        .insert([{ tournament_id, stage_id, name, group_order, scheduled_at, max_teams, current_teams, registration_open }])
         .select()
         .single();
       if (error) return res.status(500).json({ error: error.message });
@@ -46,11 +46,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
     case 'PUT': {
       // Update a group
-      const { id, name, group_order, time_slot, max_teams, current_teams } = req.body;
+      const { id, name, group_order, scheduled_at, max_teams, current_teams, registration_open } = req.body;
       if (!id) return res.status(400).json({ error: 'id is required' });
       const { data, error } = await supabase
         .from('groups')
-        .update({ name, group_order, time_slot, max_teams, current_teams })
+        .update({ name, group_order, scheduled_at, max_teams, current_teams, registration_open })
         .eq('id', id)
         .select()
         .single();

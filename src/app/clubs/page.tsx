@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { FaPlus, FaCrown, FaEdit, FaUsers, FaTrophy, FaLink, FaUserPlus, FaUserMinus, FaSignOutAlt } from 'react-icons/fa'
+import { FaPlus, FaCrown, FaEdit, FaUsers, FaTrophy, FaLink, FaUserPlus, FaUserMinus, FaSignOutAlt, FaExchangeAlt } from 'react-icons/fa'
 import DashboardSidebar from '@/components/DashboardSidebar'
 import ClubCreateModal from './ClubCreateModal'
 import ClubEditModal from './ClubEditModal'
@@ -37,6 +37,11 @@ export default function ClubsPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [optimisticPendingIds, setOptimisticPendingIds] = useState<string[]>([]);
   const [userSearchRefreshKey, setUserSearchRefreshKey] = useState(0);
+  const [showTransferModal, setShowTransferModal] = useState(false);
+  const [transferLoading, setTransferLoading] = useState(false);
+  const [transferError, setTransferError] = useState('');
+  const [transferSuccess, setTransferSuccess] = useState('');
+  const [selectedNewOwner, setSelectedNewOwner] = useState<string>('');
 
   // Fetch user's club
   const fetchUserClub = async () => {
@@ -254,6 +259,37 @@ export default function ClubsPage() {
       }
     } catch (err) {
       toast.error('Failed to invite user');
+    }
+  };
+
+  // Transfer ownership handler
+  const handleTransferOwnership = async () => {
+    setTransferError('');
+    setTransferSuccess('');
+    if (!selectedNewOwner) {
+      setTransferError('Please select a member to transfer ownership to.');
+      return;
+    }
+    setTransferLoading(true);
+    try {
+      const { data: { user: currentUser }, error: userError } = await supabase!.auth.getUser();
+      if (userError || !currentUser) throw new Error('Not authenticated');
+      const res = await fetch('/api/club-transfer-ownership', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ clubId: userClub!.id, newOwnerId: selectedNewOwner, userId: currentUser.id })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to transfer ownership');
+      setTransferSuccess('Ownership transferred successfully!');
+      setShowTransferModal(false);
+      setSelectedNewOwner('');
+      fetchUserClub();
+      fetchMembers(userClub!.id);
+    } catch (err: any) {
+      setTransferError(err.message || 'Failed to transfer ownership');
+    } finally {
+      setTransferLoading(false);
     }
   };
 
@@ -560,6 +596,14 @@ export default function ClubsPage() {
                         />
                       </motion.div>
                     )}
+                    {userClub && userClub.owner_id === user?.id && (
+                      <button
+                        onClick={() => setShowTransferModal(true)}
+                        className="mt-4 mb-2 flex items-center gap-2 bg-yellow-600/20 hover:bg-yellow-600/40 text-yellow-200 px-4 py-2 rounded-lg border border-yellow-500/30 transition-all"
+                      >
+                        <FaExchangeAlt /> Transfer Ownership
+                      </button>
+                    )}
                   </>
                 )}
               </motion.div>
@@ -568,6 +612,44 @@ export default function ClubsPage() {
             <ClubCreateModal open={showCreateModal} onClose={() => setShowCreateModal(false)} onSuccess={handleClubCreated} />
             <ClubEditModal open={showEditModal} onClose={() => setShowEditModal(false)} onSuccess={handleClubCreated} club={userClub} />
             <ClubInviteModal open={showInviteModal} onClose={() => setShowInviteModal(false)} clubId={userClub?.id || ''} clubName={userClub?.name || ''} />
+            {/* Transfer Ownership Modal */}
+            {showTransferModal && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+                <div className="bg-[#18122b] rounded-xl p-6 w-full max-w-md border border-fuchsia-700/30">
+                  <h2 className="text-xl font-bold text-fuchsia-200 mb-4">Transfer Club Ownership</h2>
+                  <p className="text-fuchsia-300 mb-2">Select a member to transfer ownership to:</p>
+                  <select
+                    className="w-full p-2 rounded border border-fuchsia-500/30 bg-white/10 text-white mb-4"
+                    value={selectedNewOwner}
+                    onChange={e => setSelectedNewOwner(e.target.value)}
+                  >
+                    <option value="">-- Select Member --</option>
+                    {members.filter(m => m.status === 'active' && m.user_id !== user?.id).map(m => {
+                      const userData = Array.isArray(m.users) ? m.users[0] : m.users;
+                      return (
+                        <option key={m.user_id} value={m.user_id}>
+                          {userData?.name || 'Unknown'} ({userData?.email})
+                        </option>
+                      );
+                    })}
+                  </select>
+                  {transferError && <div className="text-red-400 text-sm mb-2">{transferError}</div>}
+                  {transferSuccess && <div className="text-green-400 text-sm mb-2">{transferSuccess}</div>}
+                  <div className="flex gap-3 justify-end">
+                    <button
+                      onClick={() => setShowTransferModal(false)}
+                      className="px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-500/30"
+                      disabled={transferLoading}
+                    >Cancel</button>
+                    <button
+                      onClick={handleTransferOwnership}
+                      className="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg border border-yellow-500/30 font-bold"
+                      disabled={transferLoading}
+                    >{transferLoading ? 'Transferring...' : 'Transfer'}</button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

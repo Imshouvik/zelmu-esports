@@ -9,7 +9,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '@/store';
 import { useRouter } from "next/navigation";
 import { useRef } from 'react';
-import { FaCheckCircle, FaPlayCircle, FaUserCircle } from 'react-icons/fa';
+import { FaCheckCircle, FaPlayCircle, FaUserCircle, FaArrowLeft } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
@@ -209,15 +209,12 @@ export default function CommunityPage() {
     );
   }
 
+  // Redirect unauthenticated users to login with redirect param
   if (!userId) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-2xl font-bold text-gray-700 mb-4">You must be logged in to view the community feed.</div>
-          <Link href="/login" className="text-purple-600 underline font-semibold">Go to Login</Link>
-        </div>
-      </div>
-    );
+    if (typeof window !== 'undefined') {
+      router.replace(`/login?redirect=/community`);
+    }
+    return null;
   }
 
   if (postsLoading) {
@@ -258,6 +255,14 @@ export default function CommunityPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-gray-100 py-10 px-2 font-sans">
       <div className="max-w-2xl mx-auto w-full">
+        {/* Back Button */}
+        <button
+          onClick={() => router.push('/dashboard')}
+          className="flex items-center gap-2 text-purple-600 hover:underline mb-6 px-2 text-base font-semibold focus:outline-none focus:ring-2 focus:ring-purple-400 rounded"
+          aria-label="Back"
+        >
+          <FaArrowLeft /> Back
+        </button>
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl font-extrabold text-gray-900">Community</h1>
           <button

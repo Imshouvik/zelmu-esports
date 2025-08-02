@@ -12,15 +12,6 @@ export default function AuthSyncProvider({ children }: { children: React.ReactNo
   const dispatch = useDispatch()
 
   useEffect(() => {
-    console.log('WINDOW:', typeof window)
-    console.log('supabase:', supabase)
-    if (typeof window !== 'undefined') {
-      const keys = Object.keys(localStorage).filter(k => k.includes('sb-'))
-      keys.forEach(k => {
-        console.log(`[localStorage] ${k}:`, localStorage.getItem(k))
-      })
-    }
-
     if (!supabase) return; // Fix linter error: supabase is possibly undefined
 
     dispatch(setLoading(true))
@@ -50,8 +41,14 @@ export default function AuthSyncProvider({ children }: { children: React.ReactNo
         if (
           safePath !== '/login' &&
           safePath !== '/' &&
-          !safePath.startsWith('/community')
-        ) router.push('/login')
+          !safePath.startsWith('/community') &&
+          safePath !== '/privacy-policy' &&
+          safePath !== '/register' &&
+          safePath !== '/data-deletion' &&
+          safePath !== '/about-us' &&
+          safePath !== '/contact-us' &&
+          safePath !== '/terms-and-conditions'
+        ) router.push(`/login?redirect=${encodeURIComponent(safePath)}`)
       }
       dispatch(setLoading(false))
     }

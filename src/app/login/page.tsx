@@ -7,6 +7,8 @@ import Navigation from '@/components/Navigation'
 import { supabase } from '@/utils/supabaseClient'
 import { FaGoogle, FaFacebook, FaDiscord, FaCheck } from 'react-icons/fa'
 import toast from 'react-hot-toast'
+import { useSelector } from 'react-redux';
+import { RootState } from '@/store';
 
 function LoginPageInner() {
   const router = useRouter()
@@ -16,6 +18,7 @@ function LoginPageInner() {
   const [error, setError] = useState('')
   const [showSuccess, setShowSuccess] = useState(false)
   const [resendLoading, setResendLoading] = useState(false)
+  const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
 
   // Get the redirect URL from query parameters
   const redirectTo = searchParams?.get('redirect') || '/dashboard'
@@ -37,6 +40,12 @@ function LoginPageInner() {
     }
   }, [confirmed, message, userEmail])
 
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.replace(redirectTo);
+    }
+  }, [isAuthenticated, redirectTo, router]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
@@ -49,11 +58,14 @@ function LoginPageInner() {
       password,
     })
     if (error) {
+      console.error('Login error:', error); // Debug log
       // Handle specific login errors
       if (error.message.includes('Email not confirmed')) {
         setError('Please confirm your email address before logging in. Use the "Resend Confirmation Email" button below if needed.')
       } else if (error.message.includes('Invalid login credentials')) {
         setError('Invalid email or password. Please check your credentials and try again.')
+      } else if (error.code === 'user_not_found') {
+        setError('No account registered with this email address.')
       } else {
         setError(error.message)
       }
@@ -231,6 +243,17 @@ function LoginPageInner() {
 }
 
 export default function LoginPage() {
+  const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
+  const authLoading = useSelector((state: RootState) => state.auth.loading);
+  const router = useRouter();
+
+  // Remove the useEffect in the default export that always pushes to /dashboard
+  // if (!authLoading && isAuthenticated) {
+  //   router.push('/dashboard');
+  // }
+
+  if (authLoading) return null;
+
   return (
     <Suspense>
       <LoginPageInner />
