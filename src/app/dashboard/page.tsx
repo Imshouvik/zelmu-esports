@@ -370,63 +370,7 @@ export default function DashboardPage() {
                 <NotificationBell userId={userInfo.id} />
               ) : null}
             </div>
-            {/* BGMI Banner Section */}
-            <section className="relative rounded-3xl bg-gradient-to-r from-[#3a1c71]/90 via-[#d76d77]/80 to-[#ffaf7b]/80 shadow-2xl p-0 mb-10 overflow-hidden flex flex-col md:flex-row items-stretch">
-              {/* Left: Logo and Info */}
-              <div className="flex flex-col justify-between p-8 z-10 w-full md:w-[420px] bg-gradient-to-br from-[#18122b]/80 to-[#232046]/80">
-                <div className="flex items-center gap-3 mb-4">
-                  <Image src="/app/images/BGMI logo.webp" alt="BGMI Logo" width={60} height={60} className="rounded-lg bg-white/10" priority />
-                  <span className="bg-white/10 text-white text-xs font-bold px-3 py-1 rounded-lg">345 Members</span>
-                  <span className="ml-2 text-white/40 text-lg">📱</span>
-                </div>
-                <div>
-                  <h1 className="text-3xl md:text-4xl font-extrabold text-white mb-2 leading-tight tracking-tight" style={{fontFamily: 'Oswald, sans-serif'}}>COMPETE IN BGMI BATTLE ROYALE</h1>
-                  <p className="text-fuchsia-100 text-base mb-6">Compete in epic tournaments on Elite Gamers Arena.</p>
-                </div>
-                <div className="flex gap-10 mb-4">
-                  <div className="flex flex-col items-center">
-                    <span className="text-white text-xl font-bold">3200</span>
-                    <span className="text-fuchsia-200 text-xs mt-1">Matches played</span>
-                  </div>
-                  <div className="flex flex-col items-center">
-                    <span className="text-white text-xl font-bold">235</span>
-                    <span className="text-fuchsia-200 text-xs mt-1">Tournaments held</span>
-                  </div>
-                </div>
-              </div>
-              {/* Center: Banner */}
-              <div className="relative flex-1 flex items-center justify-center min-h-[320px]">
-                <Image
-                  src="/app/images/BGMI BANNER.jpg"
-                  alt="BGMI Banner"
-                  fill
-                  style={{objectFit: 'cover'}}
-                  className="absolute inset-0 w-full h-full object-cover opacity-80"
-                />
-                {/* Overlay for purple effect */}
-                <div className="absolute inset-0 bg-gradient-to-tr from-[#3a1c71]/80 via-[#d76d77]/60 to-[#ffaf7b]/60" />
-                {/* Right: Avatars and stats */}
-                <div className="relative z-10 flex flex-col items-end justify-center h-full w-full p-8">
-                  <div className="flex flex-col items-end">
-                    <span className="text-white/80 text-sm mb-2">PLAYERS</span>
-                    <span className="text-white text-2xl font-bold mb-2">565</span>
-                    <div className="flex -space-x-3 mb-2">
-                      {users.map((user, idx) => (
-                        <Image
-                          key={user.id}
-                          src={user.avatar_url || '/app/images/esports%20bg.webp'}
-                          alt={user.name || `Player ${idx+1}`}
-                          width={40}
-                          height={40}
-                          className="rounded-full border-2 border-white/40 shadow-lg bg-white/10"
-                        />
-                      ))}
-                    </div>
-                    <span className="text-fuchsia-200 text-xs">People signed up for the competitions</span>
-                  </div>
-                </div>
-              </div>
-            </section>
+
 
             {/* Featured Tournament - ZBCC Season 1 */}
             <section className="mb-8">
