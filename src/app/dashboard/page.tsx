@@ -380,17 +380,39 @@ export default function DashboardPage() {
         <DashboardSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         {/* Mobile menu button */}
         <button
-          className="fixed top-4 left-4 z-40 md:hidden bg-fuchsia-700/90 text-white p-3 rounded-full shadow-lg focus:outline-none"
+          className="fixed top-4 left-4 z-40 md:hidden text-white p-4 focus:outline-none"
           onClick={() => setSidebarOpen(true)}
           aria-label="Open sidebar menu"
         >
-          <FaBars className="w-6 h-6" />
+          <FaBars className="w-7 h-7" />
         </button>
+        
+        {/* Mobile notification bell */}
+        <div className="fixed top-4 right-4 z-40 md:hidden p-4">
+          {userClub && userClub.owner_id === userInfo?.id ? (
+            <div className="w-7 h-7">
+              <AdminNotificationBell clubId={userClub.id} clubName={userClub.name} />
+            </div>
+          ) : userInfo ? (
+            <div className="w-7 h-7">
+              <NotificationBell userId={userInfo.id} />
+            </div>
+          ) : null}
+        </div>
+        
+        {/* Mobile Z-logo - centered */}
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-40 md:hidden">
+          <img 
+            src="/app/images/Z-logo.png" 
+            alt="ZELMU Logo" 
+            className="w-14 h-14 object-contain"
+          />
+        </div>
         {/* Main content (add left margin for desktop sidebar) */}
         <main className="flex-1 md:ml-72 overflow-x-hidden">
-          <div className="max-w-5xl mx-auto px-3 sm:px-6 lg:px-8 w-full min-w-0">
-            {/* Notification Bell */}
-            <div className="flex justify-end items-center mb-6 gap-4">
+          <div className="max-w-5xl mx-auto px-3 sm:px-6 lg:px-8 w-full min-w-0 pt-20 md:pt-0">
+            {/* Notification Bell - Desktop Only */}
+            <div className="hidden md:flex justify-end items-center mb-6 gap-4 pt-4">
               {userClub && userClub.owner_id === userInfo?.id ? (
                 <AdminNotificationBell clubId={userClub.id} clubName={userClub.name} />
               ) : userInfo ? (
