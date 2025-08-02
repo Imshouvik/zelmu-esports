@@ -69,8 +69,12 @@ export default function ZBCCSeason1Page() {
               </div>
             </div>
             <h1 className="text-4xl md:text-5xl font-bold text-center mb-4" style={{
-              textShadow: '0 0 10px #00D1FF, 0 0 20px #00D1FF, 0 0 30px #FF3333',
-              color: '#60A5FA'
+              textShadow: '0 0 15px #FFD700, 0 0 25px #FFD700, 0 0 35px #FF6B35',
+              color: '#FFD700',
+              background: 'linear-gradient(45deg, #FFD700, #FF6B35, #FFD700)',
+              backgroundClip: 'text',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent'
             }}>
               ZELMU BGMI CLUB Championship - Season 1
             </h1>
