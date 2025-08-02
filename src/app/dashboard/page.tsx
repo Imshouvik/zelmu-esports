@@ -348,7 +348,7 @@ export default function DashboardPage() {
 
   return (
     <PageGuard pageKey="dashboard">
-      <div className="min-h-screen bg-gradient-to-br from-[#18122b] to-[#232046] flex">
+      <div className="min-h-screen bg-gradient-to-br from-[#18122b] to-[#232046] flex overflow-x-hidden">
         {/* Sidebar for desktop and mobile drawer */}
         <DashboardSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         {/* Mobile menu button */}
@@ -360,8 +360,8 @@ export default function DashboardPage() {
           <FaBars className="w-6 h-6" />
         </button>
         {/* Main content (add left margin for desktop sidebar) */}
-        <main className="flex-1 md:ml-72">
-          <div className="max-w-5xl mx-auto px-3 sm:px-6 lg:px-8 w-full">
+        <main className="flex-1 md:ml-72 overflow-x-hidden">
+          <div className="max-w-5xl mx-auto px-3 sm:px-6 lg:px-8 w-full min-w-0">
             {/* Notification Bell */}
             <div className="flex justify-end items-center mb-6 gap-4">
               {userClub && userClub.owner_id === userInfo?.id ? (
@@ -376,32 +376,32 @@ export default function DashboardPage() {
             <section className="mb-8">
               <div className="bg-gradient-to-r from-blue-900/90 to-purple-900/90 backdrop-blur-2xl rounded-3xl shadow-2xl border-2 border-blue-400/50 overflow-hidden">
                 <div className="p-8">
-                  <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center gap-4">
-                      <Image src="/app/images/BGMI logo.webp" alt="BGMI Logo" width={60} height={60} className="rounded-lg" />
-                      <div>
-                        <h2 className="text-3xl font-bold text-blue-300">ZELMU BGMI CLUB Championship</h2>
-                        <p className="text-xl text-blue-200">Season 1</p>
+                  <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-6 gap-4">
+                    <div className="flex items-center gap-4 flex-1 min-w-0">
+                      <Image src="/app/images/BGMI logo.webp" alt="BGMI Logo" width={60} height={60} className="rounded-lg flex-shrink-0" />
+                      <div className="min-w-0">
+                        <h2 className="text-xl lg:text-3xl font-bold text-blue-300 break-words">ZELMU BGMI CLUB Championship</h2>
+                        <p className="text-lg lg:text-xl text-blue-200">Season 1</p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className="text-3xl font-bold text-yellow-400">₹50,000</div>
+                    <div className="text-right flex-shrink-0">
+                      <div className="text-2xl lg:text-3xl font-bold text-yellow-400">₹50,000</div>
                       <div className="text-sm text-gray-300">Prize Pool</div>
                     </div>
                   </div>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                  <div className="grid grid-cols-3 gap-4 lg:gap-6 mb-6">
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-red-400">192</div>
-                      <div className="text-sm text-gray-300">Teams</div>
+                      <div className="text-xl lg:text-2xl font-bold text-red-400">192</div>
+                      <div className="text-xs lg:text-sm text-gray-300">Teams</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-green-400">17</div>
-                      <div className="text-sm text-gray-300">Matches</div>
+                      <div className="text-xl lg:text-2xl font-bold text-green-400">17</div>
+                      <div className="text-xs lg:text-sm text-gray-300">Matches</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-purple-400">960</div>
-                      <div className="text-sm text-gray-300">Players</div>
+                      <div className="text-xl lg:text-2xl font-bold text-purple-400">960</div>
+                      <div className="text-xs lg:text-sm text-gray-300">Players</div>
                     </div>
                   </div>
                   
