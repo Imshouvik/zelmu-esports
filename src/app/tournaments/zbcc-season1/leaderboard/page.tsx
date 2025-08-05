@@ -4,8 +4,6 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store';
-import Navigation from '@/components/Navigation';
-import Footer from '@/components/Footer';
 
 // Static team data for ZBCC Season 1
 const TEAMS_DATA = {
@@ -224,6 +222,9 @@ const POSITION_POINTS = {
   1: 10, 2: 6, 3: 5, 4: 4, 5: 3, 6: 2, 7: 1, 8: 1
 };
 
+// Group status types
+type GroupStatus = 'upcoming' | 'live' | 'calculating' | 'completed';
+
 interface Team {
   id: number;
   name: string;
@@ -239,6 +240,25 @@ interface MatchResult {
   position: number;
 }
 
+interface GroupInfo {
+  name: string;
+  status: GroupStatus;
+  scheduledTime: string;
+  matchTime: string;
+}
+
+// Group schedule information
+const GROUP_SCHEDULE: Record<string, GroupInfo> = {
+  "Group A": { name: "Group A", status: 'upcoming', scheduledTime: "August 5, 8:00 PM IST", matchTime: "8:00 PM" },
+  "Group B": { name: "Group B", status: 'upcoming', scheduledTime: "August 5, 9:00 PM IST", matchTime: "9:00 PM" },
+  "Group C": { name: "Group C", status: 'upcoming', scheduledTime: "August 5, 10:00 PM IST", matchTime: "10:00 PM" },
+  "Group D": { name: "Group D", status: 'upcoming', scheduledTime: "August 6, 8:00 PM IST", matchTime: "8:00 PM" },
+  "Group E": { name: "Group E", status: 'upcoming', scheduledTime: "August 6, 9:00 PM IST", matchTime: "9:00 PM" },
+  "Group F": { name: "Group F", status: 'upcoming', scheduledTime: "August 6, 10:00 PM IST", matchTime: "10:00 PM" },
+  "Group G": { name: "Group G", status: 'upcoming', scheduledTime: "August 7, 8:00 PM IST", matchTime: "8:00 PM" },
+  "Group H": { name: "Group H", status: 'upcoming', scheduledTime: "August 7, 9:00 PM IST", matchTime: "9:00 PM" }
+};
+
 export default function ZBCCLeaderboardPage() {
   const router = useRouter();
   const { isAuthenticated, loading, user } = useSelector((state: RootState) => state.auth);
@@ -248,6 +268,32 @@ export default function ZBCCLeaderboardPage() {
   const [showAdminPanel, setShowAdminPanel] = useState(false);
   const [matchResults, setMatchResults] = useState<MatchResult[]>([]);
   const [newResult, setNewResult] = useState<MatchResult>({ teamName: '', kills: 0, position: 0 });
+  const [groupSchedule, setGroupSchedule] = useState<Record<string, GroupInfo>>(GROUP_SCHEDULE);
+  const [savedData, setSavedData] = useState<string>('');
+
+  // Load saved data from localStorage on component mount
+  useEffect(() => {
+    const savedTeams = localStorage.getItem('zbcc_teams_data');
+    const savedSchedule = localStorage.getItem('zbcc_group_schedule');
+    const savedResults = localStorage.getItem('zbcc_match_results');
+    
+    if (savedTeams) {
+      setTeams(JSON.parse(savedTeams));
+    }
+    if (savedSchedule) {
+      setGroupSchedule(JSON.parse(savedSchedule));
+    }
+    if (savedResults) {
+      setMatchResults(JSON.parse(savedResults));
+    }
+  }, []);
+
+  // Save data to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('zbcc_teams_data', JSON.stringify(teams));
+    localStorage.setItem('zbcc_group_schedule', JSON.stringify(groupSchedule));
+    localStorage.setItem('zbcc_match_results', JSON.stringify(matchResults));
+  }, [teams, groupSchedule, matchResults]);
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
@@ -303,6 +349,54 @@ export default function ZBCCLeaderboardPage() {
     });
   };
 
+  // Update group status
+  const updateGroupStatus = (groupName: string, status: GroupStatus) => {
+    setGroupSchedule(prev => ({
+      ...prev,
+      [groupName]: {
+        ...prev[groupName],
+        status
+      }
+    }));
+  };
+
+  // Export data to JSON
+  const exportData = () => {
+    const data = {
+      teams,
+      groupSchedule,
+      matchResults,
+      exportDate: new Date().toISOString()
+    };
+    const dataStr = JSON.stringify(data, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `zbcc-leaderboard-${new Date().toISOString().split('T')[0]}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // Import data from JSON
+  const importData = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = JSON.parse(e.target?.result as string);
+          if (data.teams) setTeams(data.teams);
+          if (data.groupSchedule) setGroupSchedule(data.groupSchedule);
+          if (data.matchResults) setMatchResults(data.matchResults);
+        } catch (error) {
+          alert('Invalid JSON file');
+        }
+      };
+      reader.readAsText(file);
+    }
+  };
+
   // Add match result
   const addMatchResult = () => {
     if (newResult.teamName && newResult.position > 0) {
@@ -321,6 +415,31 @@ export default function ZBCCLeaderboardPage() {
   const resetScores = () => {
     setTeams(TEAMS_DATA);
     setMatchResults([]);
+    setGroupSchedule(GROUP_SCHEDULE);
+    localStorage.removeItem('zbcc_teams_data');
+    localStorage.removeItem('zbcc_group_schedule');
+    localStorage.removeItem('zbcc_match_results');
+  };
+
+  // Get status color and animation
+  const getStatusColor = (status: GroupStatus) => {
+    switch (status) {
+      case 'upcoming': return 'text-gray-400';
+      case 'live': return 'text-red-500 animate-pulse';
+      case 'calculating': return 'text-yellow-500 animate-spin';
+      case 'completed': return 'text-green-500';
+      default: return 'text-gray-400';
+    }
+  };
+
+  const getStatusIcon = (status: GroupStatus) => {
+    switch (status) {
+      case 'upcoming': return '⏰';
+      case 'live': return '🔴';
+      case 'calculating': return '⚡';
+      case 'completed': return '✅';
+      default: return '⏰';
+    }
   };
 
   if (loading) {
@@ -338,21 +457,42 @@ export default function ZBCCLeaderboardPage() {
   const currentGroupTeams = sortTeamsByPoints(teams[selectedGroup] || []);
 
   return (
-    <>
-      <Navigation />
-      <div className="min-h-screen bg-gray-900">
-        {/* Back Button */}
-        <div className="container mx-auto px-4 pt-6">
+    <div className="min-h-screen bg-gray-900">
+      {/* Header */}
+      <div className="container mx-auto px-4 pt-6">
+        <div className="flex justify-between items-center mb-6">
           <button
             onClick={() => window.history.back()}
-            className="flex items-center gap-2 text-white hover:text-blue-400 transition-colors mb-4"
+            className="flex items-center gap-2 text-white hover:text-blue-400 transition-colors"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
             <span className="font-semibold">Back to Tournament</span>
           </button>
+          
+          {/* Data Management Buttons */}
+          {isAdmin && (
+            <div className="flex gap-2">
+              <button
+                onClick={exportData}
+                className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm"
+              >
+                Export Data
+              </button>
+              <label className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm cursor-pointer">
+                Import Data
+                <input
+                  type="file"
+                  accept=".json"
+                  onChange={importData}
+                  className="hidden"
+                />
+              </label>
+            </div>
+          )}
         </div>
+      </div>
 
         <div className="container mx-auto px-4 py-8">
           {/* Header */}
@@ -363,6 +503,43 @@ export default function ZBCCLeaderboardPage() {
             <p className="text-gray-400">
               Live tournament standings and match results
             </p>
+          </div>
+
+          {/* Group Status Overview */}
+          <div className="mb-6">
+            <h3 className="text-xl font-bold text-white mb-4">Tournament Groups Status</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {Object.entries(groupSchedule).map(([groupName, groupInfo]) => (
+                <div key={groupName} className="bg-gray-800 p-4 rounded-lg border border-gray-700">
+                  <div className="flex justify-between items-center mb-2">
+                    <h4 className="text-white font-semibold">{groupName}</h4>
+                    <span className={`text-lg ${getStatusColor(groupInfo.status)}`}>
+                      {getStatusIcon(groupInfo.status)}
+                    </span>
+                  </div>
+                  <p className="text-gray-400 text-sm mb-2">{groupInfo.scheduledTime}</p>
+                  <p className={`text-sm font-medium ${getStatusColor(groupInfo.status)}`}>
+                    {groupInfo.status.charAt(0).toUpperCase() + groupInfo.status.slice(1)}
+                  </p>
+                  
+                  {/* Admin Controls */}
+                  {isAdmin && (
+                    <div className="mt-3 space-y-1">
+                      <select
+                        value={groupInfo.status}
+                        onChange={(e) => updateGroupStatus(groupName, e.target.value as GroupStatus)}
+                        className="w-full bg-gray-700 text-white px-2 py-1 rounded text-xs border border-gray-600"
+                      >
+                        <option value="upcoming">Upcoming</option>
+                        <option value="live">Live</option>
+                        <option value="calculating">Calculating</option>
+                        <option value="completed">Completed</option>
+                      </select>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* Admin Panel Toggle */}
@@ -511,12 +688,23 @@ export default function ZBCCLeaderboardPage() {
                 </thead>
                 <tbody>
                   {currentGroupTeams.map((team, index) => (
-                    <tr key={team.id} className="border-b border-gray-700 hover:bg-gray-700">
+                    <tr 
+                      key={team.id} 
+                      className={`border-b border-gray-700 hover:bg-gray-700 ${
+                        index < 12 ? 'bg-green-900 bg-opacity-20 border-l-4 border-l-green-500' : ''
+                      }`}
+                    >
                       <td className="px-4 py-3 text-white font-semibold">
                         {index + 1}
+                        {index < 12 && (
+                          <span className="ml-2 text-green-400 text-xs">🏆</span>
+                        )}
                       </td>
                       <td className="px-4 py-3 text-white">
                         {team.name}
+                        {index < 12 && (
+                          <span className="ml-2 text-green-400 text-xs font-medium">QUALIFIED</span>
+                        )}
                       </td>
                       <td className="px-4 py-3 text-center text-white">
                         {team.kills}
@@ -565,7 +753,6 @@ export default function ZBCCLeaderboardPage() {
           </div>
         </div>
       </div>
-      <Footer />
-    </>
+    </div>
   );
 } 
