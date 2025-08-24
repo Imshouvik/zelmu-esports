@@ -54,3 +54,15 @@ jspm_packages/
 # Yarn Integrity file
 .yarn-integrity
 zelmu-esports-deploy.zip
+
+# Large media and data files
+*.mp3
+*.wav
+*.mp4
+*.avi
+*.mov
+*.zip
+*.tar.gz
+*.rar
+public/data/*.json
+public/app/music/
