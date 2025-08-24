@@ -27,33 +27,37 @@ export default function OAuthCallbackPage() {
 
         console.log('OAuth callback - User authenticated:', user.email);
 
-        // Check if user exists in users table
+        // Check if user exists in users table and has complete profile
         const { data: existingUser, error: dbError } = await supabase!
           .from('users')
-          .select('id, name, phone')
+          .select('id, name, phone, country, state, city, zelmuname')
           .eq('id', user.id)
           .single();
 
         if (dbError) {
-          // User doesn't exist in users table - create them
+          // User doesn't exist in users table - this shouldn't happen with the trigger
+          // but let's handle it gracefully
           if (dbError.code === 'PGRST116') {
-            console.log('OAuth callback - Creating user in users table...');
+            console.log('OAuth callback - User not found in users table, creating manually...');
             
             // Extract user data from OAuth metadata
             const name = user.user_metadata?.full_name || user.user_metadata?.name || '';
             const DEFAULT_AVATAR = 'https://api.dicebear.com/7.x/adventurer/svg?seed=zelmu';
             const oauthAvatar = user.user_metadata?.avatar_url || user.user_metadata?.picture || DEFAULT_AVATAR;
             
-            // Insert into users table - match the actual schema
+            // Insert into users table with all fields
             const { error: insertError } = await supabase!.from('users').insert([{
               id: user.id,
               email: user.email,
               name,
-              phone: '', // Social providers don't provide phone
+              phone: null, // Social providers don't provide phone
+              country: null,
+              state: null,
+              city: null,
+              zelmuname: null,
               created_at: new Date().toISOString(),
               role: 'user',
               avatar_url: oauthAvatar
-              // Note: fcm_token will be null initially
             }]);
 
             if (insertError) {
@@ -66,7 +70,7 @@ export default function OAuthCallbackPage() {
             console.log('OAuth callback - User created successfully');
             toast.success('Account created successfully! Please complete your profile.');
             
-            // Redirect to complete profile since no phone number
+            // Redirect to complete profile since missing required fields
             router.push('/complete-profile');
           } else {
             console.error('OAuth callback - Database error:', dbError);
@@ -74,15 +78,19 @@ export default function OAuthCallbackPage() {
             setLoading(false);
           }
         } else {
-          // User exists in users table
-          console.log('OAuth callback - User exists, checking phone number...');
+          // User exists, check if profile is complete
+          const isProfileComplete = existingUser.phone && 
+                                   existingUser.country && 
+                                   existingUser.state && 
+                                   existingUser.city;
           
-          if (!existingUser.phone) {
-            console.log('OAuth callback - User has no phone, redirecting to complete-profile');
+          if (!isProfileComplete) {
+            console.log('OAuth callback - User exists but profile incomplete, redirecting to complete profile');
+            toast.success('Welcome back! Please complete your profile.');
             router.push('/complete-profile');
           } else {
-            console.log('OAuth callback - User is complete, redirecting to dashboard');
-            toast.success('Welcome back!');
+            console.log('OAuth callback - User exists with complete profile, redirecting to dashboard');
+            toast.success('Login successful!');
             router.push('/dashboard');
           }
         }

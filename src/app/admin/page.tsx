@@ -345,6 +345,18 @@ export default function SuperAdminPage() {
                   </div>
                 </div>
               </a>
+              <a
+                href="/admin/zbcc-manager"
+                className="bg-gradient-to-br from-green-600 to-blue-700 rounded-xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 group"
+              >
+                <div className="flex items-center gap-3">
+                  <FaCrown className="text-3xl text-white group-hover:scale-110 transition-transform" />
+                  <div>
+                    <h3 className="text-xl font-bold text-white">ZBCC Manager</h3>
+                    <p className="text-fuchsia-200 text-sm">Manage ZBCC tournament scores and group status</p>
+                  </div>
+                </div>
+              </a>
             </div>
           </section>
 

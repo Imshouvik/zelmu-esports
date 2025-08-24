@@ -1,0 +1,758 @@
+"use client";
+
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/store';
+
+// Static team data for ZBCC Season 1
+const TEAMS_DATA = {
+  "Group A": [
+    { id: 1, name: "Nabarun Songho", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 2, name: "Netaji Tarun Sangha", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 3, name: "Harishchandrapur Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 4, name: "Shantanir Sporting Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 5, name: "Panchasayar Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 6, name: "Yuba Sangha Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 7, name: "Ajitpur Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 8, name: "Bison Sangha", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 9, name: "Amra Sobai Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 10, name: "Club Angan", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 11, name: "Arambagh Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 12, name: "Yuva Kalyan Samiti", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 13, name: "Shahjahanpur Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 14, name: "Simulpur Runner Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 15, name: "Nayakamarga Spoting Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 16, name: "Ashariadaha Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 17, name: "Uttorpolli", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 18, name: "Sabuj Pally Naba Sammilani Song", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 19, name: "Arabpur Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 20, name: "Gopal Smriti Sangha", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 21, name: "Bansdroni Vevekananda Park Association", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 22, name: "Ranaghat Club Ten Star", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 23, name: "Sahebbari Church Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 24, name: "Bagnan Milan Sangha", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 }
+  ],
+  "Group B": [
+    { id: 25, name: "Jagoroni Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 26, name: "Murarai Amra Kajon Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 27, name: "Baruipur Warriors", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 28, name: "Achhipur Songho", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 29, name: "Talbagan Yuba Sangha Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 30, name: "Media Young Star Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 31, name: "Tarun Sangha Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 32, name: "Bagermore Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 33, name: "Biswashri Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 34, name: "Ghoshpur Adibasi Jubak Sangha", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 35, name: "Ghoshpur Cultural Association", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 36, name: "Gobardanga Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 37, name: "Maniktala Pragati Sangha", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 38, name: "Icchamohe Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 39, name: "Subhas Sangha Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 40, name: "Chalantika Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 41, name: "Debigarh Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 42, name: "Polli Union Songho Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 43, name: "Archana Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 44, name: "Kamar Danga Boys Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 45, name: "Baghogra Association", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 46, name: "Amra Sokole", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 47, name: "East Udayrajpur Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 48, name: "Arabpur Shongho", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 }
+  ],
+  "Group C": [
+    { id: 49, name: "Jabalpur Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 50, name: "Dahijuri Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 51, name: "Dahijuri Association", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 52, name: "Bamunmura Association Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 53, name: "Sanmatinagar Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 54, name: "Islampur Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 55, name: "Bhatri Sangha", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 56, name: "New Mahbir Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 57, name: "Dindori Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 58, name: "Milan Tritha Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 59, name: "Bidhanpally Seba Sangha", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 60, name: "Motijheel Young Star Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 61, name: "We The Green Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 62, name: "Bankura United", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 63, name: "Ashoknagar Football Coaching Centre", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 64, name: "Chabi Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 65, name: "Banamalipur Five Star Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 66, name: "Udayan Sangha", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 67, name: "Gamila Nabin Sangha Rural Library", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 68, name: "Dhandighi Welfare Association", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 69, name: "Townhall Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 70, name: "Basirhat. Dhaltitha.Aamra Sobay Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 71, name: "Rajballavpur Agrani Sangha Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 72, name: "Maslandapur United", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 }
+  ],
+  "Group D": [
+    { id: 73, name: "Purbachal Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 74, name: "Khar West Association", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 75, name: "Kamarthuba Pragati Sangha (K.P.S)", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 76, name: "Birnagar Sporting Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 77, name: "Sinthi Peara Bagan Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 78, name: "Pragatishil Nattaya Sangstha", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 79, name: "Haroa Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 80, name: "Vivekananda Sporting Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 81, name: "Milan Sangha", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 82, name: "Janata Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 83, name: "Bergoom Morning Star Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 84, name: "Bhaluka Shongho", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 85, name: "Aghraduth Sangha", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 86, name: "Pollishree Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 87, name: "Jagrihi Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 88, name: "Dhaltikuri Chetona Songho", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 89, name: "Soneva Sports", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 90, name: "Chakla Esports Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 91, name: "Banni Sikha Sangha", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 92, name: "Club Prantik", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 93, name: "Sweet Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 94, name: "Agnio Sangho", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 95, name: "Arit Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 96, name: "Bagpukur Purbapara New Ajad Sangha", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 }
+  ],
+  "Group E": [
+    { id: 97, name: "Canning Swastika Sangha", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 98, name: "Kaipukur Kalibattala", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 99, name: "Asutosh Boys Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 100, name: "Santipally Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 101, name: "Pratap Nagar Morning Star Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 102, name: "Dighi Shongho", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 103, name: "Bibekananda Sporting Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 104, name: "Baliadanga Vidyasagar Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 105, name: "Dreamland Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 106, name: "Sonarpur Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 107, name: "Basudeb Pur Boys Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 108, name: "Bijoy Nagar Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 109, name: "Islampur Shongho", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 110, name: "Amral Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 111, name: "Dinabondhu Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 112, name: "Amra Sobai Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 113, name: "Bediapara Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 114, name: "Agomoni Sangha", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 115, name: "United Club Habra", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 116, name: "Akra Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 117, name: "Gandacherra Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 118, name: "Nalkura Arobindo Sriti Sangha", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 119, name: "Club Angan", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 120, name: "Deshbondhu Park", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 }
+  ],
+  "Group F": [
+    { id: 121, name: "Ferozpur United", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 122, name: "Milan Sangha Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 123, name: "Arunchal Rajas", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 124, name: "Yuba Sanga Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 125, name: "Keonjhar Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 126, name: "Basirhat Association", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 127, name: "Club Ranchi", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 128, name: "Ratnagiri Maharashtra United", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 129, name: "Basirhat Bhyabla", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 130, name: "Puranpur Warriors", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 131, name: "Gorakhpur Fighters", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 132, name: "Surya Sangha", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 133, name: "Pally Unnayan Sangha", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 134, name: "Meerut Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 135, name: "Mumbai Warriors", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 136, name: "Sondalia Bandhob Sriti Songho Sporting Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 137, name: "Shimla United", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 138, name: "Navi Mumbai Kings", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 139, name: "Madhay Pradesh Ujjain Kings", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 140, name: "Yuva Kalyan Samiti", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 141, name: "Team Goregaon", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 142, name: "Team Howrah Hunterz", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 143, name: "Aurangabad Maharashtra Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 144, name: "Kamarthuba Pragati Sangha", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 }
+  ],
+  "Group G": [
+    { id: 145, name: "Team Ankola", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 146, name: "Madhyamgram Santi Sangram", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 147, name: "Team Maharastra", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 148, name: "Nagpur Zen1Ns", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 149, name: "Bihar Bhagalpur Lions", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 150, name: "Patancheru Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 151, name: "Team Dallupura", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 152, name: "Dinobondhu Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 153, name: "Greater Noida Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 154, name: "Club Delhi", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 155, name: "Jaipur Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 156, name: "Meghalaya Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 157, name: "Jharkhand Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 158, name: "Hyderabad Kings", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 159, name: "Sirsa United", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 160, name: "Kalyangarh Ramkrishna Seba Samity", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 161, name: "Kalanchi Biplabi Sangha", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 162, name: "Diamond Harbour Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 163, name: "Haridwar Kings", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 164, name: "Nashik Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 165, name: "Borivali Group", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 166, name: "Behala Songho", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 167, name: "Madhya Pradesh United", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 168, name: "Padgha Kings", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 }
+  ],
+  "Group H": [
+    { id: 169, name: "Abdalpur Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 170, name: "Maslandapur Akos Songho", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 171, name: "Kamdevkati Dakshinpara Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 172, name: "Dharavi Boys", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 173, name: "Borivali Kings", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 174, name: "Team Bhagalpur", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 175, name: "Gujarat Sarkar'S", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 176, name: "Thane Walkers", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 177, name: "Ajmer Warriors", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 178, name: "Meerut Falcon", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 179, name: "New Delhi Viod", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 180, name: "Shimpoli Fighters", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 181, name: "Palghar Yodha", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 182, name: "Team Telangana", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 183, name: "Goat Ararka", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 184, name: "Kalamboli Club", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 185, name: "Pune Kings", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 186, name: "Team Purkazi", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 187, name: "Bhuj Warriors", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 188, name: "Sopara Friends", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 189, name: "Kanpur Lions", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 190, name: "Meerut Legacy", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 191, name: "Habra Kings", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 },
+    { id: 192, name: "BIRBHUM United", kills: 0, position: 0, positionPoints: 0, totalPoints: 0 }
+  ]
+};
+
+// Position points mapping
+const POSITION_POINTS = {
+  1: 10, 2: 6, 3: 5, 4: 4, 5: 3, 6: 2, 7: 1, 8: 1
+};
+
+// Group status types
+type GroupStatus = 'upcoming' | 'live' | 'calculating' | 'completed';
+
+interface Team {
+  id: number;
+  name: string;
+  kills: number;
+  position: number;
+  positionPoints: number;
+  totalPoints: number;
+}
+
+interface MatchResult {
+  teamName: string;
+  kills: number;
+  position: number;
+}
+
+interface GroupInfo {
+  name: string;
+  status: GroupStatus;
+  scheduledTime: string;
+  matchTime: string;
+}
+
+// Group schedule information
+const GROUP_SCHEDULE: Record<string, GroupInfo> = {
+  "Group A": { name: "Group A", status: 'upcoming', scheduledTime: "August 5, 8:00 PM IST", matchTime: "8:00 PM" },
+  "Group B": { name: "Group B", status: 'upcoming', scheduledTime: "August 5, 9:00 PM IST", matchTime: "9:00 PM" },
+  "Group C": { name: "Group C", status: 'upcoming', scheduledTime: "August 5, 10:00 PM IST", matchTime: "10:00 PM" },
+  "Group D": { name: "Group D", status: 'upcoming', scheduledTime: "August 6, 8:00 PM IST", matchTime: "8:00 PM" },
+  "Group E": { name: "Group E", status: 'upcoming', scheduledTime: "August 6, 9:00 PM IST", matchTime: "9:00 PM" },
+  "Group F": { name: "Group F", status: 'upcoming', scheduledTime: "August 6, 10:00 PM IST", matchTime: "10:00 PM" },
+  "Group G": { name: "Group G", status: 'upcoming', scheduledTime: "August 7, 8:00 PM IST", matchTime: "8:00 PM" },
+  "Group H": { name: "Group H", status: 'upcoming', scheduledTime: "August 7, 9:00 PM IST", matchTime: "9:00 PM" }
+};
+
+export default function ZBCCLeaderboardPage() {
+  const router = useRouter();
+  const { isAuthenticated, loading, user } = useSelector((state: RootState) => state.auth);
+  const [teams, setTeams] = useState<Record<string, Team[]>>(TEAMS_DATA);
+  const [selectedGroup, setSelectedGroup] = useState<string>("Group A");
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [showAdminPanel, setShowAdminPanel] = useState(false);
+  const [matchResults, setMatchResults] = useState<MatchResult[]>([]);
+  const [newResult, setNewResult] = useState<MatchResult>({ teamName: '', kills: 0, position: 0 });
+  const [groupSchedule, setGroupSchedule] = useState<Record<string, GroupInfo>>(GROUP_SCHEDULE);
+  const [savedData, setSavedData] = useState<string>('');
+
+  // Load saved data from localStorage on component mount
+  useEffect(() => {
+    const savedTeams = localStorage.getItem('zbcc_teams_data');
+    const savedSchedule = localStorage.getItem('zbcc_group_schedule');
+    const savedResults = localStorage.getItem('zbcc_match_results');
+    
+    if (savedTeams) {
+      setTeams(JSON.parse(savedTeams));
+    }
+    if (savedSchedule) {
+      setGroupSchedule(JSON.parse(savedSchedule));
+    }
+    if (savedResults) {
+      setMatchResults(JSON.parse(savedResults));
+    }
+  }, []);
+
+  // Save data to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('zbcc_teams_data', JSON.stringify(teams));
+    localStorage.setItem('zbcc_group_schedule', JSON.stringify(groupSchedule));
+    localStorage.setItem('zbcc_match_results', JSON.stringify(matchResults));
+  }, [teams, groupSchedule, matchResults]);
+
+  useEffect(() => {
+    if (!loading && !isAuthenticated) {
+      router.push('/login?redirect=/tournaments/zbcc-season1/leaderboard');
+    }
+    
+    // Check if user is admin
+    if (user?.role === 'admin' || user?.role === 'superadmin') {
+      setIsAdmin(true);
+    }
+  }, [isAuthenticated, loading, router, user]);
+
+  // Calculate total points
+  const calculateTotalPoints = (kills: number, position: number) => {
+    const positionPoints = POSITION_POINTS[position as keyof typeof POSITION_POINTS] || 0;
+    return kills + positionPoints;
+  };
+
+  // Sort teams by total points (descending)
+  const sortTeamsByPoints = (teamList: Team[]) => {
+    return [...teamList].sort((a, b) => {
+      if (b.totalPoints !== a.totalPoints) {
+        return b.totalPoints - a.totalPoints;
+      }
+      if (b.kills !== a.kills) {
+        return b.kills - a.kills;
+      }
+      return a.position - b.position;
+    });
+  };
+
+  // Update team scores
+  const updateTeamScores = (groupName: string, teamName: string, kills: number, position: number) => {
+    setTeams(prev => {
+      const updatedTeams = { ...prev };
+      const group = updatedTeams[groupName];
+      if (group) {
+        const teamIndex = group.findIndex(team => team.name === teamName);
+        if (teamIndex !== -1) {
+          const positionPoints = POSITION_POINTS[position as keyof typeof POSITION_POINTS] || 0;
+          const totalPoints = kills + positionPoints;
+          
+          group[teamIndex] = {
+            ...group[teamIndex],
+            kills,
+            position,
+            positionPoints,
+            totalPoints
+          };
+        }
+      }
+      return updatedTeams;
+    });
+  };
+
+  // Update group status
+  const updateGroupStatus = (groupName: string, status: GroupStatus) => {
+    setGroupSchedule(prev => ({
+      ...prev,
+      [groupName]: {
+        ...prev[groupName],
+        status
+      }
+    }));
+  };
+
+  // Export data to JSON
+  const exportData = () => {
+    const data = {
+      teams,
+      groupSchedule,
+      matchResults,
+      exportDate: new Date().toISOString()
+    };
+    const dataStr = JSON.stringify(data, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `zbcc-leaderboard-${new Date().toISOString().split('T')[0]}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // Import data from JSON
+  const importData = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = JSON.parse(e.target?.result as string);
+          if (data.teams) setTeams(data.teams);
+          if (data.groupSchedule) setGroupSchedule(data.groupSchedule);
+          if (data.matchResults) setMatchResults(data.matchResults);
+        } catch (error) {
+          alert('Invalid JSON file');
+        }
+      };
+      reader.readAsText(file);
+    }
+  };
+
+  // Add match result
+  const addMatchResult = () => {
+    if (newResult.teamName && newResult.position > 0) {
+      setMatchResults(prev => [...prev, newResult]);
+      updateTeamScores(selectedGroup, newResult.teamName, newResult.kills, newResult.position);
+      setNewResult({ teamName: '', kills: 0, position: 0 });
+    }
+  };
+
+  // Remove match result
+  const removeMatchResult = (index: number) => {
+    setMatchResults(prev => prev.filter((_, i) => i !== index));
+  };
+
+  // Reset all scores
+  const resetScores = () => {
+    setTeams(TEAMS_DATA);
+    setMatchResults([]);
+    setGroupSchedule(GROUP_SCHEDULE);
+    localStorage.removeItem('zbcc_teams_data');
+    localStorage.removeItem('zbcc_group_schedule');
+    localStorage.removeItem('zbcc_match_results');
+  };
+
+  // Get status color and animation
+  const getStatusColor = (status: GroupStatus) => {
+    switch (status) {
+      case 'upcoming': return 'text-gray-400';
+      case 'live': return 'text-red-500 animate-pulse';
+      case 'calculating': return 'text-yellow-500 animate-spin';
+      case 'completed': return 'text-green-500';
+      default: return 'text-gray-400';
+    }
+  };
+
+  const getStatusIcon = (status: GroupStatus) => {
+    switch (status) {
+      case 'upcoming': return '⏰';
+      case 'live': return '🔴';
+      case 'calculating': return '⚡';
+      case 'completed': return '✅';
+      default: return '⏰';
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-white text-xl">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return null;
+  }
+
+  const currentGroupTeams = sortTeamsByPoints(teams[selectedGroup] || []);
+
+  return (
+    <div className="min-h-screen bg-gray-900">
+      {/* Header */}
+      <div className="container mx-auto px-4 pt-6">
+        <div className="flex justify-between items-center mb-6">
+          <button
+            onClick={() => window.history.back()}
+            className="flex items-center gap-2 text-white hover:text-blue-400 transition-colors"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            <span className="font-semibold">Back to Tournament</span>
+          </button>
+          
+          {/* Data Management Buttons */}
+          {isAdmin && (
+            <div className="flex gap-2">
+              <button
+                onClick={exportData}
+                className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm"
+              >
+                Export Data
+              </button>
+              <label className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm cursor-pointer">
+                Import Data
+                <input
+                  type="file"
+                  accept=".json"
+                  onChange={importData}
+                  className="hidden"
+                />
+              </label>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="container mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-white mb-2">
+            ZBCC Season 1 Leaderboard
+          </h1>
+          <p className="text-gray-400">
+            Live tournament standings and match results
+          </p>
+        </div>
+
+          {/* Group Status Overview */}
+          <div className="mb-6">
+            <h3 className="text-xl font-bold text-white mb-4">Tournament Groups Status</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {Object.entries(groupSchedule).map(([groupName, groupInfo]) => (
+                <div key={groupName} className="bg-gray-800 p-4 rounded-lg border border-gray-700">
+                  <div className="flex justify-between items-center mb-2">
+                    <h4 className="text-white font-semibold">{groupName}</h4>
+                    <span className={`text-lg ${getStatusColor(groupInfo.status)}`}>
+                      {getStatusIcon(groupInfo.status)}
+                    </span>
+                  </div>
+                  <p className="text-gray-400 text-sm mb-2">{groupInfo.scheduledTime}</p>
+                  <p className={`text-sm font-medium ${getStatusColor(groupInfo.status)}`}>
+                    {groupInfo.status.charAt(0).toUpperCase() + groupInfo.status.slice(1)}
+                  </p>
+                  
+                  {/* Admin Controls */}
+                  {isAdmin && (
+                    <div className="mt-3 space-y-1">
+                      <select
+                        value={groupInfo.status}
+                        onChange={(e) => updateGroupStatus(groupName, e.target.value as GroupStatus)}
+                        className="w-full bg-gray-700 text-white px-2 py-1 rounded text-xs border border-gray-600"
+                      >
+                        <option value="upcoming">Upcoming</option>
+                        <option value="live">Live</option>
+                        <option value="calculating">Calculating</option>
+                        <option value="completed">Completed</option>
+                      </select>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Admin Panel Toggle */}
+          {isAdmin && (
+            <div className="mb-6">
+              <button
+                onClick={() => setShowAdminPanel(!showAdminPanel)}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+              >
+                {showAdminPanel ? 'Hide Admin Panel' : 'Show Admin Panel'}
+              </button>
+            </div>
+          )}
+
+          {/* Admin Panel */}
+          {isAdmin && showAdminPanel && (
+            <div className="bg-gray-800 p-6 rounded-lg mb-6">
+              <h3 className="text-xl font-bold text-white mb-4">Admin Panel - Match Results</h3>
+              
+              {/* Group Selection */}
+              <div className="mb-4">
+                <label className="block text-white mb-2">Select Group:</label>
+                <select
+                  value={selectedGroup}
+                  onChange={(e) => setSelectedGroup(e.target.value)}
+                  className="bg-gray-700 text-white px-3 py-2 rounded border border-gray-600"
+                >
+                  {Object.keys(teams).map(group => (
+                    <option key={group} value={group}>{group}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Add Match Result */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                <div>
+                  <label className="block text-white mb-2">Team Name:</label>
+                  <select
+                    value={newResult.teamName}
+                    onChange={(e) => setNewResult(prev => ({ ...prev, teamName: e.target.value }))}
+                    className="w-full bg-gray-700 text-white px-3 py-2 rounded border border-gray-600"
+                  >
+                    <option value="">Select Team</option>
+                    {teams[selectedGroup]?.map(team => (
+                      <option key={team.id} value={team.name}>{team.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-white mb-2">Kills:</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={newResult.kills}
+                    onChange={(e) => setNewResult(prev => ({ ...prev, kills: parseInt(e.target.value) || 0 }))}
+                    className="w-full bg-gray-700 text-white px-3 py-2 rounded border border-gray-600"
+                  />
+                </div>
+                <div>
+                  <label className="block text-white mb-2">Position:</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="24"
+                    value={newResult.position}
+                    onChange={(e) => setNewResult(prev => ({ ...prev, position: parseInt(e.target.value) || 0 }))}
+                    className="w-full bg-gray-700 text-white px-3 py-2 rounded border border-gray-600"
+                  />
+                </div>
+                <div className="flex items-end">
+                  <button
+                    onClick={addMatchResult}
+                    className="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded transition-colors"
+                  >
+                    Add Result
+                  </button>
+                </div>
+              </div>
+
+              {/* Match Results List */}
+              {matchResults.length > 0 && (
+                <div className="mb-4">
+                  <h4 className="text-white font-semibold mb-2">Recent Match Results:</h4>
+                  <div className="bg-gray-700 p-4 rounded">
+                    {matchResults.map((result, index) => (
+                      <div key={index} className="flex justify-between items-center py-2 border-b border-gray-600">
+                        <span className="text-white">
+                          {result.teamName} - Kills: {result.kills}, Position: {result.position}
+                        </span>
+                        <button
+                          onClick={() => removeMatchResult(index)}
+                          className="text-red-400 hover:text-red-300"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Reset Button */}
+              <button
+                onClick={resetScores}
+                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded transition-colors"
+              >
+                Reset All Scores
+              </button>
+            </div>
+          )}
+
+          {/* Group Selection for Viewing */}
+          <div className="mb-6">
+            <label className="block text-white mb-2">View Group:</label>
+            <select
+              value={selectedGroup}
+              onChange={(e) => setSelectedGroup(e.target.value)}
+              className="bg-gray-700 text-white px-3 py-2 rounded border border-gray-600"
+            >
+              {Object.keys(teams).map(group => (
+                <option key={group} value={group}>{group}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Leaderboard Table */}
+          <div className="bg-gray-800 rounded-lg overflow-hidden">
+            <div className="p-4 border-b border-gray-700">
+              <h2 className="text-2xl font-bold text-white">{selectedGroup} Leaderboard</h2>
+              <p className="text-gray-400 text-sm">
+                Position Points: 1st(10), 2nd(6), 3rd(5), 4th(4), 5th(3), 6th(2), 7th-8th(1)
+              </p>
+            </div>
+            
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-700">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-white font-semibold">Rank</th>
+                    <th className="px-4 py-3 text-left text-white font-semibold">Team Name</th>
+                    <th className="px-4 py-3 text-center text-white font-semibold">Kills</th>
+                    <th className="px-4 py-3 text-center text-white font-semibold">Position</th>
+                    <th className="px-4 py-3 text-center text-white font-semibold">Position Points</th>
+                    <th className="px-4 py-3 text-center text-white font-semibold">Total Points</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {currentGroupTeams.map((team, index) => (
+                    <tr 
+                      key={team.id} 
+                      className={`border-b border-gray-700 hover:bg-gray-700 ${
+                        index < 12 ? 'bg-green-900 bg-opacity-20 border-l-4 border-l-green-500' : ''
+                      }`}
+                    >
+                      <td className="px-4 py-3 text-white font-semibold">
+                        {index + 1}
+                        {index < 12 && (
+                          <span className="ml-2 text-green-400 text-xs">🏆</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-white">
+                        {team.name}
+                        {index < 12 && (
+                          <span className="ml-2 text-green-400 text-xs font-medium">QUALIFIED</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-center text-white">
+                        {team.kills}
+                      </td>
+                      <td className="px-4 py-3 text-center text-white">
+                        {team.position || '-'}
+                      </td>
+                      <td className="px-4 py-3 text-center text-white">
+                        {team.positionPoints}
+                      </td>
+                      <td className="px-4 py-3 text-center text-white font-bold">
+                        {team.totalPoints}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Legend */}
+          <div className="mt-6 bg-gray-800 p-4 rounded-lg">
+            <h3 className="text-white font-semibold mb-2">Scoring System:</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-300">
+              <div>
+                <p><strong>Position Points:</strong></p>
+                <ul className="list-disc list-inside">
+                  <li>1st Place: 10 points</li>
+                  <li>2nd Place: 6 points</li>
+                  <li>3rd Place: 5 points</li>
+                  <li>4th Place: 4 points</li>
+                  <li>5th Place: 3 points</li>
+                  <li>6th Place: 2 points</li>
+                  <li>7th-8th Place: 1 point each</li>
+                </ul>
+              </div>
+              <div>
+                <p><strong>Kill Points:</strong></p>
+                <ul className="list-disc list-inside">
+                  <li>Each kill: 1 point</li>
+                  <li>No limit on kills</li>
+                </ul>
+                <p className="mt-2"><strong>Total Points = Position Points + Kill Points</strong></p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+} 

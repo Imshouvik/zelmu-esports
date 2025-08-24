@@ -154,8 +154,20 @@ export default function DashboardSidebar({ isOpen = false, onClose }: DashboardS
   }, [isOpen]);
 
   const handleLogout = async () => {
-    await supabase!.auth.signOut();
-    window.location.href = '/login';
+    // Stop audio before logout
+    if (typeof window !== 'undefined' && (window as any).stopAudioOnLogout) {
+      try {
+        (window as any).stopAudioOnLogout();
+      } catch (error) {
+        // Silent error handling
+      }
+    }
+    
+    // Add a small delay to ensure audio stops before redirect
+    setTimeout(async () => {
+      await supabase!.auth.signOut();
+      window.location.href = '/login';
+    }, 100);
   };
 
   const handleAvatarClick = () => {

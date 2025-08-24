@@ -98,39 +98,23 @@ export default function RegisterPage() {
     }
 
     try {
-      // Step 0: Check if email already exists in users table
-      const { data: existingUser, error: checkError } = await supabase!
-        .from('users')
-        .select('id, email, created_at')
-        .eq('email', email)
-        .single()
-
-      if (existingUser) {
-        // Email exists in users table
-        setError('An account with this email already exists. Please try logging in instead.')
-        setLoading(false)
-        return
-      }
-
-      // Step 1: Create the user in Supabase Auth with redirectTo option
+      console.log('Starting registration process for:', email)
+      
+      // Step 1: Create the user in Supabase Auth with metadata
       const { data, error: signUpError } = await supabase!.auth.signUp({
         email,
         password,
         options: {
-          data: { 
-            name, 
-            phone,
-            country,
-            state,
-            city,
-            zelmuname,
-            full_name: name // Add this for better compatibility
+          data: {
+            full_name: name,
+            name: name
           },
           emailRedirectTo: `${window.location.origin}/login`
         }
       })
 
       if (signUpError) {
+        console.error('Supabase Auth signup error:', signUpError)
         // Handle specific Supabase auth errors
         if (signUpError.message.includes('already registered')) {
           setError('An account with this email already exists. Please try logging in instead.')
@@ -141,11 +125,34 @@ export default function RegisterPage() {
         return
       }
 
+      if (!data.user) {
+        console.error('No user returned from auth signup')
+        setError('Failed to create account. Please try again.')
+        setLoading(false)
+        return
+      }
+
       if (data.user) {
-        // Step 2: Immediately create user in users table with all details
-        const { error: insertError } = await supabase!
+        console.log('User created successfully in Supabase Auth:', data.user.id)
+        
+        // Wait a moment for auth user to be fully created
+        await new Promise(resolve => setTimeout(resolve, 500))
+        
+        // Create the user in users table
+        console.log('Creating user in users table with data:', {
+          id: data.user.id,
+          email,
+          name,
+          phone,
+          country,
+          state,
+          city,
+          zelmuname
+        })
+        
+        const { error: insertError, data: insertData } = await supabase!
           .from('users')
-          .insert([{ 
+          .insert({ 
             id: data.user.id, 
             email, 
             name, 
@@ -154,32 +161,57 @@ export default function RegisterPage() {
             state,
             city,
             zelmuname,
-            created_at: new Date().toISOString(),
             role: 'user',
             avatar_url: avatarUrl
-          }])
+          })
+          .select()
 
         if (insertError) {
-          console.error('Error creating user in database:', insertError)
-          setError('Failed to create user profile. Please try again.')
-          setLoading(false)
-          return
+          console.error('Detailed error creating user in database:', {
+            error: insertError,
+            message: insertError.message,
+            details: insertError.details,
+            hint: insertError.hint,
+            code: insertError.code
+          })
+          
+          // Try to update instead of insert in case user exists
+          const { error: updateError } = await supabase!
+            .from('users')
+            .update({ 
+              email, 
+              name, 
+              phone, 
+              country,
+              state,
+              city,
+              zelmuname,
+              avatar_url: avatarUrl
+            })
+            .eq('id', data.user.id)
+          
+          if (updateError) {
+            console.error('Update also failed:', updateError)
+            setError(`Failed to create user profile: ${insertError.message}`)
+            setLoading(false)
+            return
+          } else {
+            console.log('User updated successfully instead of inserted')
+          }
+        } else {
+          console.log('User inserted successfully:', insertData)
         }
-
-        console.log('User created successfully in database with phone number:', phone)
         
-        // Step 3: Check if there's a pending invite code
+        console.log('User profile saved successfully!')
+        
+        // Check if there's a pending invite code
         const pendingInviteCode = localStorage.getItem('pendingInviteCode')
-        
         if (pendingInviteCode) {
-          // Clear the pending invite code
           localStorage.removeItem('pendingInviteCode')
         }
         
         // Redirect to login with success message
-        console.log('Registration successful, redirecting to login...')
         router.push('/login?message=email_sent&email=' + encodeURIComponent(email))
-        console.log('Redirect command sent to login')
       }
     } catch (err) {
       console.error('Registration error:', err)

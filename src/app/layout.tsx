@@ -5,12 +5,25 @@ import { Providers } from './providers'
 import { Toaster } from 'react-hot-toast'
 import NotificationSetup from './NotificationSetup'
 import AuthSyncProvider from './AuthSyncProvider'
+import LiveStreamIndicator from '@/components/LiveStreamIndicator'
+import { AudioProvider } from '@/contexts/AudioContext'
+import GoogleAnalytics from '@/components/GoogleAnalytics'
 
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: 'Zelmu Esports - Professional Mobile Gaming Platform',
   description: 'Join the ultimate mobile gaming platform for BGMI and Free Fire tournaments',
+  icons: {
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/favicon.ico', sizes: '32x32' },
+    ],
+    apple: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+    ],
+    shortcut: '/favicon.svg',
+  },
 }
 
 export default function RootLayout({
@@ -21,7 +34,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <link rel="icon" href="/favicon.ico" />
+        
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -36,13 +51,17 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className}>
+        <GoogleAnalytics />
         <NotificationSetup />
-        <Providers>
-          <AuthSyncProvider>
-            {children}
-          </AuthSyncProvider>
-          <Toaster position="top-center" />
-        </Providers>
+        <AudioProvider>
+          <Providers>
+            <AuthSyncProvider>
+              {children}
+              <LiveStreamIndicator />
+            </AuthSyncProvider>
+            <Toaster position="top-center" />
+          </Providers>
+        </AudioProvider>
       </body>
     </html>
   )

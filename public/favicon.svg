@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Dark background -->
+  <rect width="32" height="32" fill="#1a103a" rx="4"/>
+  
+  <!-- White Z letter -->
+  <path d="M8 8 L24 8 L8 24 L24 24" stroke="white" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Optional: Add a subtle glow effect -->
+  <path d="M8 8 L24 8 L8 24 L24 24" stroke="#4ecdc4" stroke-width="1" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.6"/>
+</svg>

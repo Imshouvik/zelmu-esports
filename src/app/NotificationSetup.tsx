@@ -15,6 +15,7 @@ const VAPID_KEY = 'BKKnWz8gEgTbgihzBowSE90_lMZ2lYWXE06ByN1Uf_hFp-3yglYRELYosMKUd
 export default function NotificationSetup() {
   const [permissionStatus, setPermissionStatus] = useState<string>('default');
   const [isClient, setIsClient] = useState(false);
+  const [hasShownPrompt, setHasShownPrompt] = useState(false);
 
   const requestNotificationPermission = async () => {
     if (typeof window !== 'undefined' && 'Notification' in window) {
@@ -62,12 +63,18 @@ export default function NotificationSetup() {
     // Mark as client-side rendered
     setIsClient(true);
     
+    // Check if we've already shown the prompt before
+    const hasShownBefore = localStorage.getItem('notification_prompt_shown');
+    if (hasShownBefore) {
+      setHasShownPrompt(true);
+    }
+    
     // Check current permission status
     if (typeof window !== 'undefined' && 'Notification' in window) {
       setPermissionStatus(Notification.permission);
       
-      // If permission is not granted, request it
-      if (Notification.permission === 'default') {
+      // If permission is not granted and we haven't shown the prompt before, request it
+      if (Notification.permission === 'default' && !hasShownBefore) {
         requestNotificationPermission();
       } else if (Notification.permission === 'granted') {
         // Permission already granted, proceed with setup
@@ -89,12 +96,30 @@ export default function NotificationSetup() {
   }
 
   // Show a small indicator for debugging (you can remove this later)
-  if (permissionStatus === 'default' && typeof window !== 'undefined') {
+  if (permissionStatus === 'default' && typeof window !== 'undefined' && !hasShownPrompt) {
     return (
       <div style={{ position: 'fixed', top: '10px', right: '10px', zIndex: 9999, background: 'rgba(0,0,0,0.8)', color: 'white', padding: '10px', borderRadius: '5px', fontSize: '12px' }}>
         <div>Notification: {permissionStatus}</div>
-        <button onClick={requestNotificationPermission} style={{ background: '#007bff', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '3px', cursor: 'pointer', marginTop: '5px' }}>
+        <button 
+          onClick={() => {
+            requestNotificationPermission();
+            // Mark that we've shown the prompt
+            localStorage.setItem('notification_prompt_shown', 'true');
+            setHasShownPrompt(true);
+          }} 
+          style={{ background: '#007bff', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '3px', cursor: 'pointer', marginTop: '5px' }}
+        >
           Enable Notifications
+        </button>
+        <button 
+          onClick={() => {
+            // Mark that we've shown the prompt (user dismissed)
+            localStorage.setItem('notification_prompt_shown', 'true');
+            setHasShownPrompt(true);
+          }} 
+          style={{ background: '#6c757d', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '3px', cursor: 'pointer', marginTop: '5px', marginLeft: '5px' }}
+        >
+          Dismiss
         </button>
       </div>
     );

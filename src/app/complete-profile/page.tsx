@@ -86,8 +86,13 @@ export default function CompleteProfilePage() {
           setCity(userRow.city || '');
           setZelmuname(userRow.zelmuname || '');
           
-          // If user already has a phone number, redirect to dashboard
-          if (userRow.phone) {
+          // If user already has complete profile, redirect to dashboard
+          const isProfileComplete = userRow.phone && 
+                                   userRow.country && 
+                                   userRow.state && 
+                                   userRow.city;
+          
+          if (isProfileComplete) {
             router.push('/dashboard')
             return
           }
